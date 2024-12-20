@@ -1,30 +1,30 @@
-import { NavItem } from '../NavItem/NavItem';
+import { NavItemWrapper } from '../NavItemWrapper/NavItemWrapper';
 
 export const Navbar = () => {
   return (
     <nav>
       <ul className="flex justify-center">
-        <NavItem
+        <NavItemWrapper
           label="Add Artists"
           action={{ type: 'add item', actionType: 'artist' }}
         />
-        <NavItem
+        <NavItemWrapper
           label="Add Albums"
           action={{ type: 'add item', actionType: 'album' }}
         />
-        <NavItem
+        <NavItemWrapper
           label="Add Songs"
           action={{ type: 'add item', actionType: 'song' }}
         />
-        <NavItem
+        <NavItemWrapper
           label="View Artists"
           action={{ type: 'navigation', url: 'artists' }}
         />
-        <NavItem
+        <NavItemWrapper
           label="View Albums"
           action={{ type: 'navigation', url: 'albums' }}
         />
-        <NavItem
+        <NavItemWrapper
           label="View Songs"
           action={{ type: 'navigation', url: 'songs' }}
         />
