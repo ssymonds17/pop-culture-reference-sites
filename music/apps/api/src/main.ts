@@ -1,18 +1,13 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import express from 'express';
-import * as path from 'path';
 
 const app = express();
 
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+const { apiRouter } = require('./routes');
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to api!' });
-});
+app.use('/api', apiRouter);
+
+// Respond with Hello World! on the homepage:
+app.get('/', (req, res) => res.send('Hello World!'));
 
 const port = process.env.PORT || 8888;
 const server = app.listen(port, () => {
