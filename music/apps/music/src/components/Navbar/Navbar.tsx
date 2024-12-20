@@ -4,9 +4,18 @@ export const Navbar = () => {
   return (
     <nav>
       <ul className="flex justify-center">
-        <li className="p-2 m-2 border-2">Add Artist</li>
-        <li className="p-2 m-2 border-2">Add Album</li>
-        <li className="p-2 m-2 border-2">Add Song</li>
+        <NavItem
+          label="Add Artists"
+          action={{ type: 'add item', actionType: 'artist' }}
+        />
+        <NavItem
+          label="Add Albums"
+          action={{ type: 'add item', actionType: 'album' }}
+        />
+        <NavItem
+          label="Add Songs"
+          action={{ type: 'add item', actionType: 'song' }}
+        />
         <NavItem
           label="View Artists"
           action={{ type: 'navigation', url: 'artists' }}

@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 
 type NavigationAction = {
@@ -19,7 +20,9 @@ type NavItemProps = {
 
 export const NavItem = ({ label, action }: NavItemProps) => {
   const handleClick = () => {
-    console.log('actionType');
+    if (action.type === 'add item') {
+      console.log('actionType', action.actionType);
+    }
   };
 
   if (action.type === 'navigation') {
@@ -37,7 +40,6 @@ export const NavItem = ({ label, action }: NavItemProps) => {
       <button type="button" onClick={handleClick}>
         {label}
       </button>
-      {label}
     </li>
   );
 };
