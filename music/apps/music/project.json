@@ -1,0 +1,47 @@
+{
+  "name": "music",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/music",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project music --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/music"
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "apps/music"
+        },
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/next:server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4444,
+        "buildTarget": "music:build",
+        "dev": true
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "music:build:development",
+          "dev": true
+        },
+        "mock": {
+          "buildTarget": "music:build:development",
+          "dev": true
+        },
+        "production": {
+          "buildTarget": "music:build:production",
+          "dev": false
+        }
+      }
+    }
+  }
+}
