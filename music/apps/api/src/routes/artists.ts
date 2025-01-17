@@ -9,8 +9,6 @@ import {
   ScanCommand,
   ScanCommandInput,
   ScanCommandOutput,
-  UpdateCommandInput,
-  UpdateCommandOutput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { v7 as uuidv7 } from 'uuid';
