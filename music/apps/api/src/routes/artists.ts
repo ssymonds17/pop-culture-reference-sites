@@ -6,6 +6,9 @@ import {
   GetCommandOutput,
   PutCommand,
   DeleteCommand,
+  ScanCommand,
+  ScanCommandInput,
+  ScanCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { v7 as uuidv7 } from 'uuid';
 import bodyParser from 'body-parser';
@@ -14,7 +17,7 @@ import bodyParser from 'body-parser';
 export const artistsRouter = express.Router();
 const jsonParser = bodyParser.json();
 
-// Respond to a GET request to the /api/artists route:
+// Respond to a GET request to the /api/artists/:artistId route:
 artistsRouter.get('/:artistId', async (req, res) => {
   console.log('GETTING ARTIST BY ID');
   const params: GetCommandInput = {
@@ -29,15 +32,41 @@ artistsRouter.get('/:artistId', async (req, res) => {
       new GetCommand(params)
     );
 
-    res.send({
+    if (!result.Item) {
+      throw new Error('Artist not found');
+    }
+
+    res.status(200).send({
       message: 'Successfully retrieved artist',
-      status: 200,
       artist: result.Item,
     });
   } catch (error) {
-    res.send({
+    res.status(404).send({
       message: 'Could not find artist',
       status: 404,
+    });
+  }
+});
+
+// Respond to a GET request to the /api/artists route:
+artistsRouter.get('/', async (req, res) => {
+  console.log('GETTING ALL ARTIST');
+  const params: ScanCommandInput = {
+    TableName: ARTISTS_TABLE_NAME,
+  };
+
+  try {
+    const result: ScanCommandOutput = await documentClient.send(
+      new ScanCommand(params)
+    );
+
+    res.status(200).send({
+      message: 'Successfully retrieved artists',
+      artist: result.Items,
+    });
+  } catch (error) {
+    res.status(404).send({
+      message: 'Could not find artists',
     });
   }
 });
@@ -79,12 +108,12 @@ artistsRouter.post('/', jsonParser, async (req, res) => {
   }
 });
 
-// Respond to a PUT request to the /api/artists route:
+// Respond to a PUT request to the /api/artists/:artistId route:
 artistsRouter.put('/:artistId', (req, res) =>
   res.send('Got a PUT request at /api/artists')
 );
 
-// Respond to a DELETE request to the /api/artists route:
+// Respond to a DELETE request to the /api/artists/:artistId route:
 artistsRouter.delete('/:artistId', async (req, res) => {
   console.log('DELETING ARTIST BY ID');
   const command = new DeleteCommand({
