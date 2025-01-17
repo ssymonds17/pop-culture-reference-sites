@@ -16,6 +16,7 @@ const jsonParser = bodyParser.json();
 
 // Respond to a GET request to the /api/artists route:
 artistsRouter.get('/:artistId', async (req, res) => {
+  console.log('GETTING ARTIST BY ID');
   const params: GetCommandInput = {
     TableName: ARTISTS_TABLE_NAME,
     Key: {
@@ -43,12 +44,17 @@ artistsRouter.get('/:artistId', async (req, res) => {
 
 // Respond to a POST request to the /api/artists route:
 artistsRouter.post('/', jsonParser, async (req, res) => {
+  console.log('CREATING ARTIST');
   const id = uuidv7();
   const command = new PutCommand({
     TableName: ARTISTS_TABLE_NAME,
     Item: {
       id,
       name: req.body.name,
+      songs: 0,
+      silverAlbums: 0,
+      goldAlbums: 0,
+      score: 0,
     },
   });
 
@@ -60,6 +66,10 @@ artistsRouter.post('/', jsonParser, async (req, res) => {
       artist: {
         id,
         name: req.body.name,
+        songs: 0,
+        silverAlbums: 0,
+        goldAlbums: 0,
+        score: 0,
       },
     });
   } catch (error) {
@@ -75,12 +85,8 @@ artistsRouter.put('/:artistId', (req, res) =>
 );
 
 // Respond to a DELETE request to the /api/artists route:
-artistsRouter.delete('/', (req, res) =>
-  res.send('Got a DELETE request at /api/artists')
-);
-
-// Respond to a POST request to the /api/artists route:
 artistsRouter.delete('/:artistId', async (req, res) => {
+  console.log('DELETING ARTIST BY ID');
   const command = new DeleteCommand({
     TableName: ARTISTS_TABLE_NAME,
     Key: {
