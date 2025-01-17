@@ -5,6 +5,7 @@ import {
   GetCommandInput,
   GetCommandOutput,
   PutCommand,
+  DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { v7 as uuidv7 } from 'uuid';
 import bodyParser from 'body-parser';
@@ -77,3 +78,25 @@ artistsRouter.put('/:artistId', (req, res) =>
 artistsRouter.delete('/', (req, res) =>
   res.send('Got a DELETE request at /api/artists')
 );
+
+// Respond to a POST request to the /api/artists route:
+artistsRouter.delete('/:artistId', async (req, res) => {
+  const command = new DeleteCommand({
+    TableName: ARTISTS_TABLE_NAME,
+    Key: {
+      id: req.params.artistId,
+    },
+  });
+
+  try {
+    await documentClient.send(command);
+
+    res.status(200).send({
+      message: 'Successfully deleted artist',
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: 'Failed to delete artistt',
+    });
+  }
+});
