@@ -71,6 +71,34 @@ artistsRouter.get('/', async (req, res) => {
   }
 });
 
+// Respond to a GET request to the /api/artists/name-search route:
+artistsRouter.get('/name/search', async (req, res) => {
+  console.log('SEARCHING ARTIST BY NAME');
+  const searchQuery = req.query.name as string;
+  const params: ScanCommandInput = {
+    TableName: ARTISTS_TABLE_NAME,
+  };
+
+  try {
+    const result: ScanCommandOutput = await documentClient.send(
+      new ScanCommand(params)
+    );
+
+    const filteredArtists = result.Items.filter((artist) =>
+      artist.name.includes(searchQuery)
+    );
+
+    res.status(200).send({
+      message: 'Successfully retrieved artists',
+      artist: filteredArtists,
+    });
+  } catch (error) {
+    res.status(404).send({
+      message: 'Could not find artists',
+    });
+  }
+});
+
 // Respond to a POST request to the /api/artists route:
 artistsRouter.post('/', jsonParser, async (req, res) => {
   console.log('CREATING ARTIST');
