@@ -9,9 +9,17 @@ import {
   ScanCommand,
   ScanCommandInput,
   ScanCommandOutput,
+  UpdateCommandInput,
+  UpdateCommandOutput,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { v7 as uuidv7 } from 'uuid';
 import bodyParser from 'body-parser';
+import {
+  expressionAttributeNames as buildExpressionAttributeNames,
+  expressionAttributeValues as buildExpressionAttributeValues,
+  updateExpression,
+} from '../helpers';
 
 // Handles requests made to /api/artists
 export const artistsRouter = express.Router();
@@ -43,7 +51,6 @@ artistsRouter.get('/:artistId', async (req, res) => {
   } catch (error) {
     res.status(404).send({
       message: 'Could not find artist',
-      status: 404,
     });
   }
 });
@@ -136,10 +143,40 @@ artistsRouter.post('/', jsonParser, async (req, res) => {
   }
 });
 
-// Respond to a PUT request to the /api/artists/:artistId route:
-artistsRouter.put('/:artistId', (req, res) =>
-  res.send('Got a PUT request at /api/artists')
-);
+// Respond to a PATCH request to the /api/artists/:artistId route:
+artistsRouter.patch('/:artistId', jsonParser, async (req, res) => {
+  console.log('UPDATING ARTIST BY ID');
+
+  const updateData = req.body;
+  const expressionAttributeNames = buildExpressionAttributeNames(updateData);
+  const expressionAttributeValues = buildExpressionAttributeValues(updateData);
+  const conditionParts: string[] = ['attribute_exists(id)'];
+  const conditionExpression = conditionParts.join(' AND ');
+
+  try {
+    await documentClient.send(
+      new UpdateCommand({
+        TableName: ARTISTS_TABLE_NAME,
+        Key: {
+          id: req.params.artistId,
+        },
+        UpdateExpression: `SET ${updateExpression(updateData)}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ConditionExpression: conditionExpression,
+      })
+    );
+
+    res.status(200).send({
+      message: 'Successfully updated artist',
+      artistId: req.params.artistId,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: 'Could not update artist',
+    });
+  }
+});
 
 // Respond to a DELETE request to the /api/artists/:artistId route:
 artistsRouter.delete('/:artistId', async (req, res) => {
