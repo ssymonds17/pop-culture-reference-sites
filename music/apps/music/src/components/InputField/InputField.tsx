@@ -1,23 +1,20 @@
 'use client';
 
 import _ from 'lodash';
-import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react';
+import { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import { Artist } from '../../types';
 
 export const InputField = ({
   id,
+  value,
   setFormValues,
 }: {
   id: string;
-  setFormValues: Dispatch<SetStateAction<Artist>>;
+  setFormValues: Dispatch<SetStateAction<Partial<Artist>>>;
+  value?: string | number;
 }) => {
-  const [inputValue, setInputValue] = useState<string | number | null>(null);
-
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) =>
-    setInputValue(event.target.value);
-
-  const handleOnBlur = () =>
-    setFormValues((prev) => ({ ...prev, [id]: inputValue }));
+    setFormValues((prev) => ({ ...prev, [id]: event.target.value }));
 
   return (
     <>
@@ -26,8 +23,7 @@ export const InputField = ({
       <input
         className="border-2 w-full"
         onChange={handleOnChange}
-        onBlur={handleOnBlur}
-        value={inputValue ?? ''}
+        value={value ?? ''}
         type="text"
         id={id}
         name={id}

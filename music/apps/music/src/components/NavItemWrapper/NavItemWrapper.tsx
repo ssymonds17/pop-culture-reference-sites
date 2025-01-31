@@ -1,4 +1,5 @@
 'use client';
+import { Variation } from '../../types';
 import { AddElementItem } from '../AddElementItem';
 import { NavigationItem } from '../NavigationItem';
 
@@ -9,7 +10,7 @@ type NavigationAction = {
 
 type AddElementAction = {
   type: 'add element';
-  actionType: 'artist' | 'album' | 'song';
+  actionType: Variation;
 };
 
 type NavItemProps = {
@@ -23,7 +24,7 @@ export const NavItemWrapper = ({ label, action }: NavItemProps) => (
       <NavigationItem label={label} url={action.url} />
     )}
     {action.type === 'add element' && (
-      <AddElementItem label={label} actionType={action.actionType} />
+      <AddElementItem label={label} variation={action.actionType} />
     )}
   </li>
 );

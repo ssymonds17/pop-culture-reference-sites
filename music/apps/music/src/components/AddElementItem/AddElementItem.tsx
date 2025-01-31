@@ -1,13 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { Modal } from '../Modal';
+import { Variation } from '../../types';
 
 type AddElementItemProps = {
   label: string;
-  actionType: 'artist' | 'album' | 'song';
+  variation: Variation;
 };
 
-export const AddElementItem = ({ label, actionType }: AddElementItemProps) => {
+export const AddElementItem = ({ label, variation }: AddElementItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const handleClick = () => {
     setIsOpen(true);
@@ -20,7 +21,7 @@ export const AddElementItem = ({ label, actionType }: AddElementItemProps) => {
       <button type="button" onClick={handleClick}>
         {label}
       </button>
-      <Modal isOpen={isOpen} onClose={handleOnClose} type={actionType} />
+      <Modal isOpen={isOpen} onClose={handleOnClose} variation={variation} />
     </>
   );
 };

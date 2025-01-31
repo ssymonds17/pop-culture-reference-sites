@@ -9,11 +9,11 @@ import { ModalHeader } from './ModalHeader';
 type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  type: Variation;
+  variation: Variation;
 };
 
-export const Modal = ({ isOpen, onClose, type }: ModalProps) => {
-  const [formValues, setFormValues] = useState<Artist>({ name: '' });
+export const Modal = ({ isOpen, onClose, variation }: ModalProps) => {
+  const [formValues, setFormValues] = useState<Partial<Artist>>({});
 
   if (!isOpen) return false;
 
@@ -21,11 +21,19 @@ export const Modal = ({ isOpen, onClose, type }: ModalProps) => {
     <div className="flex top-0 left-0 absolute justify-center items-center w-screen h-screen bg-gray-400 bg-opacity-75">
       <div className="flex w-1/2 h-1/2 border-2 bg-opacity-100 bg-white p-2">
         <div className="flex flex-col relative h-full w-full">
-          <ModalHeader type={type} onClose={onClose} />
+          <ModalHeader variation={variation} onClose={onClose} />
           <div>
-            <InputField id="name" setFormValues={setFormValues} />
+            <InputField
+              id="name"
+              value={formValues['name']}
+              setFormValues={setFormValues}
+            />
           </div>
-          <ModalFooter />
+          <ModalFooter
+            formValues={formValues}
+            setFormValues={setFormValues}
+            variation={variation}
+          />
         </div>
       </div>
     </div>

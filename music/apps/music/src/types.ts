@@ -1,4 +1,4 @@
-export type Variation = 'artist' | 'album' | 'song';
+export type Variation = 'artists' | 'albums' | 'songs';
 
 export interface Artist {
   name: string;
