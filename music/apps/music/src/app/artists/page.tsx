@@ -22,6 +22,7 @@ const ArtistsPage = () => {
       const searchArtistsResponse = await axios.get(
         `${API_URL}/artists/name/search?name=${formValues['name']}`
       );
+      setFormValues({});
       setArtists(searchArtistsResponse.data.artist);
     } catch (error) {
       console.log('error', error);
