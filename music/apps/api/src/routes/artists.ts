@@ -18,6 +18,7 @@ import {
   expressionAttributeValues as buildExpressionAttributeValues,
   updateExpression,
 } from '../helpers';
+import _ from 'lodash';
 
 // Handles requests made to /api/artists
 export const artistsRouter = express.Router();
@@ -79,7 +80,7 @@ artistsRouter.get('/', async (req, res) => {
 // Respond to a GET request to the /api/artists/name-search route:
 artistsRouter.get('/name/search', jsonParser, async (req, res) => {
   console.log('SEARCHING ARTIST BY NAME');
-  const searchQuery = req.body.name as string;
+  const searchQuery = req.query.name as string;
   const params: ScanCommandInput = {
     TableName: ARTISTS_TABLE_NAME,
   };
@@ -90,7 +91,7 @@ artistsRouter.get('/name/search', jsonParser, async (req, res) => {
     );
 
     const filteredArtists = result.Items.filter((artist) =>
-      artist.name.includes(searchQuery)
+      _.toLower(artist.name).includes(_.toLower(searchQuery))
     );
 
     res.status(200).send({
