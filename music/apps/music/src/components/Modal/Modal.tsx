@@ -1,4 +1,7 @@
-import { Variation } from '../../types';
+'use client';
+
+import { useState } from 'react';
+import { Artist, Variation } from '../../types';
 import { InputField } from '../InputField';
 import { ModalFooter } from './ModalFooter';
 import { ModalHeader } from './ModalHeader';
@@ -10,6 +13,8 @@ type ModalProps = {
 };
 
 export const Modal = ({ isOpen, onClose, type }: ModalProps) => {
+  const [formValues, setFormValues] = useState<Artist>({ name: '' });
+
   if (!isOpen) return false;
 
   return (
@@ -18,7 +23,7 @@ export const Modal = ({ isOpen, onClose, type }: ModalProps) => {
         <div className="flex flex-col relative h-full w-full">
           <ModalHeader type={type} onClose={onClose} />
           <div>
-            <InputField id="name" />
+            <InputField id="name" setFormValues={setFormValues} />
           </div>
           <ModalFooter />
         </div>
