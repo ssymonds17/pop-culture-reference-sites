@@ -8,18 +8,24 @@ export const InputField = ({
   id,
   value,
   setFormValues,
+  showLabel = true,
 }: {
   id: string;
   setFormValues: Dispatch<SetStateAction<Partial<Artist>>>;
   value?: string | number;
+  showLabel?: boolean;
 }) => {
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) =>
     setFormValues((prev) => ({ ...prev, [id]: event.target.value }));
 
   return (
     <>
-      <label htmlFor={id}>{_.upperFirst(id)}</label>
-      <br />
+      {showLabel && (
+        <>
+          <label htmlFor={id}>{_.upperFirst(id)}</label>
+          <br />
+        </>
+      )}
       <input
         className="border-2 w-full"
         onChange={handleOnChange}
