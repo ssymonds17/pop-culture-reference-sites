@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Artist } from '../../types';
+import { DeleteIcon } from '../../components';
 
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
@@ -22,6 +23,15 @@ const ArtistsPage = () => {
         `${API_URL}/artists/name/search?name=${formValues['name']}`
       );
       setArtists(searchArtistsResponse.data.artist);
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+  const handleDeleteArtist = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/artists/${id}`);
+      handleGetArtists();
     } catch (error) {
       console.log('error', error);
     }
@@ -56,7 +66,12 @@ const ArtistsPage = () => {
       </div>
       <ul>
         {artists
-          ? artists.map((artist: any) => <li key={artist.id}>{artist.name}</li>)
+          ? artists.map((artist: any) => (
+              <li className="flex" key={artist.id}>
+                {artist.name}{' '}
+                <DeleteIcon id={artist.id} handleDelete={handleDeleteArtist} />
+              </li>
+            ))
           : null}
       </ul>
     </div>
