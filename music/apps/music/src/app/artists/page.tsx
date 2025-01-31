@@ -4,25 +4,30 @@ import { useEffect, useState } from 'react';
 import { API_URL } from '../../constants';
 
 const ArtistsPage = () => {
-  const [artist, setArtist] = useState(null);
+  const [artists, setArtists] = useState([]);
 
-  const getArtist = async (id: string) => {
-    const getArtistResponse = await axios.get(`${API_URL}/artists/${id}`);
-
-    return getArtistResponse.data.artist;
+  const handleGetArtists = async () => {
+    try {
+      const getArtistsResponse = await axios.get(`${API_URL}/artists`);
+      setArtists(getArtistsResponse.data.artist);
+    } catch (error) {}
   };
 
   useEffect(() => {
-    const artist = getArtist('12345678910');
-
-    console.log('ARTIST', artist);
+    handleGetArtists();
   }, []);
 
   return (
-    <h1 className="text-4xl font-bold text-center text-gray-900">
-      Artists Page
-      <p>{artist}</p>
-    </h1>
+    <>
+      <h1 className="text-4xl font-bold text-center text-gray-900">
+        Artists Page
+      </h1>
+      <ul>
+        {artists
+          ? artists.map((artist: any) => <li key={artist.id}>{artist.name}</li>)
+          : null}
+      </ul>
+    </>
   );
 };
 
