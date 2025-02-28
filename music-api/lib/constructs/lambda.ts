@@ -3,10 +3,10 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 
 interface LambdaConstructProps {
-  functionName: string;
-  handler?: string;
+  handler: string;
   code: aws_lambda.AssetCode;
   timeout?: Duration;
+  functionName?: string;
 }
 
 export class LambdaConstruct extends Construct {
@@ -15,12 +15,13 @@ export class LambdaConstruct extends Construct {
 
   constructor(
     scope: Construct,
-    functionName: string,
-    { handler = 'index.handler', code, timeout }: LambdaConstructProps
+    id: string,
+    { functionName, handler, code, timeout }: LambdaConstructProps
   ) {
-    super(scope, functionName);
+    super(scope, id);
 
-    this.function = new lambda.Function(this, functionName, {
+    this.function = new lambda.Function(this, id, {
+      functionName,
       runtime: lambda.Runtime.NODEJS_22_X,
       handler,
       code,
