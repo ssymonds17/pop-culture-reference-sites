@@ -7,10 +7,10 @@ export class ApiStack extends core.Stack {
   constructor(scope: core.App, id: string, props: any) {
     super(scope, id);
 
-    const lambdaConstruct = new LambdaConstruct(this, 'GetSessionHandler', {
-      functionName: 'GetSessionHandler',
+    const lambdaConstruct = new LambdaConstruct(this, 'GetArtistsHandler', {
+      functionName: 'GetArtistsHandler',
       code: lambda.Code.fromAsset('lambda'),
-      handler: 'get-session-handler.handler',
+      handler: 'get-artists-handler.handler',
     });
 
     // Define the API Gateway resource
