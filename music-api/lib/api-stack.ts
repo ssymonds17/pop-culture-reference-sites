@@ -14,7 +14,7 @@ export class ApiStack extends core.Stack {
     });
 
     // Define the API Gateway resource
-    const api = new apigateway.LambdaRestApi(this, 'HelloWorldApi', {
+    const api = new apigateway.LambdaRestApi(this, 'SamMusicApi', {
       handler: lambdaConstruct.function,
       proxy: false,
     });
