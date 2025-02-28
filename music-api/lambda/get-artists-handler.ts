@@ -1,13 +1,16 @@
-import { ARTISTS_TABLE_NAME, documentClient } from '../lib/dynamodb';
 import {
   ScanCommand,
   ScanCommandInput,
   ScanCommandOutput,
+  DynamoDBDocumentClient,
 } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
+export const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 
 const handler = async (event: any) => {
   const params: ScanCommandInput = {
-    TableName: ARTISTS_TABLE_NAME,
+    TableName: 'artists',
   };
 
   try {
