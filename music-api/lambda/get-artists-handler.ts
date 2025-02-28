@@ -2,15 +2,14 @@ import {
   ScanCommand,
   ScanCommandInput,
   ScanCommandOutput,
-  DynamoDBDocumentClient,
 } from '@aws-sdk/lib-dynamodb';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { createApiResponse } from './utils/api';
+import { documentClient } from './dynamodb/client';
+import { ARTISTS_TABLE_NAME } from './dynamodb/constants';
 
-export const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient());
-
-const handler = async (event: any) => {
+const handler = async () => {
   const params: ScanCommandInput = {
-    TableName: 'artists',
+    TableName: ARTISTS_TABLE_NAME,
   };
 
   try {
@@ -18,20 +17,20 @@ const handler = async (event: any) => {
       new ScanCommand(params)
     );
 
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        artist: result.Items,
-        message: 'Successfully retrieved artists',
-      }),
-    };
+    if (!result.Items) {
+      return createApiResponse(404, {
+        message: 'Could not find artists',
+      });
+    }
+
+    return createApiResponse(200, {
+      artist: result.Items,
+      message: 'Successfully retrieved artists',
+    });
   } catch (error) {
-    return {
-      statusCode: 404,
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ message: 'Could not find artists' }),
-    };
+    return createApiResponse(404, {
+      message: { message: 'Could not find artists' },
+    });
   }
 };
 
