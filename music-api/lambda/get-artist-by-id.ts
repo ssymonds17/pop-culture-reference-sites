@@ -8,7 +8,6 @@ import { documentClient } from './dynamodb/client';
 import { ARTISTS_TABLE_NAME } from './dynamodb/constants';
 
 const handler = async (event: any) => {
-  console.log('Event: ', event);
   const artistId = event.pathParameters?.id;
   const params: GetCommandInput = {
     TableName: ARTISTS_TABLE_NAME,
