@@ -1,6 +1,7 @@
 interface Song {
   id: string; // unique id of the song
   title: string; // title of the song
+  year: number; // the year the song was released
   album?: Album; // {optional} the album the song was released on
   artists: Artist[]; // the artists present on the song
 }
@@ -10,6 +11,7 @@ export type Rating = 'GOLD' | 'SILVER' | 'NONE';
 interface Album {
   id: string; // unique id of the album
   title: string; // title of the album
+  year: number; // the year the album was released
   artistDisplayName: string; // the display name of the artist of the album
   artists: Artist[]; // the artists who should be credited with this album
   songs: Song[]; // the songs on the album

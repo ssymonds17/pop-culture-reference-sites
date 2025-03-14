@@ -13,6 +13,13 @@ export class ApiStack extends core.Stack {
       tableName: 'artists',
     });
 
+    const createArtistLambda = new LambdaConstruct(this, 'CreateArtist', {
+      functionName: 'create-artist-handler',
+      code: lambda.Code.fromAsset('lambda'),
+      handler: 'create-artist.handler',
+    });
+    artistsTable.grantReadWriteData(createArtistLambda.function);
+
     const getArtistsLambda = new LambdaConstruct(this, 'GetArtists', {
       functionName: 'get-artists-handler',
       code: lambda.Code.fromAsset('lambda'),
@@ -37,13 +44,17 @@ export class ApiStack extends core.Stack {
       'GET',
       new apigateway.LambdaIntegration(getArtistsLambda.function)
     );
-    const getArtist = api.root.addResource('artist');
-    const getArtistById = getArtist.addResource('{id}');
+    const artist = api.root.addResource('artist');
+    artist.addMethod(
+      'POST',
+      new apigateway.LambdaIntegration(createArtistLambda.function)
+    );
+    const getArtistById = artist.addResource('{id}');
     getArtistById.addMethod(
       'GET',
       new apigateway.LambdaIntegration(getArtistByIdLambda.function)
     );
-    const getArtistByName = getArtist.addResource('search');
+    const getArtistByName = artist.addResource('search');
     getArtistByName.addMethod('GET');
   }
 }
