@@ -13,23 +13,37 @@ export class ApiStack extends core.Stack {
       tableName: 'artists',
     });
 
-    const lambdaConstruct = new LambdaConstruct(this, 'GetArtists', {
+    const getArtistsLambda = new LambdaConstruct(this, 'GetArtists', {
       functionName: 'get-artists-handler',
       code: lambda.Code.fromAsset('lambda'),
-      handler: 'get-artists-handler.handler',
+      handler: 'get-artists.handler',
     });
+    artistsTable.grantReadWriteData(getArtistsLambda.function);
 
-    artistsTable.grantReadWriteData(lambdaConstruct.function);
+    const getArtistByIdLambda = new LambdaConstruct(this, 'GetArtistsById', {
+      functionName: 'get-artist-by-id-handler',
+      code: lambda.Code.fromAsset('lambda'),
+      handler: 'get-artist-by-id.handler',
+    });
+    artistsTable.grantReadWriteData(getArtistByIdLambda.function);
 
     // Define the API Gateway resource
-    const api = new apigateway.LambdaRestApi(this, 'MusicApi', {
+    const api = new apigateway.RestApi(this, 'MusicApi', {
       restApiName: 'music-api',
-      handler: lambdaConstruct.function,
-      proxy: false,
     });
 
-    // Define the '/hello' resource with a GET method
     const getArtists = api.root.addResource('artists');
-    getArtists.addMethod('GET');
+    getArtists.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getArtistsLambda.function)
+    );
+    const getArtist = api.root.addResource('artist');
+    const getArtistById = getArtist.addResource('{id}');
+    getArtistById.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(getArtistByIdLambda.function)
+    );
+    const getArtistByName = getArtist.addResource('search');
+    getArtistByName.addMethod('GET');
   }
 }
