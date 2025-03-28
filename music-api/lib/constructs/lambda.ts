@@ -25,7 +25,7 @@ export class LambdaConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler,
       code,
-      timeout: timeout,
+      timeout,
     });
   }
 }
