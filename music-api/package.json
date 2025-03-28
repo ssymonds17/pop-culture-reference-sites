@@ -12,7 +12,8 @@
     "build:search": "esbuild lambda/search.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/search/index.js",
     "test": "jest",
     "cdk": "cdk",
-    "synth": "cdk synth -q -o ./build/cdk.out"
+    "synth": "cdk synth -q -o ./build/cdk.out",
+    "deploy": "cdk deploy -a ./build/cdk.out"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
