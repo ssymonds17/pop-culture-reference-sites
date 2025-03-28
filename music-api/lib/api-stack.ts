@@ -34,6 +34,13 @@ export class ApiStack extends core.Stack {
     });
     artistsTable.grantReadWriteData(getArtistByIdLambda.function);
 
+    const searchLambda = new LambdaConstruct(this, 'SearchLambda', {
+      functionName: 'search-handler',
+      code: lambda.Code.fromAsset('lambda'),
+      handler: 'search.handler',
+    });
+    artistsTable.grantReadWriteData(searchLambda.function);
+
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, 'MusicApi', {
       restApiName: 'music-api',
@@ -43,6 +50,11 @@ export class ApiStack extends core.Stack {
     getArtists.addMethod(
       'GET',
       new apigateway.LambdaIntegration(getArtistsLambda.function)
+    );
+    const search = api.root.addResource('search');
+    search.addMethod(
+      'GET',
+      new apigateway.LambdaIntegration(searchLambda.function)
     );
     const artist = api.root.addResource('artist');
     artist.addMethod(
@@ -54,7 +66,5 @@ export class ApiStack extends core.Stack {
       'GET',
       new apigateway.LambdaIntegration(getArtistByIdLambda.function)
     );
-    const getArtistByName = artist.addResource('search');
-    getArtistByName.addMethod('GET');
   }
 }

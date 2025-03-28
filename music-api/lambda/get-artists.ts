@@ -24,7 +24,7 @@ const handler = async () => {
     }
 
     return createApiResponse(200, {
-      artist: result.Items,
+      artists: result.Items,
       message: 'Successfully retrieved artists',
     });
   } catch (error) {
