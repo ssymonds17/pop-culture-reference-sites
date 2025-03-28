@@ -15,29 +15,29 @@ export class ApiStack extends core.Stack {
 
     const createArtistLambda = new LambdaConstruct(this, 'CreateArtist', {
       functionName: 'create-artist-handler',
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'create-artist.handler',
+      code: lambda.Code.fromAsset('build/apps/create-artist'),
+      handler: 'index.handler',
     });
     artistsTable.grantReadWriteData(createArtistLambda.function);
 
     const getArtistsLambda = new LambdaConstruct(this, 'GetArtists', {
       functionName: 'get-artists-handler',
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'get-artists.handler',
+      code: lambda.Code.fromAsset('build/apps/get-artists'),
+      handler: 'index.handler',
     });
     artistsTable.grantReadWriteData(getArtistsLambda.function);
 
     const getArtistByIdLambda = new LambdaConstruct(this, 'GetArtistsById', {
       functionName: 'get-artist-by-id-handler',
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'get-artist-by-id.handler',
+      code: lambda.Code.fromAsset('build/apps/get-artist-by-id'),
+      handler: 'index.handler',
     });
     artistsTable.grantReadWriteData(getArtistByIdLambda.function);
 
     const searchLambda = new LambdaConstruct(this, 'SearchLambda', {
       functionName: 'search-handler',
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'search.handler',
+      code: lambda.Code.fromAsset('build/apps/search'),
+      handler: 'index.handler',
     });
     artistsTable.grantReadWriteData(searchLambda.function);
 
