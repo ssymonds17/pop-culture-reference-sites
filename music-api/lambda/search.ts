@@ -1,14 +1,13 @@
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { createApiResponse } from './utils';
+import { createApiResponse, logger } from './utils';
 import { documentClient } from './dynamodb/client';
 import { ARTISTS_TABLE_NAME } from './dynamodb/constants';
 
 const handler = async (event: any) => {
-  console.log('event', event);
+  logger.info('event', event);
   try {
-    const searchString = JSON.parse(event.body.searchString);
-    console.log('query', searchString);
-    console.log('body', event.body);
+    const searchString = event.queryStringParameters.searchString;
+    logger.info('searchString', searchString);
 
     if (!searchString) {
       throw new Error('Missing a searchString parameter');

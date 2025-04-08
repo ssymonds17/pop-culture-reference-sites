@@ -12,7 +12,7 @@
     "build:search": "esbuild lambda/search.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/search/index.js",
     "test": "jest",
     "cdk": "cdk",
-    "synth": "cdk synth -q -o ./build/cdk.out",
+    "synth": "rm -rf ./build/cdk.out && cdk synth -q -o ./build/cdk.out",
     "deploy": "cdk deploy -a ./build/cdk.out"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "typescript": "~5.6.3"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.16.0",
+    "@aws-lambda-powertools/logger": "^2.17.0",
     "@aws-sdk/lib-dynamodb": "^3.758.0",
     "@types/aws-lambda": "^8.10.147",
     "aws-cdk-lib": "^2.180.0",
