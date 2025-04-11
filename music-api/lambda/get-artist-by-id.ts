@@ -1,46 +1,35 @@
-import {
-  GetCommand,
-  GetCommandInput,
-  GetCommandOutput,
-} from '@aws-sdk/lib-dynamodb';
-import { createApiResponse } from './utils';
-import { documentClient } from './dynamodb/client';
-import { ARTISTS_TABLE_NAME } from './dynamodb/constants';
+import { createApiResponse } from "./utils"
+import { ARTISTS_TABLE_NAME } from "./dynamodb/constants"
+import { getRecord } from "./dynamodb/get"
+import { Artist } from "./schemas"
 
 const handler = async (event: any) => {
-  const artistId = event.pathParameters?.id;
-  const params: GetCommandInput = {
-    TableName: ARTISTS_TABLE_NAME,
-    Key: { id: artistId },
-    ConsistentRead: true,
-  };
+  const artistId = event.pathParameters?.id
 
   try {
     if (!artistId) {
       return createApiResponse(400, {
-        message: 'Missing artist ID',
-      });
+        message: "Missing artist ID",
+      })
     }
 
-    const result: GetCommandOutput = await documentClient.send(
-      new GetCommand(params)
-    );
+    const artist = (await getRecord(ARTISTS_TABLE_NAME, artistId)) as Artist
 
-    if (!result.Item) {
+    if (!artist) {
       return createApiResponse(404, {
-        message: 'Could not find artist',
-      });
+        message: "Could not find artist",
+      })
     }
 
     return createApiResponse(200, {
-      artist: result.Item,
-      message: 'Successfully retrieved artist',
-    });
+      artist,
+      message: "Successfully retrieved artist",
+    })
   } catch (error) {
     return createApiResponse(404, {
-      message: { message: 'Could not find artist' },
-    });
+      message: { message: "Could not find artist" },
+    })
   }
-};
+}
 
-export { handler };
+export { handler }
