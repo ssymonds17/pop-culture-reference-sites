@@ -1,7 +1,11 @@
 import _ from "lodash"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { v7 as uuidV7 } from "uuid"
-import { createApiResponse } from "./utils"
+import {
+  createApiResponse,
+  updateScoreBasedOnAlbumRatings,
+  logger,
+} from "./utils"
 import { Album, Artist, Rating } from "./schemas/index"
 import {
   documentClient,
@@ -9,7 +13,6 @@ import {
   ARTISTS_TABLE_NAME,
 } from "./dynamodb"
 import { getRecord } from "./dynamodb/get"
-import { updateScoreBasedOnAlbumRatings } from "./utils/score"
 import { updateRecord } from "./dynamodb/update"
 
 const handler = async (event: any) => {
@@ -46,8 +49,7 @@ const handler = async (event: any) => {
     for (const artistId of artists) {
       const artist = (await getRecord(ARTISTS_TABLE_NAME, artistId)) as Artist
       const newArtistAlbums = [...artist.albums, albumId]
-      const updatedArtist = {
-        ...artist,
+      const updateArtistData = {
         albums: newArtistAlbums,
         silverAlbums:
           rating === Rating.SILVER
@@ -61,7 +63,7 @@ const handler = async (event: any) => {
         ),
       }
 
-      await updateRecord(updatedArtist, ARTISTS_TABLE_NAME, artistId)
+      await updateRecord(updateArtistData, ARTISTS_TABLE_NAME, artistId)
     }
 
     return createApiResponse(201, {
