@@ -24,35 +24,38 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/create-artist"),
       handler: "index.handler",
     })
-    artistsTable.grantReadWriteData(createArtistLambda.function)
-
     const createAlbumLambda = new LambdaConstruct(this, "CreateAlbum", {
       functionName: "create-album-handler",
       code: lambda.Code.fromAsset("build/apps/create-album"),
       handler: "index.handler",
     })
-    albumsTable.grantReadWriteData(createAlbumLambda.function)
 
     const getArtistsLambda = new LambdaConstruct(this, "GetArtists", {
       functionName: "get-artists-handler",
       code: lambda.Code.fromAsset("build/apps/get-artists"),
       handler: "index.handler",
     })
-    artistsTable.grantReadWriteData(getArtistsLambda.function)
 
     const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistsById", {
       functionName: "get-artist-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-artist-by-id"),
       handler: "index.handler",
     })
-    artistsTable.grantReadWriteData(getArtistByIdLambda.function)
 
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
       functionName: "search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
       handler: "index.handler",
     })
+
+    // Grant dynamo permissions to Lambda functions
+    artistsTable.grantReadWriteData(createArtistLambda.function)
+    artistsTable.grantReadWriteData(createAlbumLambda.function)
+    artistsTable.grantReadWriteData(getArtistsLambda.function)
+    artistsTable.grantReadWriteData(getArtistByIdLambda.function)
+    albumsTable.grantReadWriteData(createAlbumLambda.function)
     artistsTable.grantReadWriteData(searchLambda.function)
+    albumsTable.grantReadWriteData(searchLambda.function)
 
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
