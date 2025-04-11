@@ -1,6 +1,5 @@
 import { createApiResponse } from "./utils"
-import { ARTISTS_TABLE_NAME } from "./dynamodb/constants"
-import { getRecord } from "./dynamodb/get"
+import { ARTISTS_TABLE_NAME, getRecord } from "./dynamodb"
 import { Artist } from "./schemas"
 
 const handler = async (event: any) => {

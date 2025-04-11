@@ -1,19 +1,15 @@
 import _ from "lodash"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { v7 as uuidV7 } from "uuid"
-import {
-  createApiResponse,
-  updateScoreBasedOnAlbumRatings,
-  logger,
-} from "./utils"
+import { createApiResponse, updateScoreBasedOnAlbumRatings } from "./utils"
 import { Album, Artist, Rating } from "./schemas/index"
 import {
   documentClient,
   ALBUMS_TABLE_NAME,
   ARTISTS_TABLE_NAME,
+  getRecord,
+  updateRecord,
 } from "./dynamodb"
-import { getRecord } from "./dynamodb/get"
-import { updateRecord } from "./dynamodb/update"
 
 const handler = async (event: any) => {
   const { title, artistDisplayName, year, artists, rating } = JSON.parse(
