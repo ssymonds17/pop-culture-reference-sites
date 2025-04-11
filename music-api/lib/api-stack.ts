@@ -36,9 +36,15 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
     })
 
-    const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistsById", {
+    const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistById", {
       functionName: "get-artist-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-artist-by-id"),
+      handler: "index.handler",
+    })
+
+    const getAlbumByIdLambda = new LambdaConstruct(this, "GetAlbumById", {
+      functionName: "get-album-by-id-handler",
+      code: lambda.Code.fromAsset("build/apps/get-album-by-id"),
       handler: "index.handler",
     })
 
@@ -50,11 +56,13 @@ export class ApiStack extends core.Stack {
 
     // Grant dynamo permissions to Lambda functions
     artistsTable.grantReadWriteData(createArtistLambda.function)
-    artistsTable.grantReadWriteData(createAlbumLambda.function)
     artistsTable.grantReadWriteData(getArtistsLambda.function)
     artistsTable.grantReadWriteData(getArtistByIdLambda.function)
-    albumsTable.grantReadWriteData(createAlbumLambda.function)
+    artistsTable.grantReadWriteData(createAlbumLambda.function)
     artistsTable.grantReadWriteData(searchLambda.function)
+
+    albumsTable.grantReadWriteData(createAlbumLambda.function)
+    albumsTable.grantReadWriteData(getAlbumByIdLambda.function)
     albumsTable.grantReadWriteData(searchLambda.function)
 
     // Define the API Gateway resource
@@ -62,6 +70,7 @@ export class ApiStack extends core.Stack {
       restApiName: "music-api",
     })
 
+    // RESOURCES
     // Artists
     const getArtists = api.root.addResource("artists")
     getArtists.addMethod(
@@ -84,6 +93,11 @@ export class ApiStack extends core.Stack {
     album.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createAlbumLambda.function)
+    )
+    const getAlbumById = album.addResource("{id}")
+    getAlbumById.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getAlbumByIdLambda.function)
     )
 
     // Search
