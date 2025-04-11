@@ -7,7 +7,11 @@ export interface Song {
   artists: string[] // array of ids that represent the artists present on the song
 }
 
-export type Rating = "GOLD" | "SILVER" | "NONE"
+export enum Rating {
+  GOLD = "GOLD",
+  SILVER = "SILVER",
+  NONE = "NONE",
+}
 
 export interface Album {
   id: string // unique id of the album
