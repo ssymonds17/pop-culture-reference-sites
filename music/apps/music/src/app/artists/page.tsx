@@ -69,27 +69,33 @@ const ArtistsPage = () => {
             <th className="border border-gray-300 text-center">Total Score</th>
           </tr>
 
-          {artists
-            ? artists.map((artist: Artist) => (
-                <tr key={artist.id}>
-                  <td className="border border-gray-300 text-center">
-                    {artist.displayName}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {artist.goldAlbums}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {artist.silverAlbums}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {artist.totalSongs}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {artist.totalScore}
-                  </td>
-                </tr>
-              ))
-            : null}
+          {artists ? (
+            artists.map((artist: Artist) => (
+              <tr key={artist.id}>
+                <td className="border border-gray-300 text-center">
+                  {artist.displayName}
+                </td>
+                <td className="border border-gray-300 text-center">
+                  {artist.goldAlbums}
+                </td>
+                <td className="border border-gray-300 text-center">
+                  {artist.silverAlbums}
+                </td>
+                <td className="border border-gray-300 text-center">
+                  {artist.totalSongs}
+                </td>
+                <td className="border border-gray-300 text-center">
+                  {artist.totalScore}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} className="border border-gray-300 text-center">
+                No artists found
+              </td>
+            </tr>
+          )}
         </table>
       </ul>
     </div>
