@@ -1,37 +1,48 @@
+import _ from "lodash"
 import {
   ScanCommand,
   ScanCommandInput,
   ScanCommandOutput,
-} from '@aws-sdk/lib-dynamodb';
-import { createApiResponse } from './utils/api';
-import { documentClient } from './dynamodb/client';
-import { ARTISTS_TABLE_NAME } from './dynamodb/constants';
+} from "@aws-sdk/lib-dynamodb"
+import { createApiResponse } from "./utils/api"
+import { documentClient } from "./dynamodb/client"
+import { ARTISTS_TABLE_NAME } from "./dynamodb/constants"
+import { logger } from "./utils"
+import { sortSearchResults } from "./utils/search"
+import { Artist } from "./schemas"
 
 const handler = async () => {
   const params: ScanCommandInput = {
     TableName: ARTISTS_TABLE_NAME,
-  };
+  }
 
   try {
     const result: ScanCommandOutput = await documentClient.send(
       new ScanCommand(params)
-    );
+    )
 
     if (!result.Items) {
       return createApiResponse(404, {
-        message: 'Could not find artists',
-      });
+        message: "Could not find artists",
+      })
     }
 
-    return createApiResponse(200, {
-      artists: result.Items,
-      message: 'Successfully retrieved artists',
-    });
-  } catch (error) {
-    return createApiResponse(404, {
-      message: { message: 'Could not find artists' },
-    });
-  }
-};
+    const sortedItems = sortSearchResults(
+      result.Items as Artist[],
+      "artist"
+    ) as Artist[]
+    const filteredItems = _.take(sortedItems, 100)
 
-export { handler };
+    return createApiResponse(200, {
+      artists: filteredItems,
+      message: "Successfully retrieved artists",
+    })
+  } catch (error) {
+    logger.error("Error retrieving artists:", { error })
+    return createApiResponse(404, {
+      message: { message: "Could not find artists" },
+    })
+  }
+}
+
+export { handler }
