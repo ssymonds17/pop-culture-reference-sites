@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Artist } from '../../types';
-import { DeleteIcon } from '../../components';
 
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
@@ -13,26 +12,19 @@ const ArtistsPage = () => {
   const handleGetArtists = async () => {
     try {
       const getArtistsResponse = await axios.get(`${API_URL}/artists`);
-      setArtists(getArtistsResponse.data.artist);
-    } catch (error) {}
-  };
-
-  const handleSearchArtistByName = async () => {
-    try {
-      const searchArtistsResponse = await axios.get(
-        `${API_URL}/artists/name/search?name=${formValues['name']}`
-      );
-      setFormValues({});
-      setArtists(searchArtistsResponse.data.artist);
+      setArtists(getArtistsResponse.data.artists);
     } catch (error) {
       console.log('error', error);
     }
   };
 
-  const handleDeleteArtist = async (id: string) => {
+  const handleSearchArtistByName = async () => {
     try {
-      await axios.delete(`${API_URL}/artists/${id}`);
-      handleGetArtists();
+      const searchArtistsResponse = await axios.get(
+        `${API_URL}/search?searchString=${formValues.name}&itemType=artist`
+      );
+      setFormValues({});
+      setArtists(searchArtistsResponse.data.result);
     } catch (error) {
       console.log('error', error);
     }
@@ -66,14 +58,39 @@ const ArtistsPage = () => {
         </div>
       </div>
       <ul>
-        {artists
-          ? artists.map((artist: any) => (
-              <li className="flex" key={artist.id}>
-                {artist.name}{' '}
-                <DeleteIcon id={artist.id} handleDelete={handleDeleteArtist} />
-              </li>
-            ))
-          : null}
+        <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
+          <tr>
+            <th className="border border-gray-300">Name</th>
+            <th className="border border-gray-300 text-center">Gold Albums</th>
+            <th className="border border-gray-300 text-center">
+              Silver Albums
+            </th>
+            <th className="border border-gray-300 text-center">Total Songs</th>
+            <th className="border border-gray-300 text-center">Total Score</th>
+          </tr>
+
+          {artists
+            ? artists.map((artist: Artist) => (
+                <tr key={artist.id}>
+                  <td className="border border-gray-300 text-center">
+                    {artist.displayName}
+                  </td>
+                  <td className="border border-gray-300 text-center">
+                    {artist.goldAlbums}
+                  </td>
+                  <td className="border border-gray-300 text-center">
+                    {artist.silverAlbums}
+                  </td>
+                  <td className="border border-gray-300 text-center">
+                    {artist.totalSongs}
+                  </td>
+                  <td className="border border-gray-300 text-center">
+                    {artist.totalScore}
+                  </td>
+                </tr>
+              ))
+            : null}
+        </table>
       </ul>
     </div>
   );
