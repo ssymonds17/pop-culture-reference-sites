@@ -45,6 +45,12 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
     })
 
+    const getAlbumsLambda = new LambdaConstruct(this, "GetAlbums", {
+      functionName: "get-albums-handler",
+      code: lambda.Code.fromAsset("build/apps/get-albums"),
+      handler: "index.handler",
+    })
+
     const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistById", {
       functionName: "get-artist-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-artist-by-id"),
@@ -71,13 +77,14 @@ export class ApiStack extends core.Stack {
 
     // Grant dynamo permissions to Lambda functions
     artistsTable.grantReadWriteData(createArtistLambda.function)
-    artistsTable.grantReadWriteData(getArtistsLambda.function)
+    artistsTable.grantReadData(getArtistsLambda.function)
     artistsTable.grantReadData(getArtistByIdLambda.function)
     artistsTable.grantReadWriteData(createAlbumLambda.function)
     artistsTable.grantReadWriteData(createSongLambda.function)
     artistsTable.grantReadData(searchLambda.function)
 
     albumsTable.grantReadWriteData(createAlbumLambda.function)
+    albumsTable.grantReadData(getAlbumsLambda.function)
     albumsTable.grantReadData(getAlbumByIdLambda.function)
     albumsTable.grantReadWriteData(createSongLambda.function)
     albumsTable.grantReadData(searchLambda.function)
@@ -110,6 +117,11 @@ export class ApiStack extends core.Stack {
     )
 
     // Albums
+    const getAlbums = api.root.addResource("albums")
+    getAlbums.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getAlbumsLambda.function)
+    )
     const album = api.root.addResource("album")
     album.addMethod(
       "POST",
