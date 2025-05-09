@@ -2,13 +2,14 @@ import _ from "lodash"
 import { ScanCommand, ScanCommandInput } from "@aws-sdk/lib-dynamodb"
 import { createApiResponse, logger } from "./utils"
 import { documentClient } from "./dynamodb/client"
-import { getTableName } from "./utils/search"
+import { getTableName, ItemType, sortSearchResults } from "./utils/search"
+import { Album, Artist, Song } from "./schemas"
 
 const handler = async (event: any) => {
   logger.info("event", event)
   try {
     const searchString = event.queryStringParameters.searchString
-    const itemType = event.queryStringParameters.itemType
+    const itemType = event.queryStringParameters.itemType as ItemType
     logger.info("searchString", searchString)
     logger.info("itemType", itemType)
 
@@ -50,8 +51,17 @@ const handler = async (event: any) => {
       throw new Error("No items found")
     }
 
+    let resultItems
+    if (itemType === "artist") {
+      resultItems = sortSearchResults(result.Items as Artist[], itemType)
+    } else if (itemType === "album") {
+      resultItems = sortSearchResults(result.Items as Album[], itemType)
+    } else if (itemType === "song") {
+      resultItems = sortSearchResults(result.Items as Song[], itemType)
+    }
+
     return createApiResponse(200, {
-      result: result.Items,
+      result: resultItems,
       message: "Successfully retrieved matches",
     })
   } catch (error) {
