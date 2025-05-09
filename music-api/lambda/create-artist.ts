@@ -40,7 +40,7 @@ const handler = async (event: any) => {
   } catch (error) {
     logger.error(`Error creating artist: ${error}`)
     return createApiResponse(502, {
-      message: { message: "Could not create artist" },
+      message: "Could not create artist",
     })
   }
 }

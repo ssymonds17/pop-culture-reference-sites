@@ -67,7 +67,7 @@ const handler = async (event: any) => {
   } catch (error) {
     logger.error(`Error creating album: ${error}`)
     return createApiResponse(502, {
-      message: { message: "Could not create album" },
+      message: "Could not create album",
     })
   }
 }

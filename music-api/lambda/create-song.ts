@@ -47,7 +47,7 @@ const handler = async (event: any) => {
       )) as Album[] | null
     }
 
-    if (!validatedArtists || !validatedAlbum) {
+    if (!validatedArtists || (album && !validatedAlbum)) {
       logger.error(`Artist or album not found`)
       return createApiResponse(404, {
         message: "Could not create song. Artist or album not found",
@@ -55,7 +55,7 @@ const handler = async (event: any) => {
     }
 
     await updateAssociatedArtists(validatedArtists, songId)
-    if (album) {
+    if (album && validatedAlbum) {
       await updateAssociatedAlbum(validatedAlbum[0], songId)
     }
 
@@ -80,7 +80,7 @@ const handler = async (event: any) => {
   } catch (error) {
     logger.error(`Error creating song: ${error}`)
     return createApiResponse(502, {
-      message: { message: "Could not create song" },
+      message: "Could not create song",
     })
   }
 }

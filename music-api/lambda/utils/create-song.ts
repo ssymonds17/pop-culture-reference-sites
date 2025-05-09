@@ -11,10 +11,10 @@ export const updateAssociatedArtists = async (
 ) => {
   for (const artist of artists) {
     const newArtistSongs = [...artist.songs, songId]
-    const newTotalScore = artist.totalScore + 1
     const updateArtistData = {
       songs: newArtistSongs,
-      totalScore: newTotalScore,
+      totalSongs: artist.totalSongs + 1,
+      totalScore: artist.totalScore + 1,
     }
 
     await updateRecord(updateArtistData, ARTISTS_TABLE_NAME, artist.id)
