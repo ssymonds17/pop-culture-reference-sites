@@ -46,7 +46,7 @@ const handler = async (event: any) => {
 
     const result = await documentClient.send(new ScanCommand(params))
 
-    if (!result.Items) {
+    if (!result.Items || result.Items.length === 0) {
       throw new Error("No items found")
     }
 

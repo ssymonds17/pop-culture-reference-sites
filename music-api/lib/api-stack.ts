@@ -84,6 +84,7 @@ export class ApiStack extends core.Stack {
 
     songsTable.grantReadWriteData(createSongLambda.function)
     songsTable.grantReadData(getSongByIdLambda.function)
+    songsTable.grantReadData(searchLambda.function)
 
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
