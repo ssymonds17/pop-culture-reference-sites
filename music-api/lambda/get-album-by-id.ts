@@ -1,4 +1,4 @@
-import { createApiResponse } from "./utils"
+import { createApiResponse, logger } from "./utils"
 import { ALBUMS_TABLE_NAME } from "./dynamodb"
 import { getRecord } from "./dynamodb/get"
 import { Artist } from "./schemas"
@@ -26,8 +26,9 @@ const handler = async (event: any) => {
       message: "Successfully retrieved album",
     })
   } catch (error) {
+    logger.error("Error retrieving album:", { error })
     return createApiResponse(404, {
-      message: { message: "Could not find album" },
+      message: "Could not find album",
     })
   }
 }

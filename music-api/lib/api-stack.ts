@@ -57,6 +57,12 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
     })
 
+    const getSongByIdLambda = new LambdaConstruct(this, "GetSongById", {
+      functionName: "get-song-by-id-handler",
+      code: lambda.Code.fromAsset("build/apps/get-song-by-id"),
+      handler: "index.handler",
+    })
+
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
       functionName: "search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
@@ -66,17 +72,18 @@ export class ApiStack extends core.Stack {
     // Grant dynamo permissions to Lambda functions
     artistsTable.grantReadWriteData(createArtistLambda.function)
     artistsTable.grantReadWriteData(getArtistsLambda.function)
-    artistsTable.grantReadWriteData(getArtistByIdLambda.function)
+    artistsTable.grantReadData(getArtistByIdLambda.function)
     artistsTable.grantReadWriteData(createAlbumLambda.function)
     artistsTable.grantReadWriteData(createSongLambda.function)
-    artistsTable.grantReadWriteData(searchLambda.function)
+    artistsTable.grantReadData(searchLambda.function)
 
     albumsTable.grantReadWriteData(createAlbumLambda.function)
-    albumsTable.grantReadWriteData(getAlbumByIdLambda.function)
+    albumsTable.grantReadData(getAlbumByIdLambda.function)
     albumsTable.grantReadWriteData(createSongLambda.function)
-    albumsTable.grantReadWriteData(searchLambda.function)
+    albumsTable.grantReadData(searchLambda.function)
 
     songsTable.grantReadWriteData(createSongLambda.function)
+    songsTable.grantReadData(getSongByIdLambda.function)
 
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
@@ -118,6 +125,11 @@ export class ApiStack extends core.Stack {
     song.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createSongLambda.function)
+    )
+    const getSongById = song.addResource("{id}")
+    getSongById.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getSongByIdLambda.function)
     )
 
     // Search
