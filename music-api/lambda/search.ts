@@ -51,7 +51,7 @@ const handler = async (event: any) => {
     }
 
     return createApiResponse(200, {
-      artist: result.Items,
+      result: result.Items,
       message: "Successfully retrieved matches",
     })
   } catch (error) {
