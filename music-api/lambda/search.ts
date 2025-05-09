@@ -1,38 +1,53 @@
-import { ScanCommand } from "@aws-sdk/lib-dynamodb"
+import _ from "lodash"
+import { ScanCommand, ScanCommandInput } from "@aws-sdk/lib-dynamodb"
 import { createApiResponse, logger } from "./utils"
 import { documentClient } from "./dynamodb/client"
-import { ARTISTS_TABLE_NAME } from "./dynamodb/constants"
-import _ from "lodash"
+import { getTableName } from "./utils/search"
 
 const handler = async (event: any) => {
   logger.info("event", event)
   try {
     const searchString = event.queryStringParameters.searchString
+    const itemType = event.queryStringParameters.itemType
     logger.info("searchString", searchString)
+    logger.info("itemType", itemType)
 
     if (!searchString) {
       throw new Error("Missing a searchString parameter")
     }
+    if (!itemType) {
+      throw new Error("Missing an itemType parameter")
+    }
 
     const searchStringAsLower = _.toLower(searchString)
 
-    const params = {
-      TableName: ARTISTS_TABLE_NAME,
-      FilterExpression: "contains(#name, :searchString)",
-      ExpressionAttributeNames: {
-        "#name": "name",
-      },
-      ExpressionAttributeValues: {
-        ":searchString": searchStringAsLower,
-      },
-    }
+    const params: ScanCommandInput =
+      itemType === "artist"
+        ? {
+            TableName: getTableName(itemType),
+            FilterExpression: "contains(#name, :searchString)",
+            ExpressionAttributeNames: {
+              "#name": "name",
+            },
+            ExpressionAttributeValues: {
+              ":searchString": searchStringAsLower,
+            },
+          }
+        : {
+            TableName: getTableName(itemType),
+            FilterExpression: "contains(#title, :searchString)",
+            ExpressionAttributeNames: {
+              "#title": "title",
+            },
+            ExpressionAttributeValues: {
+              ":searchString": searchStringAsLower,
+            },
+          }
 
     const result = await documentClient.send(new ScanCommand(params))
 
     if (!result.Items) {
-      return createApiResponse(404, {
-        message: "Could not find any matches",
-      })
+      throw new Error("No items found")
     }
 
     return createApiResponse(200, {
