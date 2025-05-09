@@ -69,7 +69,7 @@ const ArtistsPage = () => {
             <th className="border border-gray-300 text-center">Total Score</th>
           </tr>
 
-          {artists ? (
+          {artists.length ? (
             artists.map((artist: Artist) => (
               <tr key={artist.id}>
                 <td className="border border-gray-300 text-center">
