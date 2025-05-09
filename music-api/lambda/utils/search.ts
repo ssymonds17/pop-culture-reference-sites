@@ -28,9 +28,9 @@ export const sortSearchResults = (
     case "artist":
       return (items as Artist[])
         .sort((a, b) => a.name.localeCompare(b.name))
-        .sort((a, b) => a.silverAlbums - b.silverAlbums)
-        .sort((a, b) => a.goldAlbums - b.goldAlbums)
-        .sort((a, b) => a.totalScore - b.totalScore)
+        .sort((a, b) => b.silverAlbums - a.silverAlbums)
+        .sort((a, b) => b.goldAlbums - a.goldAlbums)
+        .sort((a, b) => b.totalScore - a.totalScore)
     case "album":
       return (items as Album[])
         .sort((a, b) => a.artistDisplayName.localeCompare(b.artistDisplayName))
