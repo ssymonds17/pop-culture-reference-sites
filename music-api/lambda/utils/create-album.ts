@@ -1,34 +1,6 @@
-import { ARTISTS_TABLE_NAME, getRecord, updateRecord } from "../dynamodb"
-import { logger } from "./logger"
+import { ARTISTS_TABLE_NAME, updateRecord } from "../dynamodb"
 import { Artist, Rating } from "../schemas"
 import { updateScoreBasedOnAlbumRatings } from "./score"
-
-export const validateAssociatedArtists = async (artists: string[]) => {
-  try {
-    let artistExists = true
-    const fullArtists = await Promise.all(
-      artists.map(async (artistId: string) => {
-        const artist = (await getRecord(ARTISTS_TABLE_NAME, artistId)) as Artist
-
-        if (!artist) {
-          artistExists = false
-        }
-
-        return artist
-      })
-    )
-
-    if (!artistExists) {
-      logger.error(`Artist not found.`)
-      throw new Error(`Could not create album. Artist not found`)
-    }
-
-    return fullArtists
-  } catch (error) {
-    logger.error(`Error validating associated artists: ${error}`)
-    throw new Error(`Error validating associated artists: ${error}`)
-  }
-}
 
 export const updateAssociatedArtists = async (
   artists: Artist[],

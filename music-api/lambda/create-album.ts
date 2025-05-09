@@ -2,12 +2,14 @@ import _ from "lodash"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { v7 as uuidV7 } from "uuid"
 import { createApiResponse, logger } from "./utils"
-import { Album, Rating } from "./schemas/index"
-import { documentClient, ALBUMS_TABLE_NAME } from "./dynamodb"
+import { Album, Artist, Rating } from "./schemas/index"
 import {
-  validateAssociatedArtists,
-  updateAssociatedArtists,
-} from "./utils/create-album"
+  documentClient,
+  ALBUMS_TABLE_NAME,
+  ARTISTS_TABLE_NAME,
+} from "./dynamodb"
+import { updateAssociatedArtists } from "./utils/create-album"
+import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 
 const handler = async (event: any) => {
   const { title, artistDisplayName, year, artists, rating } = JSON.parse(
@@ -32,10 +34,13 @@ const handler = async (event: any) => {
 
     // Check that each artist associated with the album exists
     // If any artist does not exist return an error
-    const fullArtists = await validateAssociatedArtists(artists)
+    const fullArtists = (await validateAssociatedEntities(
+      artists,
+      ARTISTS_TABLE_NAME
+    )) as Artist[] | null
 
     if (!fullArtists) {
-      logger.error(`Artist not found. Album creation rolled back`)
+      logger.error(`Artist not found`)
       return createApiResponse(404, {
         message: "Could not create album. Artist not found",
       })

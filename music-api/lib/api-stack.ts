@@ -17,6 +17,10 @@ export class ApiStack extends core.Stack {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       tableName: "albums",
     })
+    const songsTable = new dynamodb.Table(this, "Songs", {
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      tableName: "songs",
+    })
 
     // Lambda functions
     const createArtistLambda = new LambdaConstruct(this, "CreateArtist", {
@@ -27,6 +31,11 @@ export class ApiStack extends core.Stack {
     const createAlbumLambda = new LambdaConstruct(this, "CreateAlbum", {
       functionName: "create-album-handler",
       code: lambda.Code.fromAsset("build/apps/create-album"),
+      handler: "index.handler",
+    })
+    const createSongLambda = new LambdaConstruct(this, "CreateSong", {
+      functionName: "create-song-handler",
+      code: lambda.Code.fromAsset("build/apps/create-song"),
       handler: "index.handler",
     })
 
@@ -59,11 +68,15 @@ export class ApiStack extends core.Stack {
     artistsTable.grantReadWriteData(getArtistsLambda.function)
     artistsTable.grantReadWriteData(getArtistByIdLambda.function)
     artistsTable.grantReadWriteData(createAlbumLambda.function)
+    artistsTable.grantReadWriteData(createSongLambda.function)
     artistsTable.grantReadWriteData(searchLambda.function)
 
     albumsTable.grantReadWriteData(createAlbumLambda.function)
     albumsTable.grantReadWriteData(getAlbumByIdLambda.function)
+    albumsTable.grantReadWriteData(createSongLambda.function)
     albumsTable.grantReadWriteData(searchLambda.function)
+
+    songsTable.grantReadWriteData(createSongLambda.function)
 
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
@@ -98,6 +111,13 @@ export class ApiStack extends core.Stack {
     getAlbumById.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getAlbumByIdLambda.function)
+    )
+
+    // Songs
+    const song = api.root.addResource("song")
+    song.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createSongLambda.function)
     )
 
     // Search

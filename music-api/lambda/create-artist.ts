@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { v7 as uuidV7 } from "uuid"
-import { createApiResponse } from "./utils"
+import { createApiResponse, logger } from "./utils"
 import { Artist } from "./schemas/index"
 import { documentClient, ARTISTS_TABLE_NAME } from "./dynamodb"
 
@@ -38,6 +38,7 @@ const handler = async (event: any) => {
       message: "Successfully created artist",
     })
   } catch (error) {
+    logger.error(`Error creating artist: ${error}`)
     return createApiResponse(502, {
       message: { message: "Could not create artist" },
     })
