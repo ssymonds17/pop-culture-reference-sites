@@ -10,7 +10,9 @@ export interface Song {
   displayTitle: string; // title of the song to be displayed in the client
   year: number; // the year the song was released
   album?: string; // {optional} the id of the album the song was released on
+  albumDisplayTitle?: string; // {optional} the display title of the album the song was released on
   artists: string[]; // array of ids that represent the artists present on the song
+  artistDisplayName: string; // the display name of the artist of the song
 }
 
 export enum Rating {

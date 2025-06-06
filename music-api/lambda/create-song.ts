@@ -16,15 +16,18 @@ import {
 } from "./utils/create-song"
 
 const handler = async (event: any) => {
-  const { title, album, year, artists } = JSON.parse(event.body)
+  const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
+    JSON.parse(event.body)
   const songId = uuidV7()
   const defaultSong: Song = {
     id: songId,
     title: _.toLower(title),
     displayTitle: title,
     artists: [artists],
+    artistDisplayName: artistDisplayName,
     year,
     album: album ?? undefined,
+    albumDisplayTitle: albumDisplayTitle ?? undefined,
   }
 
   try {
@@ -74,7 +77,9 @@ const handler = async (event: any) => {
       title,
       displayTitle: defaultSong.displayTitle,
       album: defaultSong.album,
+      albumDisplayTitle: defaultSong.albumDisplayTitle,
       artists: defaultSong.artists,
+      artistDisplayName: defaultSong.artistDisplayName,
       message: "Successfully created song",
     })
   } catch (error) {
