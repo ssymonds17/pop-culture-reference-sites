@@ -18,6 +18,7 @@ const SongsPage = () => {
       setSongs(searchSongsResponse.data.result);
     } catch (error) {
       setSongs([]);
+      setFormValues({});
       console.log('error', error);
     }
   };

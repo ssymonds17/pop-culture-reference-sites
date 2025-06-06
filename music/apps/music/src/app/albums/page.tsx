@@ -14,6 +14,8 @@ const AlbumsPage = () => {
       const getAlbumsResponse = await axios.get(`${API_URL}/albums`);
       setAlbums(getAlbumsResponse.data.albums);
     } catch (error) {
+      setAlbums([]);
+      setFormValues({});
       console.log('error', error);
     }
   };
@@ -27,6 +29,7 @@ const AlbumsPage = () => {
       setAlbums(searchAlbumsResponse.data.result);
     } catch (error) {
       setAlbums([]);
+      setFormValues({});
       console.log('error', error);
     }
   };

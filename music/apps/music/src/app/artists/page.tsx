@@ -14,6 +14,8 @@ const ArtistsPage = () => {
       const getArtistsResponse = await axios.get(`${API_URL}/artists`);
       setArtists(getArtistsResponse.data.artists);
     } catch (error) {
+      setArtists([]);
+      setFormValues({});
       console.log('error', error);
     }
   };
@@ -26,6 +28,8 @@ const ArtistsPage = () => {
       setFormValues({});
       setArtists(searchArtistsResponse.data.result);
     } catch (error) {
+      setArtists([]);
+      setFormValues({});
       console.log('error', error);
     }
   };
