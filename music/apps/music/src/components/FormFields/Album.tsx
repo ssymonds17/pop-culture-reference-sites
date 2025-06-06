@@ -1,12 +1,28 @@
-import { Dispatch, SetStateAction } from 'react';
-import { InputField } from '../InputField';
-import { Album } from '../../types';
-import { Rating } from '../Select';
+'use client';
 
-export const albumFormFields = (
-  formValues: Partial<Album>,
-  setFormValues: Dispatch<SetStateAction<Partial<Album>>>
-) => {
+import { Dispatch, SetStateAction, useState } from 'react';
+import { InputField } from '../InputField';
+import { Album, Artist, Variation } from '../../types';
+import { Rating } from '../Select';
+import { Search } from '../Search';
+
+export const AlbumFormFields = ({
+  formValues,
+  setFormValues,
+}: {
+  formValues: Partial<Album>;
+  setFormValues: Dispatch<SetStateAction<Partial<Album>>>;
+}) => {
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const handleSetArtists = (newArtist: Artist) => {
+    const newArtists = [...artists, newArtist];
+    setArtists(newArtists);
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      artists: newArtists.map((artist) => artist.id),
+    }));
+  };
+
   return (
     <div>
       <InputField
@@ -24,12 +40,22 @@ export const albumFormFields = (
         value={formValues['artistDisplayName']}
         setFormValues={setFormValues}
       />
-      {/* NEED TO CREATE A NEW INPUT FIELD TYPE TO MAKE API CALL AND ALLOW SELECTION FROM RESULTS */}
-      <InputField
+      <Search
         id="artists"
-        value={formValues['artists']?.[0]}
-        setFormValues={setFormValues}
+        variation={Variation.ARTIST}
+        setSearchResult={handleSetArtists}
       />
+      {artists.length > 0 && (
+        <div>
+          <ul className="flex flex-col gap-2 p-2">
+            {artists.map((artist) => (
+              <li key={artist.id} className="border-2 p-1">
+                {artist.displayName}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Rating
         id="rating"
         value={formValues['rating']}

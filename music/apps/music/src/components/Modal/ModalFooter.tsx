@@ -24,13 +24,15 @@ export const ModalFooter = ({
     }
   };
   return (
-    <button
-      type="button"
-      onClick={handleOnSubmit}
-      disabled={isDisabled}
-      className="absolute bottom-0 border-2 border-blue-500 text-white bg-blue-500 w-1/2 self-center"
-    >
-      Submit
-    </button>
+    <div className="flex mt-2 w-full justify-center">
+      <button
+        type="button"
+        onClick={handleOnSubmit}
+        disabled={isDisabled}
+        className="border-2 border-blue-500 text-white bg-blue-500 w-1/2"
+      >
+        Submit
+      </button>
+    </div>
   );
 };

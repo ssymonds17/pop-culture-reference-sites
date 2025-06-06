@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { Artist, Album, Song, Variation } from '../../types';
 import { InputField } from '../InputField';
-import { albumFormFields } from '../FormFields';
+import { AlbumFormFields } from '../FormFields';
 
 export const renderFormFields = (
   variation: Variation,
@@ -20,7 +20,12 @@ export const renderFormFields = (
         </div>
       );
     case Variation.ALBUM:
-      return albumFormFields(formValues as Album, setFormValues);
+      return (
+        <AlbumFormFields
+          formValues={formValues as Album}
+          setFormValues={setFormValues}
+        />
+      );
     case Variation.SONG:
       return false;
     default:
