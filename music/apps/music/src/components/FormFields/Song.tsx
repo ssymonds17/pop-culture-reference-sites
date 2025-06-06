@@ -1,6 +1,6 @@
 'use client';
 
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 import { InputField } from '../InputField';
 import { Album, Artist, Song, Variation } from '../../types';
 import { Search } from '../Search';
@@ -13,6 +13,8 @@ export const SongFormFields = ({
   setFormValues: Dispatch<SetStateAction<Partial<Song>>>;
 }) => {
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [album, setAlbum] = useState<Album | undefined>(undefined);
+
   const handleSetArtists = (newArtist: Artist) => {
     const newArtists = [...artists, newArtist];
     setArtists(newArtists);
@@ -21,7 +23,6 @@ export const SongFormFields = ({
       artists: newArtists.map((artist) => artist.id),
     }));
   };
-  const [album, setAlbum] = useState<Album | undefined>(undefined);
   const handleSetAlbum = (newAlbum: Album) => {
     setAlbum(newAlbum);
     setFormValues((prevValues) => ({
@@ -29,6 +30,13 @@ export const SongFormFields = ({
       album: newAlbum.id,
     }));
   };
+
+  useEffect(() => {
+    if (Object.keys(formValues).length === 0) {
+      setArtists([]);
+      setAlbum(undefined);
+    }
+  }, [formValues]);
 
   return (
     <div>

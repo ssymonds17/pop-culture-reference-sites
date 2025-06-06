@@ -1,6 +1,6 @@
 'use client';
 
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 import { InputField } from '../InputField';
 import { Album, Artist, Variation } from '../../types';
 import { Rating } from '../Select';
@@ -22,6 +22,12 @@ export const AlbumFormFields = ({
       artists: newArtists.map((artist) => artist.id),
     }));
   };
+
+  useEffect(() => {
+    if (Object.keys(formValues).length === 0) {
+      setArtists([]);
+    }
+  }, [formValues]);
 
   return (
     <div>
