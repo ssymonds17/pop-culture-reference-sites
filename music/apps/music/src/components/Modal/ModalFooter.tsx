@@ -7,10 +7,12 @@ export const ModalFooter = ({
   formValues,
   setFormValues,
   variation,
+  isDisabled,
 }: {
   formValues: Partial<Artist>;
   setFormValues: Dispatch<SetStateAction<Partial<Artist>>>;
   variation: Variation;
+  isDisabled: boolean;
 }) => {
   const handleOnSubmit = async () => {
     try {
@@ -25,6 +27,7 @@ export const ModalFooter = ({
     <button
       type="button"
       onClick={handleOnSubmit}
+      disabled={isDisabled}
       className="absolute bottom-0 border-2 border-blue-500 text-white bg-blue-500 w-1/2 self-center"
     >
       Submit

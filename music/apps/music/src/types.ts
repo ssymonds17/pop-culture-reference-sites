@@ -1,4 +1,8 @@
-export type Variation = 'artists' | 'albums' | 'songs';
+export enum Variation {
+  ARTIST = 'artist',
+  ALBUM = 'album',
+  SONG = 'song',
+}
 
 export interface Song {
   id: string; // unique id of the song

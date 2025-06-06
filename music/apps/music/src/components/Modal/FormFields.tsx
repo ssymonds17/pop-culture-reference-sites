@@ -9,7 +9,7 @@ export const renderFormFields = (
   setFormValues: Dispatch<SetStateAction<Partial<Artist | Album | Song>>>
 ) => {
   switch (variation) {
-    case 'artists':
+    case Variation.ARTIST:
       return (
         <div>
           <InputField
@@ -19,9 +19,9 @@ export const renderFormFields = (
           />
         </div>
       );
-    case 'albums':
+    case Variation.ALBUM:
       return albumFormFields(formValues as Album, setFormValues);
-    case 'songs':
+    case Variation.SONG:
       return false;
     default:
       return false;
