@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { InputField } from '../InputField';
 import { Album } from '../../types';
+import { Rating } from '../Select';
 
 export const albumFormFields = (
   formValues: Partial<Album>,
@@ -29,8 +30,7 @@ export const albumFormFields = (
         value={formValues['artists']?.[0]}
         setFormValues={setFormValues}
       />
-      {/* NEED TO CREATE A NEW INPUT FIELD TYPE TO AUTOMATICALLY PRESENT A DROPDOWN OF RATINGS */}
-      <InputField
+      <Rating
         id="rating"
         value={formValues['rating']}
         setFormValues={setFormValues}

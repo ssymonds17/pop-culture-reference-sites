@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 import { ChangeEvent, Dispatch, SetStateAction } from 'react';
-import { Artist } from '../../types';
+import { Album, Artist, Song } from '../../types';
 
 export const InputField = ({
   id,
@@ -11,7 +11,7 @@ export const InputField = ({
   showLabel = true,
 }: {
   id: string;
-  setFormValues: Dispatch<SetStateAction<Partial<Artist>>>;
+  setFormValues: Dispatch<SetStateAction<Partial<Artist | Album | Song>>>;
   value?: string | number;
   showLabel?: boolean;
 }) => {
