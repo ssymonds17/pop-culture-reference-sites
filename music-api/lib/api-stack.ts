@@ -110,6 +110,10 @@ export class ApiStack extends core.Stack {
       "POST",
       new apigateway.LambdaIntegration(createArtistLambda.function)
     )
+    artist.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["POST"],
+    })
     const getArtistById = artist.addResource("{id}")
     getArtistById.addMethod(
       "GET",
@@ -127,6 +131,10 @@ export class ApiStack extends core.Stack {
       "POST",
       new apigateway.LambdaIntegration(createAlbumLambda.function)
     )
+    album.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["POST"],
+    })
     const getAlbumById = album.addResource("{id}")
     getAlbumById.addMethod(
       "GET",
@@ -139,6 +147,10 @@ export class ApiStack extends core.Stack {
       "POST",
       new apigateway.LambdaIntegration(createSongLambda.function)
     )
+    song.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["POST"],
+    })
     const getSongById = song.addResource("{id}")
     getSongById.addMethod(
       "GET",
