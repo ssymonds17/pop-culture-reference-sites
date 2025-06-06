@@ -10,9 +10,10 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   variation: Variation;
+  label: string;
 };
 
-export const Modal = ({ isOpen, onClose, variation }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, variation, label }: ModalProps) => {
   const [formValues, setFormValues] = useState<Partial<Artist | Album | Song>>(
     {}
   );
@@ -25,7 +26,7 @@ export const Modal = ({ isOpen, onClose, variation }: ModalProps) => {
     <div className="flex top-0 left-0 absolute justify-center items-center w-screen h-screen bg-gray-400 bg-opacity-75">
       <div className="flex w-1/2 h-1/2 border-2 bg-opacity-100 bg-white p-2">
         <div className="flex flex-col relative h-full w-full">
-          <ModalHeader variation={variation} onClose={onClose} />
+          <ModalHeader label={label} onClose={onClose} />
           {formFields}
           <ModalFooter
             formValues={formValues}

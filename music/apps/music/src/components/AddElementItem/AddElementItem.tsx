@@ -21,7 +21,12 @@ export const AddElementItem = ({ label, variation }: AddElementItemProps) => {
       <button type="button" onClick={handleClick}>
         {label}
       </button>
-      <Modal isOpen={isOpen} onClose={handleOnClose} variation={variation} />
+      <Modal
+        isOpen={isOpen}
+        onClose={handleOnClose}
+        variation={variation}
+        label={label}
+      />
     </>
   );
 };

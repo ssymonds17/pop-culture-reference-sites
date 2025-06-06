@@ -1,14 +1,12 @@
-import { Variation } from '../../types';
-
 export const ModalHeader = ({
-  variation,
+  label,
   onClose,
 }: {
-  variation: Variation;
+  label: string;
   onClose: () => void;
 }) => (
   <div className="flex justify-between">
-    <h1>Add {variation}</h1>
+    <h1>{label}</h1>
     <button className="border-2" onClick={onClose}>
       Close
     </button>

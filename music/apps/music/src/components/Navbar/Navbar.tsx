@@ -5,15 +5,15 @@ export const Navbar = () => {
     <nav>
       <ul className="flex justify-center">
         <NavItemWrapper
-          label="Add Artists"
+          label="Add Artist"
           action={{ type: 'add element', actionType: 'artists' }}
         />
         <NavItemWrapper
-          label="Add Albums"
+          label="Add Album"
           action={{ type: 'add element', actionType: 'albums' }}
         />
         <NavItemWrapper
-          label="Add Songs"
+          label="Add Song"
           action={{ type: 'add element', actionType: 'songs' }}
         />
         <NavItemWrapper
