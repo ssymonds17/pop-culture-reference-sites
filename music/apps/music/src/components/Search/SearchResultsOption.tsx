@@ -31,7 +31,7 @@ export const SearchResultsOption = ({
         onClick={handleOnClick}
         className="cursor-pointer hover:bg-gray-200"
       >
-        {item.displayTitle} ({item.year})
+        {item.displayTitle} - {item.artistDisplayName} ({item.year})
       </div>
     );
   } else {
