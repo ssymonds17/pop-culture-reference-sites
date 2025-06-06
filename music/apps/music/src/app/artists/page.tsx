@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Artist } from '../../types';
-import Link from 'next/link';
 
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
@@ -87,12 +86,7 @@ const ArtistsPage = () => {
               artists.map((artist: Artist) => (
                 <tr key={artist.id}>
                   <td className="border border-gray-300 text-center">
-                    <Link
-                      href={`/artist?id=${artist.id}`}
-                      className="text-blue-500 hover:underline"
-                    >
-                      {artist.displayName}
-                    </Link>
+                    {artist.displayName}
                   </td>
                   <td className="border border-gray-300 text-center">
                     {artist.goldAlbums}
