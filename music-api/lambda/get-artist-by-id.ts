@@ -1,4 +1,3 @@
-import _ from "lodash"
 import { createApiResponse, logger } from "./utils"
 import { connectToDatabase, getArtistById } from "./mongodb"
 
