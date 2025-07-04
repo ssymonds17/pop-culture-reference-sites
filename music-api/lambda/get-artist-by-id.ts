@@ -1,6 +1,6 @@
+import _ from "lodash"
 import { createApiResponse, logger } from "./utils"
-import { ARTISTS_TABLE_NAME, getRecord } from "./dynamodb"
-import { Artist } from "./schemas"
+import { connectToDatabase, getArtistById } from "./mongodb"
 
 const handler = async (event: any) => {
   const artistId = event.pathParameters?.id
@@ -12,7 +12,9 @@ const handler = async (event: any) => {
       })
     }
 
-    const artist = (await getRecord(ARTISTS_TABLE_NAME, artistId)) as Artist
+    await connectToDatabase()
+
+    const artist = await getArtistById(artistId)
 
     if (!artist) {
       return createApiResponse(404, {

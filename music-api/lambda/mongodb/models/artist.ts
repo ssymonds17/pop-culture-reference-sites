@@ -1,7 +1,5 @@
 import mongoose from "mongoose"
 
-export interface Artist {}
-
 export interface ArtistDocument extends mongoose.Document {
   name: string // the name of the artist
   displayName: string // title of the artist to be displayed in the client

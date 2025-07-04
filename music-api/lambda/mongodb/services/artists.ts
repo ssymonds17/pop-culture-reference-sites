@@ -1,5 +1,6 @@
 import { FilterQuery } from "mongoose"
 import Artist, { ArtistDocument } from "../models/artist"
+import { logger } from "../../utils"
 
 export const findArtist = async (query: FilterQuery<ArtistDocument>) => {
   return Artist.findOne(query, null)
@@ -10,4 +11,8 @@ export const getArtists = async () => {
     .sort({ name: 1, silverAlbums: -1, goldAlbums: -1, totalScore: -1 })
     .limit(100)
     .exec()
+}
+
+export const getArtistById = async (id: string) => {
+  return Artist.findById(id, null)
 }
