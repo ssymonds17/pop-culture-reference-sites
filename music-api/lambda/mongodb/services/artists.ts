@@ -1,10 +1,4 @@
-import { FilterQuery } from "mongoose"
-import Artist, { ArtistDocument } from "../models/artist"
-import { logger } from "../../utils"
-
-export const findArtist = async (query: FilterQuery<ArtistDocument>) => {
-  return Artist.findOne(query, null)
-}
+import Artist from "../models/artist"
 
 export const getArtists = async () => {
   return Artist.find({}, null)
