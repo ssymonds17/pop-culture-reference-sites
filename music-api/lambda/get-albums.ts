@@ -1,40 +1,21 @@
-import _ from "lodash"
-import {
-  ScanCommand,
-  ScanCommandInput,
-  ScanCommandOutput,
-} from "@aws-sdk/lib-dynamodb"
 import { createApiResponse } from "./utils/api"
-import { documentClient } from "./dynamodb/client"
-import { ALBUMS_TABLE_NAME } from "./dynamodb/constants"
 import { logger } from "./utils"
-import { sortSearchResults } from "./utils/search"
-import { Album } from "./schemas"
+import { connectToDatabase } from "./mongodb"
+import { getAlbums } from "./mongodb/services/albums"
 
 const handler = async () => {
-  const params: ScanCommandInput = {
-    TableName: ALBUMS_TABLE_NAME,
-  }
-
   try {
-    const result: ScanCommandOutput = await documentClient.send(
-      new ScanCommand(params)
-    )
+    await connectToDatabase()
+    const albums = await getAlbums()
 
-    if (!result.Items) {
+    if (!albums) {
       return createApiResponse(404, {
         message: "Could not find albums",
       })
     }
 
-    const sortedItems = sortSearchResults(
-      result.Items as Album[],
-      "album"
-    ) as Album[]
-    const filteredItems = _.take(sortedItems, 250)
-
     return createApiResponse(200, {
-      albums: filteredItems,
+      albums: albums,
       message: "Successfully retrieved albums",
     })
   } catch (error) {
