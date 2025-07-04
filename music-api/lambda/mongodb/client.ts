@@ -1,16 +1,29 @@
 import mongoose from "mongoose"
 import { logger } from "../utils"
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://samuelsymonds2017:Axi5PikP0zYgX7kn@musiccluster1.gfx2ety.mongodb.net/"
+const MONGODB_URI = process.env.MONGODB_URI
 
-export const connectToDatabase = async () => {
+let isConnected: boolean = false
+
+export const connectToDatabase = async (): Promise<typeof mongoose> => {
+  if (isConnected) {
+    return mongoose
+  }
+
+  if (!MONGODB_URI) {
+    throw new Error("MongoDB connection string is missing.")
+  }
+
   try {
-    await mongoose.connect(MONGODB_URI, { dbName: "music" })
+    const db = await mongoose.connect(MONGODB_URI, {
+      dbName: "music",
+    })
 
-    logger.info("Connected to MongoDB successfully")
+    isConnected = true
+    logger.info("MongoDB connected")
+    return db
   } catch (error) {
-    logger.error("Error connecting to MongoDB:", { error })
+    logger.error("MongoDB connection error:", { error })
+    throw error
   }
 }
