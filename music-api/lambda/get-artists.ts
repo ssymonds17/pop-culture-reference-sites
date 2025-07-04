@@ -10,6 +10,8 @@ import { ARTISTS_TABLE_NAME } from "./dynamodb/constants"
 import { logger } from "./utils"
 import { sortSearchResults } from "./utils/search"
 import { Artist } from "./schemas"
+import { connect } from "http2"
+import { connectToDatabase } from "./mongodb"
 
 const handler = async () => {
   const params: ScanCommandInput = {
@@ -17,6 +19,7 @@ const handler = async () => {
   }
 
   try {
+    connectToDatabase()
     const result: ScanCommandOutput = await documentClient.send(
       new ScanCommand(params)
     )
