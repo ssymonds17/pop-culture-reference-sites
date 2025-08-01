@@ -1,9 +1,7 @@
 import _ from "lodash"
-import { PutCommand } from "@aws-sdk/lib-dynamodb"
-import { v7 as uuidV7 } from "uuid"
 import { createApiResponse, logger } from "./utils"
-import { Artist } from "./schemas/index"
-import { documentClient, ARTISTS_TABLE_NAME } from "./dynamodb"
+import { ArtistData } from "./mongodb/models/artist"
+import { createArtist } from "./mongodb"
 
 const handler = async (event: any) => {
   const artistName = JSON.parse(event.body).name
@@ -12,9 +10,7 @@ const handler = async (event: any) => {
       throw new Error("Artist name is required")
     }
 
-    const artistId = uuidV7()
-    const defaultArtist: Artist = {
-      id: artistId,
+    const defaultArtist: ArtistData = {
       name: _.toLower(artistName),
       displayName: artistName,
       albums: [],
@@ -24,17 +20,12 @@ const handler = async (event: any) => {
       totalSongs: 0,
       totalScore: 0,
     }
-    await documentClient.send(
-      new PutCommand({
-        TableName: ARTISTS_TABLE_NAME,
-        Item: defaultArtist,
-        ConditionExpression: "attribute_not_exists(id)",
-      })
-    )
+
+    const artist = await createArtist(defaultArtist)
 
     return createApiResponse(201, {
-      id: artistId,
-      artistName,
+      id: artist._id,
+      artistName: artist.displayName,
       message: "Successfully created artist",
     })
   } catch (error) {
