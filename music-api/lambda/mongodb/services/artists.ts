@@ -15,6 +15,14 @@ export const getArtistById = async (id: string) => {
   return Artist.findById(id, null)
 }
 
+export const getArtistByIdFull = async (id: string) => {
+  const artist = await Artist.findById(id, null)
+    .populate("albums")
+    .populate("songs")
+    .exec()
+  return artist
+}
+
 export const findArtistsByName = async (name: string) => {
   return Artist.find(
     { name: new RegExp(name, "i") }, // case-insensitive search

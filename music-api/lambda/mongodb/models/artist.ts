@@ -17,8 +17,20 @@ export type ArtistData = Omit<ArtistDocument, keyof mongoose.Document>
 const artistSchema = new mongoose.Schema({
   name: { type: String, required: true },
   displayName: { type: String, required: true },
-  albums: { type: [String], default: [] },
-  songs: { type: [String], default: [] },
+  albums: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Album",
+      default: [],
+    },
+  ],
+  songs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Song",
+      default: [],
+    },
+  ],
   silverAlbums: { type: Number, default: 0 },
   goldAlbums: { type: Number, default: 0 },
   totalSongs: { type: Number, default: 0 },
