@@ -1,1 +1,2 @@
-export * from './Album';
+export * from './Albums';
+export * from './Songs';

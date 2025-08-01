@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { API_URL } from '../../constants';
-import { AlbumsTable } from '../../components';
+import { AlbumsTable, SongsTable } from '../../components';
 import { ArtistFull } from '../../types';
 
 const ArtistPage = () => {
@@ -31,16 +31,41 @@ const ArtistPage = () => {
     }
   }, [artistId]);
 
-  console.log('Artist:', artist);
-
   return (
     <div className="m-4">
       <h1 className="text-4xl font-bold text-center text-gray-900">
         Artist Page
       </h1>
 
+      <h2 className="text-2xl font-semibold text-center mt-4">
+        {artist ? artist.displayName : 'Loading...'}
+      </h2>
+      <p className="text-center mt-2">
+        Total Score: {artist ? artist.totalScore : 'Loading...'}
+      </p>
+      <p className="text-center mt-2">
+        Total Songs: {artist ? artist.totalSongs : 'Loading...'}
+      </p>
+      <p className="text-center mt-2">
+        Gold Albums: {artist ? artist.goldAlbums : 'Loading...'}
+      </p>
+      <p className="text-center mt-2">
+        Silver Albums: {artist ? artist.silverAlbums : 'Loading...'}
+      </p>
+      <h2 className="text-2xl font-semibold mt-6">Albums</h2>
       <AlbumsTable
         albums={artist ? artist.albums.toSorted((a, b) => a.year - b.year) : []}
+      />
+
+      <h2 className="text-2xl font-semibold mt-6">Songs</h2>
+      <SongsTable
+        songs={
+          artist
+            ? artist.songs
+                .toSorted((a, b) => a.title.localeCompare(b.title))
+                .toSorted((a, b) => a.year - b.year)
+            : []
+        }
       />
     </div>
   );
