@@ -1,31 +1,27 @@
-import {
-  ALBUMS_TABLE_NAME,
-  ARTISTS_TABLE_NAME,
-  updateRecord,
-} from "../dynamodb"
-import { Album, Artist } from "../schemas"
+import { AlbumDocument } from "../mongodb/models/album"
+import { ArtistDocument } from "../mongodb/models/artist"
 
 export const updateAssociatedArtists = async (
-  artists: Artist[],
+  artists: ArtistDocument[],
   songId: string
 ) => {
   for (const artist of artists) {
     const newArtistSongs = [...artist.songs, songId]
-    const updateArtistData = {
-      songs: newArtistSongs,
-      totalSongs: artist.totalSongs + 1,
-      totalScore: artist.totalScore + 1,
-    }
 
-    await updateRecord(updateArtistData, ARTISTS_TABLE_NAME, artist.id)
+    artist.songs = newArtistSongs
+    artist.totalSongs += 1
+    artist.totalScore += 1
+
+    await artist.save()
   }
 }
 
-export const updateAssociatedAlbum = async (album: Album, songId: string) => {
+export const updateAssociatedAlbum = async (
+  album: AlbumDocument,
+  songId: string
+) => {
   const newAlbumSongs = [...album.songs, songId]
-  const updateAlbumData = {
-    songs: newAlbumSongs,
-  }
+  album.songs = newAlbumSongs
 
-  await updateRecord(updateAlbumData, ALBUMS_TABLE_NAME, album.id)
+  await album.save()
 }

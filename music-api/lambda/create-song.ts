@@ -1,29 +1,23 @@
 import _ from "lodash"
-import { PutCommand } from "@aws-sdk/lib-dynamodb"
-import { v7 as uuidV7 } from "uuid"
 import { createApiResponse, logger } from "./utils"
-import { Album, Artist, Song } from "./schemas/index"
-import {
-  ALBUMS_TABLE_NAME,
-  ARTISTS_TABLE_NAME,
-  documentClient,
-  SONGS_TABLE_NAME,
-} from "./dynamodb"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import {
   updateAssociatedAlbum,
   updateAssociatedArtists,
 } from "./utils/create-song"
+import { SongData } from "./mongodb/models/song"
+import { ArtistDocument } from "./mongodb/models/artist"
+import { AlbumDocument } from "./mongodb/models/album"
+import { connectToDatabase, createSong } from "./mongodb"
 
 const handler = async (event: any) => {
   const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
     JSON.parse(event.body)
-  const songId = uuidV7()
-  const defaultSong: Song = {
-    id: songId,
+
+  const defaultSong: SongData = {
     title: _.toLower(title),
     displayTitle: title,
-    artists: [artists],
+    artists: artists,
     artistDisplayName: artistDisplayName,
     year,
     album: album ?? undefined,
@@ -31,23 +25,22 @@ const handler = async (event: any) => {
   }
 
   try {
-    if (!title) {
+    if (!title || !artistDisplayName || !year || !artists) {
       throw new Error("Song title is required")
     }
 
+    await connectToDatabase()
     // Check that each artist associated with the song exists
-    const validatedArtists = (await validateAssociatedEntities(
-      artists,
-      ARTISTS_TABLE_NAME
-    )) as Artist[] | null
+    const validatedArtists = (await validateAssociatedEntities(artists)) as
+      | ArtistDocument[]
+      | null
 
     // If an album is provided, check that it exists
     let validatedAlbum = undefined
     if (album) {
-      validatedAlbum = (await validateAssociatedEntities(
-        [album],
-        ALBUMS_TABLE_NAME
-      )) as Album[] | null
+      validatedAlbum = (await validateAssociatedEntities([album])) as
+        | AlbumDocument[]
+        | null
     }
 
     if (!validatedArtists || (album && !validatedAlbum)) {
@@ -57,29 +50,22 @@ const handler = async (event: any) => {
       })
     }
 
-    await updateAssociatedArtists(validatedArtists, songId)
+    const song = await createSong(defaultSong)
+
+    await updateAssociatedArtists(validatedArtists, song.id)
     if (album && validatedAlbum) {
-      await updateAssociatedAlbum(validatedAlbum[0], songId)
+      await updateAssociatedAlbum(validatedAlbum[0], song.id)
     }
 
-    // Artist and albums have been updated. Now create the song
-    await documentClient.send(
-      new PutCommand({
-        TableName: SONGS_TABLE_NAME,
-        Item: defaultSong,
-        ConditionExpression: "attribute_not_exists(id)",
-      })
-    )
-
     return createApiResponse(201, {
-      id: songId,
-      year: defaultSong.year,
-      title,
-      displayTitle: defaultSong.displayTitle,
-      album: defaultSong.album,
-      albumDisplayTitle: defaultSong.albumDisplayTitle,
-      artists: defaultSong.artists,
-      artistDisplayName: defaultSong.artistDisplayName,
+      id: song.id,
+      year: song.year,
+      title: song.title,
+      displayTitle: song.displayTitle,
+      album: song.album,
+      albumDisplayTitle: song.albumDisplayTitle,
+      artists: song.artists,
+      artistDisplayName: song.artistDisplayName,
       message: "Successfully created song",
     })
   } catch (error) {
