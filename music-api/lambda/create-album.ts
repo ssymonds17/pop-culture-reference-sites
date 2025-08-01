@@ -1,23 +1,16 @@
 import _ from "lodash"
-import { PutCommand } from "@aws-sdk/lib-dynamodb"
-import { v7 as uuidV7 } from "uuid"
 import { createApiResponse, logger } from "./utils"
-import { Album, Artist, Rating } from "./schemas/index"
-import {
-  documentClient,
-  ALBUMS_TABLE_NAME,
-  ARTISTS_TABLE_NAME,
-} from "./dynamodb"
 import { updateAssociatedArtists } from "./utils/create-album"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
+import { AlbumData, Rating } from "./mongodb/models/album"
+import { connectToDatabase, createAlbum } from "./mongodb"
 
 const handler = async (event: any) => {
   const { title, artistDisplayName, year, artists, rating } = JSON.parse(
     event.body
   )
-  const albumId = uuidV7()
-  const defaultAlbum: Album = {
-    id: albumId,
+
+  const defaultAlbum: AlbumData = {
     title: _.toLower(title),
     displayTitle: title,
     artistDisplayName,
@@ -28,16 +21,15 @@ const handler = async (event: any) => {
   }
 
   try {
-    if (!title) {
-      throw new Error("Album title is required")
+    if (!title || !artistDisplayName || !year || !artists) {
+      throw new Error("Required fields are missing")
     }
+
+    await connectToDatabase()
 
     // Check that each artist associated with the album exists
     // If any artist does not exist return an error
-    const fullArtists = (await validateAssociatedEntities(
-      artists,
-      ARTISTS_TABLE_NAME
-    )) as Artist[] | null
+    const fullArtists = await validateAssociatedEntities(artists)
 
     if (!fullArtists) {
       logger.error(`Artist not found`)
@@ -46,22 +38,16 @@ const handler = async (event: any) => {
       })
     }
 
-    await updateAssociatedArtists(fullArtists, albumId, rating)
-
     // Artist updated successfully. Now create the album
-    await documentClient.send(
-      new PutCommand({
-        TableName: ALBUMS_TABLE_NAME,
-        Item: defaultAlbum,
-        ConditionExpression: "attribute_not_exists(id)",
-      })
-    )
+    const album = await createAlbum(defaultAlbum)
+
+    await updateAssociatedArtists(fullArtists, album.id, rating)
 
     return createApiResponse(201, {
-      id: albumId,
-      year: defaultAlbum.year,
-      title,
-      artistDisplayName: defaultAlbum.artistDisplayName,
+      id: album.id,
+      year: album.year,
+      title: album.title,
+      artistDisplayName: album.artistDisplayName,
       message: "Successfully created album",
     })
   } catch (error) {
