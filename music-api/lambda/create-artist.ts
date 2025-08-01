@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { createApiResponse, logger } from "./utils"
 import { ArtistData } from "./mongodb/models/artist"
-import { createArtist } from "./mongodb"
+import { connectToDatabase, createArtist } from "./mongodb"
 
 const handler = async (event: any) => {
   const artistName = JSON.parse(event.body).name
@@ -21,6 +21,7 @@ const handler = async (event: any) => {
       totalScore: 0,
     }
 
+    await connectToDatabase()
     const artist = await createArtist(defaultArtist)
 
     return createApiResponse(201, {
