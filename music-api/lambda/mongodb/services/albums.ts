@@ -1,4 +1,8 @@
-import Album from "../models/album"
+import Album, { AlbumData } from "../models/album"
+
+export const createAlbum = async (albumData: AlbumData) => {
+  return Album.create(albumData)
+}
 
 export const getAlbums = async () => {
   return Album.find({}, null)

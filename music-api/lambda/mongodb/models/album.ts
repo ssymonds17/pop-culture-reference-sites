@@ -16,6 +16,9 @@ export interface AlbumDocument extends mongoose.Document {
   rating: Rating // what is the rating of the album (if applicable)
 }
 
+// Type for creating new albums (excludes mongoose Document fields)
+export type AlbumData = Omit<AlbumDocument, keyof mongoose.Document>
+
 const albumSchema = new mongoose.Schema({
   title: { type: String, required: true },
   displayTitle: { type: String, required: true },
