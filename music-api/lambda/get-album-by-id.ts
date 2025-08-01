@@ -1,6 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase } from "./mongodb"
-import { getAlbumById } from "./mongodb/services/albums"
+import { connectToDatabase, getAlbumById } from "./mongodb"
 
 const handler = async (event: any) => {
   const albumId = event.pathParameters?.id

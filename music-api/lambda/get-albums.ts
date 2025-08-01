@@ -1,7 +1,6 @@
 import { createApiResponse } from "./utils/api"
 import { logger } from "./utils"
-import { connectToDatabase } from "./mongodb"
-import { getAlbums } from "./mongodb/services/albums"
+import { connectToDatabase, getAlbums } from "./mongodb"
 
 const handler = async () => {
   try {
