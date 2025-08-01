@@ -52,10 +52,18 @@ const handler = async (event: any) => {
 
     const song = await createSong(defaultSong)
 
-    await updateAssociatedArtists(validatedArtists, song.id)
+    let upgradingAlbumToSilver = false
     if (album && validatedAlbum) {
-      await updateAssociatedAlbum(validatedAlbum[0], song.id)
+      upgradingAlbumToSilver = await updateAssociatedAlbum(
+        validatedAlbum[0],
+        song.id
+      )
     }
+    await updateAssociatedArtists(
+      validatedArtists,
+      song.id,
+      upgradingAlbumToSilver
+    )
 
     return createApiResponse(201, {
       id: song.id,
