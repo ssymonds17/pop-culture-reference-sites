@@ -25,7 +25,13 @@ const albumSchema = new mongoose.Schema({
   year: { type: Number, required: true },
   artistDisplayName: { type: String, required: true },
   artists: { type: [String], required: true },
-  songs: { type: [String], default: [] },
+  songs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Song",
+      default: [],
+    },
+  ],
   rating: { type: String, enum: Object.values(Rating), default: Rating.NONE },
 })
 

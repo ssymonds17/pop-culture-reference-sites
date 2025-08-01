@@ -1,5 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase, getAlbumById } from "./mongodb"
+import { connectToDatabase, getAlbumByIdFull } from "./mongodb"
 
 const handler = async (event: any) => {
   const albumId = event.pathParameters?.id
@@ -12,7 +12,7 @@ const handler = async (event: any) => {
     }
 
     await connectToDatabase()
-    const album = await getAlbumById(albumId)
+    const album = await getAlbumByIdFull(albumId)
 
     if (!album) {
       return createApiResponse(404, {

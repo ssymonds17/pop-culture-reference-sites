@@ -34,6 +34,10 @@ export const getAlbumById = async (id: string) => {
   return Album.findById(id, null)
 }
 
+export const getAlbumByIdFull = async (id: string) => {
+  return Album.findById(id, null).populate("songs").exec()
+}
+
 export const findAlbumsByTitle = async (title: string) => {
   return Album.find(
     { title: new RegExp(title, "i") }, // case-insensitive search
