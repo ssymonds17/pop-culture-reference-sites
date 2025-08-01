@@ -1,6 +1,7 @@
 'use client';
 import axios from 'axios';
 import { useState } from 'react';
+import Link from 'next/link';
 import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Artist } from '../../types';
@@ -86,7 +87,12 @@ const ArtistsPage = () => {
               artists.map((artist: Artist) => (
                 <tr key={artist._id}>
                   <td className="border border-gray-300 text-center">
-                    {artist.displayName}
+                    <Link
+                      href={`/artist?id=${artist._id}`}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {artist.displayName}
+                    </Link>
                   </td>
                   <td className="border border-gray-300 text-center">
                     {artist.goldAlbums}
