@@ -5,7 +5,7 @@ export enum Variation {
 }
 
 export interface Song {
-  id: string; // unique id of the song
+  _id: string; // unique id of the song
   title: string; // title of the song
   displayTitle: string; // title of the song to be displayed in the client
   year: number; // the year the song was released
@@ -22,7 +22,7 @@ export enum Rating {
 }
 
 export interface Album {
-  id: string; // unique id of the album
+  _id: string; // unique id of the album
   title: string; // title of the album
   displayTitle: string; // title of the album to be displayed in the client
   year: number; // the year the album was released
@@ -33,7 +33,7 @@ export interface Album {
 }
 
 export interface Artist {
-  id: string; // unique id of the artist
+  _id: string; // unique id of the artist
   name: string; // the name of the artist
   displayName: string; // title of the artist to be displayed in the client
   albums: string[]; // the ids of the albums of the artist

@@ -58,7 +58,7 @@ const SongsPage = () => {
           <tbody>
             {songs.length ? (
               songs.map((song: Song) => (
-                <tr key={song.id}>
+                <tr key={song._id}>
                   <td className="border border-gray-300 text-center">
                     {song.year}
                   </td>

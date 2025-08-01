@@ -75,7 +75,7 @@ const AlbumsPage = () => {
           <tbody>
             {albums.length ? (
               albums.map((album: Album) => (
-                <tr key={album.id}>
+                <tr key={album._id}>
                   <td className="border border-gray-300 text-center">
                     {album.rating}
                   </td>

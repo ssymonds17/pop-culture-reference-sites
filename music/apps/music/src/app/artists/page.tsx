@@ -84,7 +84,7 @@ const ArtistsPage = () => {
           <tbody>
             {artists.length ? (
               artists.map((artist: Artist) => (
-                <tr key={artist.id}>
+                <tr key={artist._id}>
                   <td className="border border-gray-300 text-center">
                     {artist.displayName}
                   </td>
