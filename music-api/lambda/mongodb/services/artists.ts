@@ -1,4 +1,8 @@
-import Artist from "../models/artist"
+import Artist, { ArtistData } from "../models/artist"
+
+export const createArtist = async (artistData: ArtistData) => {
+  return Artist.create(artistData)
+}
 
 export const getArtists = async () => {
   return Artist.find({}, null)
