@@ -1,16 +1,5 @@
 import mongoose from "mongoose"
 
-export interface Song {
-  id: string // unique id of the song
-  title: string // title of the song
-  displayTitle: string // title of the song to be displayed in the client
-  year: number // the year the song was released
-  album?: string // {optional} the id of the album the song was released on
-  albumDisplayTitle?: string // {optional} the display title of the album the song was released on
-  artists: string[] // array of ids that represent the artists present on the song
-  artistDisplayName: string // the display name of the artist of the song
-}
-
 export interface SongDocument extends mongoose.Document {
   title: string // title of the album
   displayTitle: string // title of the album to be displayed in the client
@@ -20,6 +9,9 @@ export interface SongDocument extends mongoose.Document {
   artists: string[] // array of ids that represent the artists present on the song
   artistDisplayName: string // the display name of the artist of the song
 }
+
+// Type for creating new songs (excludes mongoose Document fields)
+export type SongData = Omit<SongDocument, keyof mongoose.Document>
 
 const songSchema = new mongoose.Schema({
   title: { type: String, required: true },
