@@ -14,3 +14,11 @@ export const getAlbums = async () => {
 export const getAlbumById = async (id: string) => {
   return Album.findById(id, null)
 }
+
+export const findAlbumsByTitle = async (title: string) => {
+  return Album.find(
+    { title: new RegExp(title, "i") }, // case-insensitive search
+    null,
+    { sort: { title: 1 } }
+  ).exec()
+}

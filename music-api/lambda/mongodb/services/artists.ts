@@ -14,3 +14,11 @@ export const getArtists = async () => {
 export const getArtistById = async (id: string) => {
   return Artist.findById(id, null)
 }
+
+export const findArtistsByName = async (name: string) => {
+  return Artist.find(
+    { name: new RegExp(name, "i") }, // case-insensitive search
+    null,
+    { sort: { name: 1 } }
+  ).exec()
+}

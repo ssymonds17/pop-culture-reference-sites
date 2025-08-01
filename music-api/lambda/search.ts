@@ -1,9 +1,12 @@
 import _ from "lodash"
-import { ScanCommand, ScanCommandInput } from "@aws-sdk/lib-dynamodb"
 import { createApiResponse, logger } from "./utils"
-import { documentClient } from "./dynamodb/client"
-import { getTableName, ItemType, sortSearchResults } from "./utils/search"
-import { Album, Artist, Song } from "./schemas"
+import {
+  connectToDatabase,
+  findArtistsByName,
+  findAlbumsByTitle,
+  findSongsByTitle,
+} from "./mongodb"
+import { ItemType } from "./schemas"
 
 const handler = async (event: any) => {
   logger.info("event", event)
@@ -22,42 +25,18 @@ const handler = async (event: any) => {
 
     const searchStringAsLower = _.toLower(searchString)
 
-    const params: ScanCommandInput =
-      itemType === "artist"
-        ? {
-            TableName: getTableName(itemType),
-            FilterExpression: "contains(#name, :searchString)",
-            ExpressionAttributeNames: {
-              "#name": "name",
-            },
-            ExpressionAttributeValues: {
-              ":searchString": searchStringAsLower,
-            },
-          }
-        : {
-            TableName: getTableName(itemType),
-            FilterExpression: "contains(#title, :searchString)",
-            ExpressionAttributeNames: {
-              "#title": "title",
-            },
-            ExpressionAttributeValues: {
-              ":searchString": searchStringAsLower,
-            },
-          }
-
-    const result = await documentClient.send(new ScanCommand(params))
-
-    if (!result.Items || result.Items.length === 0) {
-      throw new Error("No items found")
+    let resultItems
+    connectToDatabase()
+    if (itemType === "artist") {
+      resultItems = await findArtistsByName(searchStringAsLower)
+    } else if (itemType === "album") {
+      resultItems = await findAlbumsByTitle(searchStringAsLower)
+    } else if (itemType === "song") {
+      resultItems = await findSongsByTitle(searchStringAsLower)
     }
 
-    let resultItems
-    if (itemType === "artist") {
-      resultItems = sortSearchResults(result.Items as Artist[], itemType)
-    } else if (itemType === "album") {
-      resultItems = sortSearchResults(result.Items as Album[], itemType)
-    } else if (itemType === "song") {
-      resultItems = sortSearchResults(result.Items as Song[], itemType)
+    if (!resultItems || resultItems.length === 0) {
+      throw new Error("No items found")
     }
 
     return createApiResponse(200, {
