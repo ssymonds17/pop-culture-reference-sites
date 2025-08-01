@@ -43,3 +43,8 @@ export interface Artist {
   totalSongs: number; // how many songs this artist has
   totalScore: number; // the total score for this artist
 }
+
+export interface ArtistFull extends Omit<Artist, 'albums' | 'songs'> {
+  albums: Album[]; // the albums of the artist
+  songs: Song[]; // the songs of the artist
+}

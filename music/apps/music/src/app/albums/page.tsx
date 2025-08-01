@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Album } from '../../types';
+import { AlbumsTable } from '../../components';
 
 const AlbumsPage = () => {
-  const [albums, setAlbums] = useState([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
   const [formValues, setFormValues] = useState<Partial<Album>>({});
 
   const handleGetAlbums = async () => {
@@ -62,43 +63,7 @@ const AlbumsPage = () => {
         </div>
       </div>
       <ul>
-        <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
-          <thead>
-            <tr>
-              <th className="border border-gray-300">Rating</th>
-              <th className="border border-gray-300">Year</th>
-              <th className="border border-gray-300">Title</th>
-              <th className="border border-gray-300 text-center">Artist</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {albums.length ? (
-              albums.map((album: Album) => (
-                <tr key={album._id}>
-                  <td className="border border-gray-300 text-center">
-                    {album.rating}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {album.year}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {album.displayTitle}
-                  </td>
-                  <td className="border border-gray-300 text-center">
-                    {album.artistDisplayName}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="border border-gray-300 text-center">
-                  No albums found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <AlbumsTable albums={albums} />
       </ul>
     </div>
   );
