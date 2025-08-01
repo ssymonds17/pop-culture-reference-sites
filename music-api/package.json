@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.17.0",
-    "@aws-sdk/lib-dynamodb": "^3.758.0",
     "@types/aws-lambda": "^8.10.147",
     "@types/lodash": "^4.17.16",
     "aws-cdk-lib": "^2.180.0",
