@@ -36,7 +36,7 @@ export const Modal = ({ isOpen, onClose, variation, label }: ModalProps) => {
             formValues={formValues}
             setFormValues={setFormValues}
             variation={variation}
-            isDisabled={!formFields || Object.keys(formValues).length === 0}
+            isDisabled={Object.keys(formValues).length === 0}
           />
         </div>
       </div>
