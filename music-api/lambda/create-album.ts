@@ -16,7 +16,7 @@ const handler = async (event: any) => {
     artistDisplayName,
     songs: [],
     rating: rating ?? Rating.NONE,
-    artists: [artists],
+    artists,
     year,
   }
 
@@ -31,6 +31,8 @@ const handler = async (event: any) => {
     // If any artist does not exist return an error
     const fullArtists = await validateAssociatedEntities(artists)
 
+    logger.info(`Full artists retrieved`, { fullArtists })
+
     if (!fullArtists) {
       logger.error(`Artist not found`)
       return createApiResponse(404, {
@@ -38,8 +40,11 @@ const handler = async (event: any) => {
       })
     }
 
+    logger.info("Creating album")
     // Artist updated successfully. Now create the album
     const album = await createAlbum(defaultAlbum)
+
+    logger.info(`Album created`, { album })
 
     await updateAssociatedArtists(fullArtists, album.id, rating)
 

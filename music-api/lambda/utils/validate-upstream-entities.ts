@@ -3,13 +3,13 @@ import { ArtistDocument } from "../mongodb/models/artist"
 import { logger } from "./logger"
 
 export const validateAssociatedEntities = async (
-  entityToValidate: string[]
+  ids: string[]
 ): Promise<ArtistDocument[] | null> => {
   try {
     let entityExists = true
     const allEntities = await Promise.all(
-      entityToValidate.map(async (entity: string) => {
-        const retrievedEntity = await getArtistById(entity)
+      ids.map(async (id: string) => {
+        const retrievedEntity = await getArtistById(id)
 
         if (!retrievedEntity) {
           entityExists = false
