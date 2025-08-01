@@ -56,7 +56,8 @@ const AlbumsPage = () => {
           />
           <button
             onClick={handleSearchAlbumsByName}
-            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
+            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+            disabled={!formValues.title}
           >
             Search
           </button>

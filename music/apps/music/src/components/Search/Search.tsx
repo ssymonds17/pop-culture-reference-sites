@@ -63,8 +63,8 @@ export const Search = ({
         />
         <button
           type="button"
-          className="bg-blue-500 text-white border-2 border-blue-500"
-          disabled={!searchTerm.trim()}
+          className="bg-blue-500 text-white border-2 border-blue-500 disabled:bg-gray-300"
+          disabled={searchTerm === ''}
           onClick={handleOnSearch}
         >
           Search

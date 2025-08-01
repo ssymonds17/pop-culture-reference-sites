@@ -24,6 +24,8 @@ const SongsPage = () => {
     }
   };
 
+  console.log('buttonDisabled', !formValues.title);
+
   return (
     <div className="m-4">
       <h1 className="text-4xl font-bold text-center text-gray-900">
@@ -39,7 +41,8 @@ const SongsPage = () => {
           />
           <button
             onClick={handleSearchSongsByName}
-            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
+            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+            disabled={!formValues.title}
           >
             Search
           </button>
