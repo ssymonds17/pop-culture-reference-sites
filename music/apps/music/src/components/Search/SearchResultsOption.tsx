@@ -11,13 +11,13 @@ export const SearchResultsOption = ({
   const isAlbum = (item: any): item is Album => 'title' in item;
 
   const handleOnClick = () => {
-    onClick(item.id);
+    onClick(item._id);
   };
 
   if (isArtist(item)) {
     return (
       <div
-        key={item.id}
+        key={item._id}
         onClick={handleOnClick}
         className="cursor-pointer hover:bg-gray-200"
       >
@@ -27,7 +27,7 @@ export const SearchResultsOption = ({
   } else if (isAlbum(item)) {
     return (
       <div
-        key={item.id}
+        key={item._id}
         onClick={handleOnClick}
         className="cursor-pointer hover:bg-gray-200"
       >

@@ -19,7 +19,7 @@ export const AlbumFormFields = ({
     setArtists(newArtists);
     setFormValues((prevValues) => ({
       ...prevValues,
-      artists: newArtists.map((artist) => artist.id),
+      artists: newArtists.map((artist) => artist._id),
     }));
   };
 
@@ -50,7 +50,7 @@ export const AlbumFormFields = ({
         <div>
           <ul className="flex flex-col gap-2 p-2">
             {artists.map((artist) => (
-              <li key={artist.id} className="border-2 p-1">
+              <li key={artist._id} className="border-2 p-1">
                 {artist.displayName}
               </li>
             ))}

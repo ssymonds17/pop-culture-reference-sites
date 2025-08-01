@@ -10,7 +10,7 @@ export const SearchResultsDisplay = ({
 }) => {
   const handleOnClick = (id: string) => {
     const selectedId = id;
-    const selectedItem = searchItems.find((item) => item.id === selectedId);
+    const selectedItem = searchItems.find((item) => item._id === selectedId);
     if (!selectedItem) {
       console.error('Selected item not found in search items');
       return;
@@ -22,7 +22,7 @@ export const SearchResultsDisplay = ({
       {searchItems.map((item) => {
         return (
           <SearchResultsOption
-            key={item.id}
+            key={item._id}
             item={item}
             onClick={handleOnClick}
           />
