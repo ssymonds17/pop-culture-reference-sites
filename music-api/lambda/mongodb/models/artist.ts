@@ -11,6 +11,9 @@ export interface ArtistDocument extends mongoose.Document {
   totalScore: number // the total score for this artist
 }
 
+// Type for creating new artists (excludes mongoose Document fields)
+export type ArtistData = Omit<ArtistDocument, keyof mongoose.Document>
+
 const artistSchema = new mongoose.Schema({
   name: { type: String, required: true },
   displayName: { type: String, required: true },
