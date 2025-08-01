@@ -37,5 +37,7 @@ export const updateAssociatedAlbum = async (
   album.songs = newAlbumSongs
   album.rating = upgradingToSilver ? Rating.SILVER : album.rating
 
+  await album.save()
+
   return upgradingToSilver
 }

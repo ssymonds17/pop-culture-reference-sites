@@ -37,3 +37,5 @@ export interface Artist {
   totalSongs: number // how many songs this artist has
   totalScore: number // the total score for this artist
 }
+
+export type ItemType = "artist" | "album" | "song"

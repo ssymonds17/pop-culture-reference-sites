@@ -30,9 +30,10 @@ const handler = async (event: any) => {
 
     // Check that each artist associated with the album exists
     // If any artist does not exist return an error
-    const fullArtists = (await validateAssociatedEntities(artists)) as
-      | ArtistDocument[]
-      | null
+    const fullArtists = (await validateAssociatedEntities(
+      artists,
+      "artist"
+    )) as ArtistDocument[] | null
 
     if (!fullArtists) {
       logger.error(`Artist not found`)

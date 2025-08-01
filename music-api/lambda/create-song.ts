@@ -17,7 +17,7 @@ const handler = async (event: any) => {
   const defaultSong: SongData = {
     title: _.toLower(title),
     displayTitle: title,
-    artists: artists,
+    artists,
     artistDisplayName: artistDisplayName,
     year,
     album: album ?? undefined,
@@ -31,14 +31,15 @@ const handler = async (event: any) => {
 
     await connectToDatabase()
     // Check that each artist associated with the song exists
-    const validatedArtists = (await validateAssociatedEntities(artists)) as
-      | ArtistDocument[]
-      | null
+    const validatedArtists = (await validateAssociatedEntities(
+      artists,
+      "artist"
+    )) as ArtistDocument[] | null
 
     // If an album is provided, check that it exists
     let validatedAlbum = undefined
     if (album) {
-      validatedAlbum = (await validateAssociatedEntities([album])) as
+      validatedAlbum = (await validateAssociatedEntities([album], "album")) as
         | AlbumDocument[]
         | null
     }
