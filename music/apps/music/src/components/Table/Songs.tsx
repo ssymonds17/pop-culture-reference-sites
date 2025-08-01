@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Song } from '../../types';
 
 export const SongsTable = ({ songs }: { songs: Song[] }) => {
@@ -23,10 +24,24 @@ export const SongsTable = ({ songs }: { songs: Song[] }) => {
                 {song.displayTitle}
               </td>
               <td className="border border-gray-300 text-center">
-                {song.artistDisplayName}
+                <Link
+                  href={`/artist?id=${song.artists[0]}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  {song.artistDisplayName}
+                </Link>
               </td>
               <td className="border border-gray-300 text-center">
-                {song.albumDisplayTitle ?? 'Non-Album Release'}
+                {song.albumDisplayTitle ? (
+                  <Link
+                    href={`/album?id=${song.album}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {song.albumDisplayTitle}
+                  </Link>
+                ) : (
+                  <span className="text-gray-500">Non-Album Release</span>
+                )}
               </td>
             </tr>
           ))

@@ -33,13 +33,9 @@ const ArtistPage = () => {
 
   return (
     <div className="m-4">
-      <h1 className="text-4xl font-bold text-center text-gray-900">
-        Artist Page
-      </h1>
-
-      <h2 className="text-2xl font-semibold text-center mt-4">
+      <h1 className="text-2xl font-semibold text-center mt-4">
         {artist ? artist.displayName : 'Loading...'}
-      </h2>
+      </h1>
       <p className="text-center mt-2">
         Total Score: {artist ? artist.totalScore : 'Loading...'}
       </p>

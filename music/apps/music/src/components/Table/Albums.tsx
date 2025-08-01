@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Album } from '../../types';
 
 export const AlbumsTable = ({ albums }: { albums: Album[] }) => {
@@ -23,7 +24,12 @@ export const AlbumsTable = ({ albums }: { albums: Album[] }) => {
                 {album.year}
               </td>
               <td className="border border-gray-300 text-center">
-                {album.displayTitle}
+                <Link
+                  href={`/album?id=${album._id}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  {album.displayTitle}
+                </Link>
               </td>
               <td className="border border-gray-300 text-center">
                 {album.artistDisplayName}

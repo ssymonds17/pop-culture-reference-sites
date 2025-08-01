@@ -32,6 +32,10 @@ export interface Album {
   rating: Rating; // what is the rating of the album (if applicable)
 }
 
+export interface AlbumFull extends Omit<Album, 'songs'> {
+  songs: Song[]; // the songs of the artist
+}
+
 export interface Artist {
   _id: string; // unique id of the artist
   name: string; // the name of the artist
