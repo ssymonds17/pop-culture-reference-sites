@@ -1,7 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { SONGS_TABLE_NAME } from "./dynamodb"
-import { getRecord } from "./dynamodb/get"
-import { Song } from "./schemas"
+import { connectToDatabase, getSongById } from "./mongodb"
 
 const handler = async (event: any) => {
   const songId = event.pathParameters?.id
@@ -13,7 +11,8 @@ const handler = async (event: any) => {
       })
     }
 
-    const song = (await getRecord(SONGS_TABLE_NAME, songId)) as Song
+    await connectToDatabase()
+    const song = await getSongById(songId)
 
     if (!song) {
       return createApiResponse(404, {
