@@ -4,6 +4,7 @@ import { updateAssociatedArtists } from "./utils/create-album"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import { AlbumData, Rating } from "./mongodb/models/album"
 import { connectToDatabase, createAlbum } from "./mongodb"
+import { ArtistDocument } from "./mongodb/models/artist"
 
 const handler = async (event: any) => {
   const { title, artistDisplayName, year, artists, rating } = JSON.parse(
@@ -29,9 +30,9 @@ const handler = async (event: any) => {
 
     // Check that each artist associated with the album exists
     // If any artist does not exist return an error
-    const fullArtists = await validateAssociatedEntities(artists)
-
-    logger.info(`Full artists retrieved`, { fullArtists })
+    const fullArtists = (await validateAssociatedEntities(artists)) as
+      | ArtistDocument[]
+      | null
 
     if (!fullArtists) {
       logger.error(`Artist not found`)
@@ -40,12 +41,7 @@ const handler = async (event: any) => {
       })
     }
 
-    logger.info("Creating album")
-    // Artist updated successfully. Now create the album
     const album = await createAlbum(defaultAlbum)
-
-    logger.info(`Album created`, { album })
-
     await updateAssociatedArtists(fullArtists, album.id, rating)
 
     return createApiResponse(201, {
