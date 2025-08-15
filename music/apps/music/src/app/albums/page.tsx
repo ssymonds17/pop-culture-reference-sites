@@ -72,7 +72,10 @@ const AlbumsPage = () => {
         </div>
       </div>
       <ul>
-        <AlbumsTable albums={albums} />
+        <AlbumsTable
+          albums={albums}
+          isLoading={isFetchingAlbums || isSearchingAlbums}
+        />
       </ul>
     </div>
   );
