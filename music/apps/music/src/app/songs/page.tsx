@@ -52,8 +52,8 @@ const SongsPage = () => {
           </button>
         </div>
       </div>
-      <ul>
-        <SongsTable songs={songs} />
+      <ul className="mt-4">
+        <SongsTable songs={songs} isLoading={isSearchingSongs} />
       </ul>
     </div>
   );

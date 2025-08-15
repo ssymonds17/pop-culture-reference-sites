@@ -71,7 +71,7 @@ const AlbumsPage = () => {
           </button>
         </div>
       </div>
-      <ul>
+      <ul className="mt-4">
         <AlbumsTable
           albums={albums}
           isLoading={isFetchingAlbums || isSearchingAlbums}
