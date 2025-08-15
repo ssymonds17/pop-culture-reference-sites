@@ -12,7 +12,6 @@ export const updateAssociatedArtists = async (
 
     artist.songs = newArtistSongs
     artist.totalSongs += 1
-    artist.totalScore += 1
 
     if (upgradingAlbumToSilver) {
       artist.silverAlbums += 1
