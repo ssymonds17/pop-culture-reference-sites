@@ -1,26 +1,11 @@
 import * as core from "aws-cdk-lib"
 import * as lambda from "aws-cdk-lib/aws-lambda"
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb"
 import * as apigateway from "aws-cdk-lib/aws-apigateway"
 import { LambdaConstruct } from "./constructs/lambda"
 
 export class ApiStack extends core.Stack {
   constructor(scope: core.App, id: string, props: any) {
     super(scope, id)
-
-    // Tables
-    const artistsTable = new dynamodb.Table(this, "Artists", {
-      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      tableName: "artists",
-    })
-    const albumsTable = new dynamodb.Table(this, "Albums", {
-      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      tableName: "albums",
-    })
-    const songsTable = new dynamodb.Table(this, "Songs", {
-      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      tableName: "songs",
-    })
 
     // Lambda functions
     const createArtistLambda = new LambdaConstruct(this, "CreateArtist", {
@@ -69,29 +54,17 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
     })
 
+    const getYearsLambda = new LambdaConstruct(this, "GetYears", {
+      functionName: "get-years-handler",
+      code: lambda.Code.fromAsset("build/apps/get-years"),
+      handler: "index.handler",
+    })
+
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
       functionName: "search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
       handler: "index.handler",
     })
-
-    // Grant dynamo permissions to Lambda functions
-    artistsTable.grantReadWriteData(createArtistLambda.function)
-    artistsTable.grantReadData(getArtistsLambda.function)
-    artistsTable.grantReadData(getArtistByIdLambda.function)
-    artistsTable.grantReadWriteData(createAlbumLambda.function)
-    artistsTable.grantReadWriteData(createSongLambda.function)
-    artistsTable.grantReadData(searchLambda.function)
-
-    albumsTable.grantReadWriteData(createAlbumLambda.function)
-    albumsTable.grantReadData(getAlbumsLambda.function)
-    albumsTable.grantReadData(getAlbumByIdLambda.function)
-    albumsTable.grantReadWriteData(createSongLambda.function)
-    albumsTable.grantReadData(searchLambda.function)
-
-    songsTable.grantReadWriteData(createSongLambda.function)
-    songsTable.grantReadData(getSongByIdLambda.function)
-    songsTable.grantReadData(searchLambda.function)
 
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
@@ -155,6 +128,13 @@ export class ApiStack extends core.Stack {
     getSongById.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getSongByIdLambda.function)
+    )
+
+    // Years
+    const getYears = api.root.addResource("years")
+    getYears.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getYearsLambda.function)
     )
 
     // Search
