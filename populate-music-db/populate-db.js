@@ -3,8 +3,7 @@ const csv = require("csv-parser")
 const axios = require("axios")
 
 // Configuration - Replace with your actual API base URL
-const API_BASE_URL = process.env.BASE_URL
-
+const API_BASE_URL = "<replace with base url>"
 // Rate limiting to avoid overwhelming the API
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -109,7 +108,7 @@ async function createSong(songData) {
 async function processCSV() {
   try {
     console.log("Reading CSV file...")
-    const data = await readCSV("<path_to_your_csv_file>")
+    const data = await readCSV("<replace with path to your CSV file>")
     console.log(`Found ${data.length} records in CSV`)
 
     // Step 1: Extract and deduplicate artists
@@ -176,7 +175,7 @@ async function processCSV() {
 
         const albumData = {
           title: albumInfo.title,
-          artistDisplayName: artist.name,
+          artistDisplayName: artist.displayName,
           artists: [artist._id],
           year: albumInfo.year,
           rating: "NONE",
