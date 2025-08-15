@@ -28,6 +28,7 @@ export const SongFormFields = ({
     setFormValues((prevValues) => ({
       ...prevValues,
       album: newAlbum._id,
+      albumDisplayTitle: newAlbum.displayTitle,
     }));
   };
 
