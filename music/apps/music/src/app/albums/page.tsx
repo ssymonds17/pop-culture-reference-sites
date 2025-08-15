@@ -9,12 +9,17 @@ import { AlbumsTable } from '../../components';
 const AlbumsPage = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [formValues, setFormValues] = useState<Partial<Album>>({});
+  const [isFetchingAlbums, setIsFetchingAlbums] = useState(false);
+  const [isSearchingAlbums, setIsSearchingAlbums] = useState(false);
 
   const handleGetAlbums = async () => {
     try {
+      setIsFetchingAlbums(true);
       const getAlbumsResponse = await axios.get(`${API_URL}/albums`);
       setAlbums(getAlbumsResponse.data.albums);
+      setIsFetchingAlbums(false);
     } catch (error) {
+      setIsFetchingAlbums(false);
       setAlbums([]);
       setFormValues({});
       console.log('error', error);
@@ -45,7 +50,7 @@ const AlbumsPage = () => {
           onClick={handleGetAlbums}
           className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
         >
-          Get All Albums
+          {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
         </button>
         <div className="flex">
           <InputField
@@ -59,7 +64,7 @@ const AlbumsPage = () => {
             className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
             disabled={!formValues.title}
           >
-            Search
+            {isSearchingAlbums ? 'Searching...' : 'Search'}
           </button>
         </div>
       </div>

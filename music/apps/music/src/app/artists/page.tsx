@@ -9,12 +9,17 @@ import { Artist } from '../../types';
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
   const [formValues, setFormValues] = useState<Partial<Artist>>({});
+  const [isFetchingArtists, setIsFetchingArtists] = useState(false);
+  const [isSearchingArtists, setIsSearchingArtists] = useState(false);
 
   const handleGetArtists = async () => {
     try {
+      setIsFetchingArtists(true);
       const getArtistsResponse = await axios.get(`${API_URL}/artists`);
       setArtists(getArtistsResponse.data.artists);
+      setIsFetchingArtists(false);
     } catch (error) {
+      setIsFetchingArtists(false);
       setArtists([]);
       setFormValues({});
       console.log('error', error);
@@ -23,12 +28,15 @@ const ArtistsPage = () => {
 
   const handleSearchArtistByName = async () => {
     try {
+      setIsSearchingArtists(true);
       const searchArtistsResponse = await axios.get(
         `${API_URL}/search?searchString=${formValues.name}&itemType=artist`
       );
       setFormValues({});
       setArtists(searchArtistsResponse.data.result);
+      setIsSearchingArtists(false);
     } catch (error) {
+      setIsSearchingArtists(false);
       setArtists([]);
       setFormValues({});
       console.log('error', error);
@@ -43,9 +51,9 @@ const ArtistsPage = () => {
       <div className="flex mt-4">
         <button
           onClick={handleGetArtists}
-          className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
+          className="min-w-100px mx-4 px-4 py-2 text-white bg-blue-500 rounded-md cursor-pointer "
         >
-          Get All Artists
+          {isFetchingArtists ? 'Loading...' : 'Get All Artists'}
         </button>
         <div className="flex">
           <InputField
@@ -59,7 +67,7 @@ const ArtistsPage = () => {
             className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
             disabled={!formValues.name}
           >
-            Search
+            {isSearchingArtists ? 'Searching...' : 'Search'}
           </button>
         </div>
       </div>

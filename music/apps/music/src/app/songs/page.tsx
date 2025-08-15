@@ -9,15 +9,19 @@ import { SongsTable } from '../../components';
 const SongsPage = () => {
   const [songs, setSongs] = useState([]);
   const [formValues, setFormValues] = useState<Partial<Song>>({});
+  const [isSearchingSongs, setIsSearchingSongs] = useState(false);
 
   const handleSearchSongsByName = async () => {
     try {
+      setIsSearchingSongs(true);
       const searchSongsResponse = await axios.get(
         `${API_URL}/search?searchString=${formValues.title}&itemType=song`
       );
       setFormValues({});
       setSongs(searchSongsResponse.data.result);
+      setIsSearchingSongs(false);
     } catch (error) {
+      setIsSearchingSongs(false);
       setSongs([]);
       setFormValues({});
       console.log('error', error);
@@ -44,7 +48,7 @@ const SongsPage = () => {
             className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
             disabled={!formValues.title}
           >
-            Search
+            {isSearchingSongs ? 'Searching...' : 'Search'}
           </button>
         </div>
       </div>
