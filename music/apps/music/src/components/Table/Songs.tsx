@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import { Song } from '../../types';
+import { SkeletonTable } from './Skeleton';
 
-export const SongsTable = ({ songs }: { songs: Song[] }) => {
+export const SongsTable = ({
+  songs,
+  isLoading,
+}: {
+  songs: Song[];
+  isLoading: boolean;
+}) => {
+  if (isLoading) {
+    return <SkeletonTable cols={4} />;
+  }
+
   return (
     <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
       <thead>

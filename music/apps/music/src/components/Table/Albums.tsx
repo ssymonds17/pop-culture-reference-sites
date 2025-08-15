@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import { Album } from '../../types';
+import { SkeletonTable } from './Skeleton';
 
-export const AlbumsTable = ({ albums }: { albums: Album[] }) => {
+export const AlbumsTable = ({
+  albums,
+  isLoading,
+}: {
+  albums: Album[];
+  isLoading: boolean;
+}) => {
+  if (isLoading) {
+    return <SkeletonTable cols={4} />;
+  }
+
   return (
     <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
       <thead>
