@@ -19,12 +19,12 @@ const SongsPage = () => {
       );
       setFormValues({});
       setSongs(searchSongsResponse.data.result);
-      setIsSearchingSongs(false);
     } catch (error) {
-      setIsSearchingSongs(false);
       setSongs([]);
       setFormValues({});
       console.log('error', error);
+    } finally {
+      setIsSearchingSongs(false);
     }
   };
 

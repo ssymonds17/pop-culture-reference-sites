@@ -17,17 +17,18 @@ const AlbumsPage = () => {
       setIsFetchingAlbums(true);
       const getAlbumsResponse = await axios.get(`${API_URL}/albums`);
       setAlbums(getAlbumsResponse.data.albums);
-      setIsFetchingAlbums(false);
     } catch (error) {
-      setIsFetchingAlbums(false);
       setAlbums([]);
       setFormValues({});
       console.log('error', error);
+    } finally {
+      setIsFetchingAlbums(false);
     }
   };
 
   const handleSearchAlbumsByName = async () => {
     try {
+      setIsSearchingAlbums(true);
       const searchAlbumsResponse = await axios.get(
         `${API_URL}/search?searchString=${formValues.title}&itemType=album`
       );
@@ -37,6 +38,8 @@ const AlbumsPage = () => {
       setAlbums([]);
       setFormValues({});
       console.log('error', error);
+    } finally {
+      setIsSearchingAlbums(false);
     }
   };
 

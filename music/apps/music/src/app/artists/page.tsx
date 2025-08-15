@@ -17,12 +17,12 @@ const ArtistsPage = () => {
       setIsFetchingArtists(true);
       const getArtistsResponse = await axios.get(`${API_URL}/artists`);
       setArtists(getArtistsResponse.data.artists);
-      setIsFetchingArtists(false);
     } catch (error) {
-      setIsFetchingArtists(false);
       setArtists([]);
       setFormValues({});
       console.log('error', error);
+    } finally {
+      setIsFetchingArtists(false);
     }
   };
 
@@ -34,12 +34,12 @@ const ArtistsPage = () => {
       );
       setFormValues({});
       setArtists(searchArtistsResponse.data.result);
-      setIsSearchingArtists(false);
     } catch (error) {
-      setIsSearchingArtists(false);
       setArtists([]);
       setFormValues({});
       console.log('error', error);
+    } finally {
+      setIsSearchingArtists(false);
     }
   };
 
