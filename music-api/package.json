@@ -5,7 +5,7 @@
     "music-api": "bin/music-api.js"
   },
   "scripts": {
-    "build:all": "npm run build:create-artist && npm run build:get-artists && npm run build:get-artist-by-id && npm run build:search && npm run build:create-album && npm run build:get-album-by-id && npm run build:create-song && npm run build:get-song-by-id && npm run build:get-albums",
+    "build:all": "npm run build:create-artist && npm run build:get-artists && npm run build:get-artist-by-id && npm run build:search && npm run build:create-album && npm run build:get-album-by-id && npm run build:create-song && npm run build:get-song-by-id && npm run build:get-albums && npm run build:get-years",
     "build:create-artist": "esbuild lambda/create-artist.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-artist/index.js",
     "build:create-album": "esbuild lambda/create-album.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-album/index.js",
     "build:create-song": "esbuild lambda/create-song.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-song/index.js",
@@ -14,6 +14,7 @@
     "build:get-artist-by-id": "esbuild lambda/get-artist-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-artist-by-id/index.js",
     "build:get-album-by-id": "esbuild lambda/get-album-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-album-by-id/index.js",
     "build:get-song-by-id": "esbuild lambda/get-song-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-song-by-id/index.js",
+    "build:get-years": "esbuild lambda/get-years.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-years/index.js",
     "build:search": "esbuild lambda/search.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/search/index.js",
     "test": "jest",
     "cdk": "npx cdk",
