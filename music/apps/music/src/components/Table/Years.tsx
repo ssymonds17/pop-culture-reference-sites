@@ -22,24 +22,57 @@ export const YearsTable = ({
   years,
   isLoading,
   sortColumn,
+  setSortColumn,
 }: {
   years: SortedYear | null;
   isLoading: boolean;
   sortColumn: keyof SortedYear;
+  setSortColumn: (column: keyof SortedYear) => void;
 }) => {
   if (isLoading || !years) {
     return <SkeletonTable cols={5} />;
   }
 
+  const handleColumnClick = (column: keyof SortedYear) => {
+    console.log(`Sorting by ${column}`);
+    console.log(years[column]);
+    setSortColumn(column);
+  };
+
   return (
     <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
       <thead>
         <tr>
-          <th className="border border-gray-300">Year</th>
-          <th className="border border-gray-300">Gold Albums</th>
-          <th className="border border-gray-300">Silver Albums</th>
-          <th className="border border-gray-300">Songs</th>
-          <th className="border border-gray-300">Total Score</th>
+          <th
+            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleColumnClick('byYear')}
+          >
+            Year
+          </th>
+          <th
+            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleColumnClick('byGoldAlbums')}
+          >
+            Gold Albums
+          </th>
+          <th
+            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleColumnClick('bySilverAlbums')}
+          >
+            Silver Albums
+          </th>
+          <th
+            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleColumnClick('bySongs')}
+          >
+            Songs
+          </th>
+          <th
+            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
+            onClick={() => handleColumnClick('byTotalScore')}
+          >
+            Total Score
+          </th>
         </tr>
       </thead>
 

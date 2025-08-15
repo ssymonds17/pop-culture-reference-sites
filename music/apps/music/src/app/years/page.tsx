@@ -8,11 +8,7 @@ import { SortedYear, Year } from '../../types';
 const sortYearsByField = (years: Year[], field: keyof Year) => {
   if (!years) return [];
 
-  const sortedYears = [...years].sort((a, b) => {
-    if (a[field] < b[field]) return -1;
-    if (a[field] > b[field]) return 1;
-    return 0;
-  });
+  const sortedYears = [...years].sort((a, b) => b[field] - a[field]);
 
   return sortedYears;
 };
@@ -62,6 +58,7 @@ const YearsPage = () => {
           years={years}
           isLoading={isFetchingYears}
           sortColumn={sortColumn}
+          setSortColumn={setSortColumn}
         />
       </ul>
     </div>
