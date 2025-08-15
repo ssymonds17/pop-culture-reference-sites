@@ -5,8 +5,8 @@ export const getSongsByYear = async (year: number) => {
   return Song.find({ year }, null)
 }
 
-export const getAlbumsByRating = async (rating: Rating) => {
-  return Album.find({ rating }, null)
+export const getAlbumsByRating = async (rating: Rating, year: number) => {
+  return Album.find({ rating, year }, null)
 }
 
 export const getYearRanges = async () => {
@@ -31,8 +31,8 @@ export const getYears = async () => {
       (_, i) => oldestYear + i
     ).map(async (year) => {
       const songs = await getSongsByYear(year)
-      const goldAlbums = await getAlbumsByRating(Rating.GOLD)
-      const silverAlbums = await getAlbumsByRating(Rating.SILVER)
+      const goldAlbums = await getAlbumsByRating(Rating.GOLD, year)
+      const silverAlbums = await getAlbumsByRating(Rating.SILVER, year)
       const totalScore =
         songs.length * 1 + goldAlbums.length * 10 + silverAlbums.length * 5
       return {
