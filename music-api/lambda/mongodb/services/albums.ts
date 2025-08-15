@@ -38,7 +38,12 @@ export const getAlbumById = async (id: string) => {
 }
 
 export const getAlbumByIdFull = async (id: string) => {
-  return Album.findById(id, null).populate("songs").exec()
+  return Album.findById(id, null)
+    .populate({
+      path: "songs",
+      options: { sort: { year: 1, albumDisplayTitle: 1, title: 1 } },
+    })
+    .exec()
 }
 
 export const findAlbumsByTitle = async (title: string) => {

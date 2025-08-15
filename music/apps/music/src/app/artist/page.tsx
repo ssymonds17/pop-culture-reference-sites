@@ -76,19 +76,13 @@ const ArtistPage = () => {
       </p>
       <h2 className="text-2xl font-semibold mt-6">Albums</h2>
       <AlbumsTable
-        albums={artist ? artist.albums.toSorted((a, b) => a.year - b.year) : []}
+        albums={artist ? artist.albums : []}
         isLoading={isFetchingArtist}
       />
 
       <h2 className="text-2xl font-semibold mt-6">Songs</h2>
       <SongsTable
-        songs={
-          artist
-            ? artist.songs
-                .toSorted((a, b) => a.title.localeCompare(b.title))
-                .toSorted((a, b) => a.year - b.year)
-            : []
-        }
+        songs={artist ? artist.songs : []}
         isLoading={isFetchingArtist}
       />
     </div>

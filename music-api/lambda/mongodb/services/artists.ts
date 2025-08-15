@@ -16,7 +16,13 @@ export const getArtistById = async (id: string) => {
 }
 
 export const getArtistByIdFull = async (id: string) => {
-  return Artist.findById(id, null).populate("albums").populate("songs").exec()
+  return Artist.findById(id, null)
+    .populate({ path: "albums", options: { sort: { year: 1, title: 1 } } })
+    .populate({
+      path: "songs",
+      options: { sort: { year: 1, albumDisplayTitle: 1, title: 1 } },
+    })
+    .exec()
 }
 
 export const findArtistsByName = async (name: string) => {
