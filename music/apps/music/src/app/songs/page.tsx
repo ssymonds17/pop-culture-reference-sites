@@ -28,8 +28,6 @@ const SongsPage = () => {
     }
   };
 
-  console.log('buttonDisabled', !formValues.title);
-
   return (
     <div className="m-4">
       <h1 className="text-4xl font-bold text-center text-gray-900">
