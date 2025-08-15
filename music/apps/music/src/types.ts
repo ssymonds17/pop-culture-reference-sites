@@ -52,3 +52,19 @@ export interface ArtistFull extends Omit<Artist, 'albums' | 'songs'> {
   albums: Album[]; // the albums of the artist
   songs: Song[]; // the songs of the artist
 }
+
+export interface Year {
+  year: number;
+  songs: number;
+  goldAlbums: number;
+  silverAlbums: number;
+  totalScore: number;
+}
+
+export interface SortedYear {
+  byYear: Year[];
+  byTotalScore: Year[];
+  byGoldAlbums: Year[];
+  bySilverAlbums: Year[];
+  bySongs: Year[];
+}

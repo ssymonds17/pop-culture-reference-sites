@@ -29,6 +29,10 @@ export const Navbar = () => {
           label="View Songs"
           action={{ type: 'navigation', url: 'songs' }}
         />
+        <NavItemWrapper
+          label="View Years"
+          action={{ type: 'navigation', url: 'years' }}
+        />
       </ul>
     </nav>
   );
