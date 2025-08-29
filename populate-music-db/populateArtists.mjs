@@ -1,11 +1,11 @@
-import { API_BASE_URL, readCSV, createArtist } from "./utils.mjs"
+import { API_BASE_URL, readCSV, createArtist, delay } from "./utils.mjs"
 import fs from "fs"
 
 async function populateArtists() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("50s_formatted.csv")
-    const existingArtists = await readCSV("existing_artists.csv")
+    const newData = await readCSV("<replace-with-desired-file>")
+    const existingArtists = await readCSV("<replace-with-desired-file>")
     console.log(`Found ${newData.length} records in CSV`)
     console.log(`Found ${existingArtists.length} existing artists`)
 
@@ -13,7 +13,9 @@ async function populateArtists() {
     console.log("\n=== Processing Artists ===")
     const uniqueArtists = [
       ...new Set(
-        newData.map((row) => row["Artist Name(s)"]),
+        newData.flatMap((row) =>
+          row["Artist Name(s)"].split(",").map((name) => name.trim())
+        ),
         existingArtists.map((row) => row["displayName"])
       ),
     ]
