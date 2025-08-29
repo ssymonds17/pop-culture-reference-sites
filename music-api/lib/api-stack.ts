@@ -24,6 +24,16 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
     })
 
+    const updateAlbumRatingLambda = new LambdaConstruct(
+      this,
+      "UpdateAlbumRating",
+      {
+        functionName: "update-album-rating-handler",
+        code: lambda.Code.fromAsset("build/apps/update-album-rating"),
+        handler: "index.handler",
+      }
+    )
+
     const getArtistsLambda = new LambdaConstruct(this, "GetArtists", {
       functionName: "get-artists-handler",
       code: lambda.Code.fromAsset("build/apps/get-artists"),
@@ -113,6 +123,15 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getAlbumByIdLambda.function)
     )
+    const updateAlbumRating = getAlbumById.addResource("rating")
+    updateAlbumRating.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateAlbumRatingLambda.function)
+    )
+    updateAlbumRating.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["PUT"],
+    })
 
     // Songs
     const song = api.root.addResource("song")
