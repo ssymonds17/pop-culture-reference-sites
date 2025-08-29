@@ -53,3 +53,7 @@ export const findAlbumsByTitle = async (title: string) => {
     { sort: { title: 1 } }
   ).exec()
 }
+
+export const updateAlbumRatingById = async (id: string, newRating: Rating) => {
+  return Album.findByIdAndUpdate(id, { rating: newRating }, { new: true })
+}
