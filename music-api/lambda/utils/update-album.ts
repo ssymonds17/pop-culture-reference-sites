@@ -24,10 +24,7 @@ export const updateAssociatedArtists = async (
   newRating: Rating
 ) => {
   for (const artist of artists) {
-    const newArtistAlbums = [...artist.albums, albumId]
-
     // Update the artist document
-    artist.albums = newArtistAlbums
     artist.goldAlbums = updateAlbumTotal(
       Rating.GOLD,
       artist.goldAlbums,
