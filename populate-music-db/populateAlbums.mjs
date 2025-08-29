@@ -7,10 +7,20 @@ import {
   createAlbum,
 } from "./utils.mjs"
 
+function formatArtistNames(artistString) {
+  const names = artistString
+    .split(",")
+    .map((n) => n.trim())
+    .filter(Boolean)
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} & ${names[1]}`
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`
+}
+
 async function populateAlbums() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-desired-file>")
+    const newData = await readCSV("50s_formatted.csv")
     console.log(`Found ${newData.length} records in CSV`)
 
     // Step 2: Extract and deduplicate albums
@@ -18,16 +28,21 @@ async function populateAlbums() {
     const albumMap = new Map()
 
     // Create unique albums with their associated artist and year
-    data.forEach((row) => {
+    newData.forEach((row) => {
       const albumTitle = row["Album Name"]
-      const artistName = row["Artist Name(s)"]
+      const formattedArtistNames = formatArtistNames(row["Artist Name(s)"])
+      const rawArtistNames = row["Artist Name(s)"]
+        .split(",")
+        .map((n) => n.trim())
+        .filter(Boolean)
       const year = extractYear(row["Release Date"])
 
-      const albumKey = `${albumTitle}|${artistName}`
+      const albumKey = `${albumTitle}|${formattedArtistNames}`
       if (!albumMap.has(albumKey)) {
         albumMap.set(albumKey, {
           title: albumTitle,
-          artistName: artistName,
+          artistName: formattedArtistNames,
+          artists: rawArtistNames,
           year: year,
         })
       }
@@ -38,31 +53,41 @@ async function populateAlbums() {
     const createdAlbums = []
     const failedAlbums = []
     for (const albumInfo of albumMap.values()) {
+      const artistIds = []
       try {
         // Search for the artist to get their ID
-        const { result } = await searchArtist(albumInfo.artistName)
-        if (!result || result.length === 0) {
-          console.log(
-            `Could not find artist ${albumInfo.artistName} for album ${albumInfo.title}`
-          )
-          continue
-        }
+        for (const albumArtist of albumInfo.artists) {
+          console.log(`Searching for artist: ${albumArtist}`)
+          try {
+            const { result } = await searchArtist(albumArtist)
+            if (!result || result.length === 0) {
+              console.log(
+                `Could not find artist ${albumArtist} for album ${albumInfo.title}`
+              )
+              continue
+            }
 
-        const artist = result.find(
-          (a) => a.name.toLowerCase() === albumInfo.artistName.toLowerCase()
-        )
+            const artist = result.find(
+              (a) => a.name.toLowerCase() === albumArtist.toLowerCase()
+            )
 
-        if (!artist) {
-          console.error(
-            `Could not match artist ${albumInfo.artistName} for album ${albumInfo.title}`
-          )
-          continue
+            if (!artist) {
+              console.error(
+                `Could not match artist ${albumArtist} for album ${albumInfo.title}`
+              )
+              continue
+            }
+
+            artistIds.push(artist._id)
+          } catch (error) {
+            console.error(`Error searching for artist ${albumArtist}:`, error)
+          }
         }
 
         const albumData = {
           title: albumInfo.title,
-          artistDisplayName: artist.displayName,
-          artists: [artist._id],
+          artistDisplayName: albumInfo.artistName,
+          artists: artistIds,
           year: albumInfo.year,
           rating: "NONE",
         }
