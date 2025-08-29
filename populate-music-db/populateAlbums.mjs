@@ -9,6 +9,61 @@ import {
   splitNames,
 } from "./utils.mjs"
 
+const handleUniqueAlbums = async (albumMap) => {
+  const createdAlbums = []
+  const failedAlbums = []
+  for (const albumInfo of albumMap.values()) {
+    const artistIds = []
+    try {
+      // Search for the artist to get their ID
+      for (const albumArtist of albumInfo.artists) {
+        console.log(`Searching for artist: ${albumArtist}`)
+        try {
+          const { result } = await searchArtist(albumArtist)
+          if (!result || result.length === 0) {
+            console.log(
+              `Could not find artist ${albumArtist} for album ${albumInfo.title}`
+            )
+            continue
+          }
+
+          const artist = result.find(
+            (a) => a.name.toLowerCase() === albumArtist.toLowerCase()
+          )
+
+          if (!artist) {
+            console.error(
+              `Could not match artist ${albumArtist} for album ${albumInfo.title}`
+            )
+            continue
+          }
+
+          artistIds.push(artist._id)
+        } catch (error) {
+          console.error(`Error searching for artist ${albumArtist}:`, error)
+        }
+      }
+
+      const albumData = {
+        title: albumInfo.title,
+        artistDisplayName: albumInfo.artistName,
+        artists: artistIds,
+        year: albumInfo.year,
+        rating: "NONE",
+      }
+
+      await createAlbum(albumData)
+      createdAlbums.push(albumInfo.title)
+      await delay(500) // Rate limiting
+    } catch (error) {
+      console.error(`Skipping album ${albumInfo.title} due to error`, error)
+      failedAlbums.push(albumInfo.title)
+    }
+  }
+
+  return { createdAlbums, failedAlbums }
+}
+
 async function populateAlbums() {
   try {
     console.log("Reading CSV file...")
@@ -38,57 +93,8 @@ async function populateAlbums() {
     })
 
     console.log(`Found ${albumMap.size} unique albums`)
+    const { createdAlbums, failedAlbums } = await handleUniqueAlbums(albumMap)
 
-    const createdAlbums = []
-    const failedAlbums = []
-    for (const albumInfo of albumMap.values()) {
-      const artistIds = []
-      try {
-        // Search for the artist to get their ID
-        for (const albumArtist of albumInfo.artists) {
-          console.log(`Searching for artist: ${albumArtist}`)
-          try {
-            const { result } = await searchArtist(albumArtist)
-            if (!result || result.length === 0) {
-              console.log(
-                `Could not find artist ${albumArtist} for album ${albumInfo.title}`
-              )
-              continue
-            }
-
-            const artist = result.find(
-              (a) => a.name.toLowerCase() === albumArtist.toLowerCase()
-            )
-
-            if (!artist) {
-              console.error(
-                `Could not match artist ${albumArtist} for album ${albumInfo.title}`
-              )
-              continue
-            }
-
-            artistIds.push(artist._id)
-          } catch (error) {
-            console.error(`Error searching for artist ${albumArtist}:`, error)
-          }
-        }
-
-        const albumData = {
-          title: albumInfo.title,
-          artistDisplayName: albumInfo.artistName,
-          artists: artistIds,
-          year: albumInfo.year,
-          rating: "NONE",
-        }
-
-        await createAlbum(albumData)
-        createdAlbums.push(albumInfo.title)
-        await delay(500) // Rate limiting
-      } catch (error) {
-        console.error(`Skipping album ${albumInfo.title} due to error`, error)
-        failedAlbums.push(albumInfo.title)
-      }
-    }
     console.log(`Successfully created ${createdAlbums.length} albums`)
 
     console.log("\n=== SUMMARY ===")
