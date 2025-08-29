@@ -4,8 +4,8 @@ import fs from "fs"
 async function populateArtists() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-desired-file>")
-    const existingArtists = await readCSV("<replace-with-desired-file>")
+    const newData = await readCSV("<replace-with-csv.csv>")
+    const existingArtists = await readCSV("<replace-with-csv.csv>")
     console.log(`Found ${newData.length} records in CSV`)
     console.log(`Found ${existingArtists.length} existing artists`)
 

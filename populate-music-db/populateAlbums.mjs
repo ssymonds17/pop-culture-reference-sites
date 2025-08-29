@@ -67,7 +67,7 @@ const handleUniqueAlbums = async (albumMap) => {
 async function populateAlbums() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("50s_formatted.csv")
+    const newData = await readCSV("<replace-with-csv.csv>")
     console.log(`Found ${newData.length} records in CSV`)
 
     // Step 2: Extract and deduplicate albums

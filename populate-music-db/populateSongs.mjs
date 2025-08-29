@@ -6,12 +6,40 @@ import {
   searchArtist,
   searchAlbum,
   createSong,
+  formatArtistNames,
+  splitNames,
 } from "./utils.mjs"
+
+const handleArtists = async (artistNames) => {
+  const artistIds = []
+  for (const artistName of artistNames) {
+    const { result: artistSearchResult } = await searchArtist(artistName)
+    if (!artistSearchResult || artistSearchResult.length === 0) {
+      console.error(`Could not find artist ${artistName} for song ${songTitle}`)
+      continue
+    }
+
+    const artist = artistSearchResult.find(
+      (a) => a.name.toLowerCase() === artistName.toLowerCase()
+    )
+
+    if (!artist) {
+      console.error(
+        `Could not match artist ${artistName} for song ${songTitle}`
+      )
+      continue
+    }
+
+    artistIds.push(artist._id)
+  }
+
+  return artistIds
+}
 
 async function populateSongs() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-desired-file>")
+    const newData = await readCSV("<replace-with-csv.csv>")
     console.log(`Found ${newData.length} records in CSV`)
 
     // Step 3: Create songs
@@ -19,35 +47,24 @@ async function populateSongs() {
     let createdSongsCount = 0
     const failedSongs = []
 
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i]
+    for (let i = 0; i < newData.length; i++) {
+      const row = newData[i]
       try {
         console.log(
-          `Processing song ${i + 1}/${data.length}: ${row["Track Name"]}`
+          `Processing song ${i + 1}/${newData.length}: ${row["Track Name"]}`
         )
 
         const songTitle = row["Track Name"]
-        const artistName = row["Artist Name(s)"]
+        const formattedArtistNames = formatArtistNames(row["Artist Name(s)"])
+        const rawArtistNames = splitNames(row["Artist Name(s)"])
         const albumTitle = row["Album Name"]
         const year = extractYear(row["Release Date"])
 
         // Search for artist
-        const { result: artistSearchResult } = await searchArtist(artistName)
-        if (!artistSearchResult || artistSearchResult.length === 0) {
-          console.error(
-            `Could not find artist ${artistName} for song ${songTitle}`
-          )
-          continue
-        }
+        const artistIds = await handleArtists(rawArtistNames)
 
-        const artist = artistSearchResult.find(
-          (a) => a.name.toLowerCase() === artistName.toLowerCase()
-        )
-
-        if (!artist) {
-          console.error(
-            `Could not match artist ${artistName} for song ${songTitle}`
-          )
+        if (artistIds.length === 0) {
+          console.error(`Could not find artists for song ${songTitle}`)
           continue
         }
 
@@ -73,8 +90,8 @@ async function populateSongs() {
 
         const songData = {
           title: songTitle,
-          artists: [artist._id],
-          artistDisplayName: artistName,
+          artists: artistIds,
+          artistDisplayName: formattedArtistNames,
           album: album._id,
           albumDisplayTitle: albumTitle,
           year: year,
@@ -92,7 +109,7 @@ async function populateSongs() {
     console.log(`Successfully created ${createdSongsCount} songs`)
 
     console.log("\n=== SUMMARY ===")
-    console.log(`Songs created: ${createdSongsCount}/${data.length}`)
+    console.log(`Songs created: ${createdSongsCount}/${newData.length}`)
     if (failedSongs.length > 0) {
       const failedFile = "failed_songs.txt"
       fs.writeFileSync(failedFile, failedSongs.join("\n"), "utf-8")
