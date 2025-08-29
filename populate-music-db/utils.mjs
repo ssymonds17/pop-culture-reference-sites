@@ -3,8 +3,7 @@ import csv from "csv-parser"
 import axios from "axios"
 
 // Configuration - Replace with your actual API base URL
-export const API_BASE_URL =
-  "https://8d9frmi6pl.execute-api.eu-west-1.amazonaws.com/prod"
+export const API_BASE_URL = "https://your-api-gateway-url.amazonaws.com"
 // Rate limiting to avoid overwhelming the API
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
