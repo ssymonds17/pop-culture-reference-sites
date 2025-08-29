@@ -1,6 +1,18 @@
 import Link from 'next/link';
-import { Album } from '../../types';
+import { Album, Rating } from '../../types';
 import { SkeletonTable } from './Skeleton';
+import { Medal } from '../Rating';
+
+const displayRating = (rating: Rating) => {
+  switch (rating) {
+    case Rating.GOLD:
+      return <Medal albumId="" medalRating={Rating.GOLD} active />;
+    case Rating.SILVER:
+      return <Medal albumId="" medalRating={Rating.SILVER} active />;
+    default:
+      return <Medal albumId="" medalRating={Rating.NONE} active={false} />;
+  }
+};
 
 export const AlbumsTable = ({
   albums,
@@ -29,7 +41,7 @@ export const AlbumsTable = ({
           albums.map((album: Album) => (
             <tr key={album._id}>
               <td className="border border-gray-300 text-center">
-                {album.rating}
+                {displayRating(album.rating)}
               </td>
               <td className="border border-gray-300 text-center">
                 {album.year}

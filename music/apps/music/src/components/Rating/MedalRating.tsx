@@ -14,7 +14,7 @@ const medalColors = {
   [Rating.NONE]: '#E0E0E0',
 };
 
-const Medal: React.FC<MedalProps> = ({
+export const Medal: React.FC<MedalProps> = ({
   albumId,
   medalRating,
   active,
