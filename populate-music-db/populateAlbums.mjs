@@ -5,17 +5,9 @@ import {
   extractYear,
   searchArtist,
   createAlbum,
+  formatArtistNames,
+  splitNames,
 } from "./utils.mjs"
-
-function formatArtistNames(artistString) {
-  const names = artistString
-    .split(",")
-    .map((n) => n.trim())
-    .filter(Boolean)
-  if (names.length === 1) return names[0]
-  if (names.length === 2) return `${names[0]} & ${names[1]}`
-  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`
-}
 
 async function populateAlbums() {
   try {
@@ -31,10 +23,7 @@ async function populateAlbums() {
     newData.forEach((row) => {
       const albumTitle = row["Album Name"]
       const formattedArtistNames = formatArtistNames(row["Artist Name(s)"])
-      const rawArtistNames = row["Artist Name(s)"]
-        .split(",")
-        .map((n) => n.trim())
-        .filter(Boolean)
+      const rawArtistNames = splitNames(row["Artist Name(s)"])
       const year = extractYear(row["Release Date"])
 
       const albumKey = `${albumTitle}|${formattedArtistNames}`

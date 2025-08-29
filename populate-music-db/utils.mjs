@@ -3,7 +3,8 @@ import csv from "csv-parser"
 import axios from "axios"
 
 // Configuration - Replace with your actual API base URL
-export const API_BASE_URL = "replace-with-your-api-base-url"
+export const API_BASE_URL =
+  "https://8d9frmi6pl.execute-api.eu-west-1.amazonaws.com/prod"
 // Rate limiting to avoid overwhelming the API
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -103,4 +104,18 @@ export async function createSong(songData) {
     )
     throw error
   }
+}
+
+export const splitNames = (nameString) => {
+  return nameString
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean)
+}
+
+export function formatArtistNames(artistString) {
+  const names = splitNames(artistString)
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} & ${names[1]}`
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`
 }
