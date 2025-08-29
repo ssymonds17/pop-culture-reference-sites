@@ -1,11 +1,11 @@
-// Configuration - Replace with your actual API base URL
-export const API_BASE_URL = process.env.BASE_URL
-// Rate limiting to avoid overwhelming the API
-export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
 import fs from "fs"
 import csv from "csv-parser"
 import axios from "axios"
+
+// Configuration - Replace with your actual API base URL
+export const API_BASE_URL = "replace-with-your-api-base-url"
+// Rate limiting to avoid overwhelming the API
+export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function readCSV(filePath) {
   const results = []
