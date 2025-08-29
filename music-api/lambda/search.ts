@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { createApiResponse, logger } from "./utils"
+import { createApiResponse, logger, escapeRegex } from "./utils"
 import {
   connectToDatabase,
   findArtistsByName,
@@ -23,7 +23,8 @@ const handler = async (event: any) => {
       throw new Error("Missing an itemType parameter")
     }
 
-    const searchStringAsLower = _.toLower(searchString)
+    const safeSearch = escapeRegex(searchString)
+    const searchStringAsLower = _.toLower(safeSearch)
 
     let resultItems
     connectToDatabase()
