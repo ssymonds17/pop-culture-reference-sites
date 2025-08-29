@@ -68,6 +68,7 @@ export class ApiStack extends core.Stack {
       functionName: "get-years-handler",
       code: lambda.Code.fromAsset("build/apps/get-years"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
