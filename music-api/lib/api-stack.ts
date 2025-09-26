@@ -12,16 +12,19 @@ export class ApiStack extends core.Stack {
       functionName: "create-artist-handler",
       code: lambda.Code.fromAsset("build/apps/create-artist"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
     const createAlbumLambda = new LambdaConstruct(this, "CreateAlbum", {
       functionName: "create-album-handler",
       code: lambda.Code.fromAsset("build/apps/create-album"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
     const createSongLambda = new LambdaConstruct(this, "CreateSong", {
       functionName: "create-song-handler",
       code: lambda.Code.fromAsset("build/apps/create-song"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const updateAlbumRatingLambda = new LambdaConstruct(
@@ -31,6 +34,7 @@ export class ApiStack extends core.Stack {
         functionName: "update-album-rating-handler",
         code: lambda.Code.fromAsset("build/apps/update-album-rating"),
         handler: "index.handler",
+        timeout: core.Duration.seconds(30),
       }
     )
 
@@ -38,6 +42,7 @@ export class ApiStack extends core.Stack {
       functionName: "get-artists-handler",
       code: lambda.Code.fromAsset("build/apps/get-artists"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const getAlbumsLambda = new LambdaConstruct(this, "GetAlbums", {
@@ -51,18 +56,21 @@ export class ApiStack extends core.Stack {
       functionName: "get-artist-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-artist-by-id"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const getAlbumByIdLambda = new LambdaConstruct(this, "GetAlbumById", {
       functionName: "get-album-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-album-by-id"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const getSongByIdLambda = new LambdaConstruct(this, "GetSongById", {
       functionName: "get-song-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-song-by-id"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const getYearsLambda = new LambdaConstruct(this, "GetYears", {
@@ -76,6 +84,7 @@ export class ApiStack extends core.Stack {
       functionName: "search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     // Define the API Gateway resource
