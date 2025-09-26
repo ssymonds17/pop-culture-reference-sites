@@ -4,8 +4,8 @@ import fs from "fs"
 async function populateArtists() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-csv.csv>")
-    const existingArtists = await readCSV("<replace-with-csv.csv>")
+    const newData = await readCSV("test_multiple_artists.csv")
+    const existingArtists = await readCSV("existing_artists.csv")
     console.log(`Found ${newData.length} records in CSV`)
     console.log(`Found ${existingArtists.length} existing artists`)
 
@@ -14,7 +14,7 @@ async function populateArtists() {
     const uniqueArtists = [
       ...new Set(
         newData.flatMap((row) =>
-          row["Artist Name(s)"].split(",").map((name) => name.trim())
+          row["Artist Name(s)"].split(";").map((name) => name.trim())
         ),
         existingArtists.map((row) => row["displayName"])
       ),
