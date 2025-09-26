@@ -11,7 +11,6 @@ export const getAlbums = async () => {
       displayTitle: 1,
       artistDisplayName: 1,
     })
-    .limit(100)
     .exec()
   const silver = await Album.find({ rating: Rating.SILVER })
     .sort({
@@ -19,18 +18,9 @@ export const getAlbums = async () => {
       displayTitle: 1,
       artistDisplayName: 1,
     })
-    .limit(100)
-    .exec()
-  const none = await Album.find({ rating: Rating.NONE })
-    .sort({
-      year: 1,
-      displayTitle: 1,
-      artistDisplayName: 1,
-    })
-    .limit(100)
     .exec()
 
-  return [...gold, ...silver, ...none]
+  return [...gold, ...silver]
 }
 
 export const getAlbumById = async (id: string) => {
