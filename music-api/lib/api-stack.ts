@@ -44,6 +44,7 @@ export class ApiStack extends core.Stack {
       functionName: "get-albums-handler",
       code: lambda.Code.fromAsset("build/apps/get-albums"),
       handler: "index.handler",
+      timeout: core.Duration.seconds(30),
     })
 
     const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistById", {
@@ -114,37 +115,39 @@ export class ApiStack extends core.Stack {
 
     // Albums
     const getAlbums = api.root.addResource("albums")
+    const album = api.root.addResource("album")
+    const getAlbumById = album.addResource("{id}")
+    const updateAlbumRating = getAlbumById.addResource("rating")
+
     getAlbums.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getAlbumsLambda.function)
     )
-    getAlbums.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["GET"],
-    })
-    const album = api.root.addResource("album")
     album.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createAlbumLambda.function)
     )
-    album.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["POST"],
-    })
-    const getAlbumById = album.addResource("{id}")
     getAlbumById.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getAlbumByIdLambda.function)
     )
-    getAlbumById.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["GET"],
-    })
-    const updateAlbumRating = getAlbumById.addResource("rating")
     updateAlbumRating.addMethod(
       "PUT",
       new apigateway.LambdaIntegration(updateAlbumRatingLambda.function)
     )
+
+    getAlbums.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+    album.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["POST"],
+    })
+    getAlbumById.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
     updateAlbumRating.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["PUT"],
