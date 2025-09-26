@@ -5,13 +5,16 @@ export const SkeletonTable = ({ cols }: { cols: number }) => {
   return (
     <div className="w-full">
       <div className="flex gap-2.5">
-        {Array.from({ length: cols }).map((col) => (
-          <Skeleton
-            key={`skeleton-header-${col}`}
-            containerClassName="flex-1"
-            height={30}
-          />
-        ))}
+        {Array.from({ length: cols }).map((_, index) => {
+          console.log('rendering skeleton for col:', index);
+          return (
+            <Skeleton
+              key={`skeleton-header-${index}`}
+              containerClassName="flex-1"
+              height={30}
+            />
+          );
+        })}
       </div>
       <Skeleton height={40} containerClassName="flex-1" />
     </div>
