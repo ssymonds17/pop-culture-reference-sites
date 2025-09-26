@@ -89,6 +89,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getArtistsLambda.function)
     )
+    getArtists.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
     const artist = api.root.addResource("artist")
     artist.addMethod(
       "POST",
@@ -103,6 +107,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getArtistByIdLambda.function)
     )
+    getArtistById.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
 
     // Albums
     const getAlbums = api.root.addResource("albums")
@@ -110,6 +118,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getAlbumsLambda.function)
     )
+    getAlbums.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
     const album = api.root.addResource("album")
     album.addMethod(
       "POST",
@@ -124,6 +136,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getAlbumByIdLambda.function)
     )
+    getAlbumById.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
     const updateAlbumRating = getAlbumById.addResource("rating")
     updateAlbumRating.addMethod(
       "PUT",
@@ -149,6 +165,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getSongByIdLambda.function)
     )
+    getSongById.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
 
     // Years
     const getYears = api.root.addResource("years")
@@ -156,6 +176,10 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(getYearsLambda.function)
     )
+    getYears.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
 
     // Search
     const search = api.root.addResource("search")
@@ -163,5 +187,9 @@ export class ApiStack extends core.Stack {
       "GET",
       new apigateway.LambdaIntegration(searchLambda.function)
     )
+    search.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
   }
 }
