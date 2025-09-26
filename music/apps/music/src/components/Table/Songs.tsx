@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Song } from '../../types';
 import { SkeletonTable } from './Skeleton';
+import { ArtistLink } from './ArtistsLink';
 
 export const SongsTable = ({
   songs,
@@ -35,12 +36,10 @@ export const SongsTable = ({
                 {song.displayTitle}
               </td>
               <td className="border border-gray-300 text-center">
-                <Link
-                  href={`/artist?id=${song.artists[0]}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  {song.artistDisplayName}
-                </Link>
+                <ArtistLink
+                  artists={song.artists}
+                  artistDisplayName={song.artistDisplayName}
+                />
               </td>
               <td className="border border-gray-300 text-center">
                 {song.albumDisplayTitle ? (

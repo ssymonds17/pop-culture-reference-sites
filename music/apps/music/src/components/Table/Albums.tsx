@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { Album, Rating } from '../../types';
 import { SkeletonTable } from './Skeleton';
 import { Medal } from '../Rating';
+import { ArtistLink } from './ArtistsLink';
 
 const displayRating = (rating: Rating) => {
   switch (rating) {
@@ -55,16 +58,10 @@ export const AlbumsTable = ({
                 </Link>
               </td>
               <td className="border border-gray-300 text-center">
-                {album.artistDisplayName === 'Various Artists' ? (
-                  album.artistDisplayName
-                ) : (
-                  <Link
-                    href={`/artist?id=${album.artists[0]}`}
-                    className="text-blue-500 hover:underline"
-                  >
-                    {album.artistDisplayName}
-                  </Link>
-                )}
+                <ArtistLink
+                  artists={album.artists}
+                  artistDisplayName={album.artistDisplayName}
+                />
               </td>
             </tr>
           ))
