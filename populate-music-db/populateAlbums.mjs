@@ -13,6 +13,8 @@ const handleUniqueAlbums = async (albumMap) => {
   const createdAlbums = []
   const failedAlbums = []
   for (const albumInfo of albumMap.values()) {
+    if (!albumInfo.title) continue // This is a single with no album association
+
     const artistIds = []
     try {
       // Search for the artist to get their ID
@@ -67,7 +69,7 @@ const handleUniqueAlbums = async (albumMap) => {
 async function populateAlbums() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-csv.csv>")
+    const newData = await readCSV("60s-formatted.csv")
     console.log(`Found ${newData.length} records in CSV`)
 
     // Step 2: Extract and deduplicate albums

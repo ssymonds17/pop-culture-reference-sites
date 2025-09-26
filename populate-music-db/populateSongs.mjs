@@ -39,7 +39,7 @@ const handleArtists = async (artistNames) => {
 async function populateSongs() {
   try {
     console.log("Reading CSV file...")
-    const newData = await readCSV("<replace-with-csv.csv>")
+    const newData = await readCSV("60s-formatted.csv")
     console.log(`Found ${newData.length} records in CSV`)
 
     // Step 3: Create songs
@@ -68,32 +68,35 @@ async function populateSongs() {
           continue
         }
 
-        // Search for album
-        const { result: albumSearchResult } = await searchAlbum(albumTitle)
-        if (!albumSearchResult || albumSearchResult.length === 0) {
-          console.error(
-            `Could not find album ${albumTitle} for song ${songTitle}`
-          )
-          continue
-        }
+        let album
+        if (albumTitle) {
+          // Search for album
+          const { result: albumSearchResult } = await searchAlbum(albumTitle)
+          if (!albumSearchResult || albumSearchResult.length === 0) {
+            console.error(
+              `Could not find album ${albumTitle} for song ${songTitle}`
+            )
+            continue
+          }
 
-        const album = albumSearchResult.find(
-          (a) => a.title.toLowerCase() === albumTitle.toLowerCase()
-        )
-
-        if (!album) {
-          console.error(
-            `Could not match album ${albumTitle} for song ${songTitle}`
+          album = albumSearchResult.find(
+            (a) => a.title.toLowerCase() === albumTitle.toLowerCase()
           )
-          continue
+
+          if (!album) {
+            console.error(
+              `Could not match album ${albumTitle} for song ${songTitle}`
+            )
+            continue
+          }
         }
 
         const songData = {
           title: songTitle,
           artists: artistIds,
           artistDisplayName: formattedArtistNames,
-          album: album._id,
-          albumDisplayTitle: albumTitle,
+          album: album ? album._id : undefined,
+          albumDisplayTitle: album ? albumTitle : undefined,
           year: year,
         }
 
