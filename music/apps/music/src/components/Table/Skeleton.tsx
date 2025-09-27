@@ -6,7 +6,6 @@ export const SkeletonTable = ({ cols }: { cols: number }) => {
     <div className="w-full">
       <div className="flex gap-2.5">
         {Array.from({ length: cols }).map((_, index) => {
-          console.log('rendering skeleton for col:', index);
           return (
             <Skeleton
               key={`skeleton-header-${index}`}

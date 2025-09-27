@@ -27,7 +27,7 @@ export const Modal = ({ isOpen, onClose, variation, label }: ModalProps) => {
   };
 
   return (
-    <div className="flex top-0 left-0 absolute justify-center items-center w-screen h-screen bg-gray-400 bg-opacity-75">
+    <div className="flex z-50 top-0 left-0 absolute justify-center items-center w-screen h-screen bg-gray-400 bg-opacity-75">
       <div className="flex w-1/2 h-min border-2 bg-opacity-100 bg-white p-2">
         <div className="flex flex-col relative h-full w-full">
           <ModalHeader label={label} onClose={handleOnClose} />
