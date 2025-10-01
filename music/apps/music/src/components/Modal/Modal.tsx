@@ -23,9 +23,12 @@ export const Modal = ({
   defaultValues,
   isQuickAdd,
 }: ModalProps) => {
+  console.log('defaultValues:', defaultValues);
   const [formValues, setFormValues] = useState<Partial<Artist | Album | Song>>(
     defaultValues || {}
   );
+
+  console.log('Form Values:', formValues);
 
   if (!isOpen) return false;
 

@@ -75,6 +75,7 @@ const ArtistPage = () => {
         )}
       </p>
       <AlbumBlock
+        artist={artist}
         albums={artist ? artist.albums : []}
         isLoading={isFetchingArtist}
       />
