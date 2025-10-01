@@ -1,17 +1,17 @@
-import { Album } from '../../../types';
-import { AlbumsTable } from '../Albums';
+import { Song } from '../../../types';
+import { SongsTable } from '../Songs';
 
-export const AlbumBlock = ({
-  albums,
+export const SongBlock = ({
+  songs,
   isLoading,
 }: {
-  albums: Album[];
+  songs: Song[];
   isLoading: boolean;
 }) => {
   return (
     <>
       <div className="flex">
-        <h2 className="text-2xl font-semibold mt-6">Albums</h2>
+        <h2 className="text-2xl font-semibold mt-6">Songs</h2>
         {!isLoading && (
           <div className="flex-col marginitems-center justify-center mt-6 ml-2">
             <button
@@ -23,7 +23,7 @@ export const AlbumBlock = ({
           </div>
         )}
       </div>
-      <AlbumsTable albums={albums} isLoading={isLoading} />
+      <SongsTable songs={songs} isLoading={isLoading} />
     </>
   );
 };

@@ -5,8 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { API_URL } from '../../constants';
-import { MedalRating, SongsTable } from '../../components';
+import { MedalRating, SongBlock } from '../../components';
 import { AlbumFull, Rating } from '../../types';
+import { ArtistLink } from '../../components/Table/ArtistsLink';
 
 const AlbumPage = () => {
   const [album, setAlbum] = useState<AlbumFull | null>(null);
@@ -69,7 +70,13 @@ const AlbumPage = () => {
         {isLoading ? (
           <Skeleton width={200} />
         ) : (
-          `Artist: ${album?.artistDisplayName}`
+          <span>
+            Artist:{' '}
+            <ArtistLink
+              artists={album?.artists ?? []}
+              artistDisplayName={album?.artistDisplayName ?? ''}
+            />
+          </span>
         )}
       </p>
       <p className="text-center mt-2">
@@ -112,8 +119,7 @@ const AlbumPage = () => {
           </div>
         )}
       </p>
-      <h2 className="text-2xl font-semibold mt-6">Songs</h2>
-      <SongsTable
+      <SongBlock
         songs={
           album
             ? album.songs
