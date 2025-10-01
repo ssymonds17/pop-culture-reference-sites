@@ -8,9 +8,13 @@ import { Search } from '../Search';
 export const SongFormFields = ({
   formValues,
   setFormValues,
+  isQuickAdd = false,
+  withAlbum = true,
 }: {
   formValues: Partial<Song>;
   setFormValues: Dispatch<SetStateAction<Partial<Song>>>;
+  isQuickAdd?: boolean;
+  withAlbum?: boolean;
 }) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [album, setAlbum] = useState<Album | undefined>(undefined);
@@ -51,41 +55,50 @@ export const SongFormFields = ({
         value={formValues['year']}
         setFormValues={setFormValues}
       />
-      <Search
-        id="albums"
-        variation={Variation.ALBUM}
-        setSearchResult={handleSetAlbum}
-      />
-      {album && (
-        <div>
-          <ul className="flex flex-col gap-2 p-2">
-            <li key={album._id} className="border-2 p-1">
-              ({album.year}) {album.displayTitle} - {album.artistDisplayName}
-            </li>
-          </ul>
-        </div>
+      {!isQuickAdd && withAlbum && (
+        <>
+          <Search
+            id="albums"
+            variation={Variation.ALBUM}
+            setSearchResult={handleSetAlbum}
+          />
+          {album && (
+            <div>
+              <ul className="flex flex-col gap-2 p-2">
+                <li key={album._id} className="border-2 p-1">
+                  ({album.year}) {album.displayTitle} -{' '}
+                  {album.artistDisplayName}
+                </li>
+              </ul>
+            </div>
+          )}
+        </>
       )}
-      <Search
-        id="artists"
-        variation={Variation.ARTIST}
-        setSearchResult={handleSetArtists}
-      />
-      {artists.length > 0 && (
-        <div>
-          <ul className="flex flex-col gap-2 p-2">
-            {artists.map((artist) => (
-              <li key={artist._id} className="border-2 p-1">
-                {artist.displayName}
-              </li>
-            ))}
-          </ul>
-        </div>
+      {!isQuickAdd && (
+        <>
+          <Search
+            id="artists"
+            variation={Variation.ARTIST}
+            setSearchResult={handleSetArtists}
+          />
+          {artists.length > 0 && (
+            <div>
+              <ul className="flex flex-col gap-2 p-2">
+                {artists.map((artist) => (
+                  <li key={artist._id} className="border-2 p-1">
+                    {artist.displayName}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <InputField
+            id="artistDisplayName"
+            value={formValues['artistDisplayName']}
+            setFormValues={setFormValues}
+          />
+        </>
       )}
-      <InputField
-        id="artistDisplayName"
-        value={formValues['artistDisplayName']}
-        setFormValues={setFormValues}
-      />
     </div>
   );
 };

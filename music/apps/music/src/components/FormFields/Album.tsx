@@ -9,9 +9,11 @@ import { Search } from '../Search';
 export const AlbumFormFields = ({
   formValues,
   setFormValues,
+  isQuickAdd = false,
 }: {
   formValues: Partial<Album>;
   setFormValues: Dispatch<SetStateAction<Partial<Album>>>;
+  isQuickAdd?: boolean;
 }) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const handleSetArtists = (newArtist: Artist) => {
@@ -41,32 +43,36 @@ export const AlbumFormFields = ({
         value={formValues['year']}
         setFormValues={setFormValues}
       />
-      <Search
-        id="artists"
-        variation={Variation.ARTIST}
-        setSearchResult={handleSetArtists}
-      />
-      {artists.length > 0 && (
-        <div>
-          <ul className="flex flex-col gap-2 p-2">
-            {artists.map((artist) => (
-              <li key={artist._id} className="border-2 p-1">
-                {artist.displayName}
-              </li>
-            ))}
-          </ul>
-        </div>
+      {!isQuickAdd && (
+        <>
+          <Search
+            id="artists"
+            variation={Variation.ARTIST}
+            setSearchResult={handleSetArtists}
+          />
+          {artists.length > 0 && (
+            <div>
+              <ul className="flex flex-col gap-2 p-2">
+                {artists.map((artist) => (
+                  <li key={artist._id} className="border-2 p-1">
+                    {artist.displayName}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <InputField
+            id="artistDisplayName"
+            value={formValues['artistDisplayName']}
+            setFormValues={setFormValues}
+          />
+          <Rating
+            id="rating"
+            value={formValues['rating']}
+            setFormValues={setFormValues}
+          />
+        </>
       )}
-      <InputField
-        id="artistDisplayName"
-        value={formValues['artistDisplayName']}
-        setFormValues={setFormValues}
-      />
-      <Rating
-        id="rating"
-        value={formValues['rating']}
-        setFormValues={setFormValues}
-      />
     </div>
   );
 };
