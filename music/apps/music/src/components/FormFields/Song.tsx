@@ -9,12 +9,10 @@ export const SongFormFields = ({
   formValues,
   setFormValues,
   isQuickAdd = false,
-  withAlbum = true,
 }: {
   formValues: Partial<Song>;
   setFormValues: Dispatch<SetStateAction<Partial<Song>>>;
   isQuickAdd?: boolean;
-  withAlbum?: boolean;
 }) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [album, setAlbum] = useState<Album | undefined>(undefined);
@@ -55,7 +53,7 @@ export const SongFormFields = ({
         value={formValues['year']}
         setFormValues={setFormValues}
       />
-      {!isQuickAdd && withAlbum && (
+      {!isQuickAdd && (
         <>
           <Search
             id="albums"
@@ -72,10 +70,6 @@ export const SongFormFields = ({
               </ul>
             </div>
           )}
-        </>
-      )}
-      {!isQuickAdd && (
-        <>
           <Search
             id="artists"
             variation={Variation.ARTIST}

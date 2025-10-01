@@ -11,16 +11,30 @@ type ModalProps = {
   onClose: () => void;
   variation: Variation;
   label: string;
+  defaultValues?: Partial<Artist | Album | Song>;
+  isQuickAdd?: boolean;
 };
 
-export const Modal = ({ isOpen, onClose, variation, label }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  variation,
+  label,
+  defaultValues,
+  isQuickAdd,
+}: ModalProps) => {
   const [formValues, setFormValues] = useState<Partial<Artist | Album | Song>>(
-    {}
+    defaultValues || {}
   );
 
   if (!isOpen) return false;
 
-  const formFields = renderFormFields(variation, formValues, setFormValues);
+  const formFields = renderFormFields(
+    variation,
+    formValues,
+    setFormValues,
+    isQuickAdd
+  );
   const handleOnClose = () => {
     setFormValues({});
     onClose();

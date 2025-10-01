@@ -7,7 +7,8 @@ import { SongFormFields } from '../FormFields/Song';
 export const renderFormFields = (
   variation: Variation,
   formValues: Partial<Artist | Album | Song>,
-  setFormValues: Dispatch<SetStateAction<Partial<Artist | Album | Song>>>
+  setFormValues: Dispatch<SetStateAction<Partial<Artist | Album | Song>>>,
+  isQuickAdd?: boolean
 ) => {
   switch (variation) {
     case Variation.ARTIST:
@@ -25,6 +26,7 @@ export const renderFormFields = (
         <AlbumFormFields
           formValues={formValues as Album}
           setFormValues={setFormValues}
+          isQuickAdd={isQuickAdd}
         />
       );
     case Variation.SONG:
@@ -32,6 +34,7 @@ export const renderFormFields = (
         <SongFormFields
           formValues={formValues as Song}
           setFormValues={setFormValues}
+          isQuickAdd={isQuickAdd}
         />
       );
     default:
