@@ -39,7 +39,7 @@ export const ModalFooter = ({
   };
   return (
     <>
-      <div className="flex mt-2 w-full justify-center">
+      <div className="flex mt-8 w-full justify-center">
         {isSubmitting ? (
           <span className="text-blue-500">Submitting...</span>
         ) : (

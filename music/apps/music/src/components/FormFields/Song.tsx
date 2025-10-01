@@ -52,6 +52,20 @@ export const SongFormFields = ({
         setFormValues={setFormValues}
       />
       <Search
+        id="albums"
+        variation={Variation.ALBUM}
+        setSearchResult={handleSetAlbum}
+      />
+      {album && (
+        <div>
+          <ul className="flex flex-col gap-2 p-2">
+            <li key={album._id} className="border-2 p-1">
+              ({album.year}) {album.displayTitle} - {album.artistDisplayName}
+            </li>
+          </ul>
+        </div>
+      )}
+      <Search
         id="artists"
         variation={Variation.ARTIST}
         setSearchResult={handleSetArtists}
@@ -72,20 +86,6 @@ export const SongFormFields = ({
         value={formValues['artistDisplayName']}
         setFormValues={setFormValues}
       />
-      <Search
-        id="albums"
-        variation={Variation.ALBUM}
-        setSearchResult={handleSetAlbum}
-      />
-      {album && (
-        <div>
-          <ul className="flex flex-col gap-2 p-2">
-            <li key={album._id} className="border-2 p-1">
-              ({album.year}) {album.displayTitle} - {album.artistDisplayName}
-            </li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 };
