@@ -86,7 +86,7 @@ const AlbumPage = () => {
           `Total Songs: ${album?.songs.length}`
         )}
       </p>
-      <p className="flex justify-center text-center mt-2">
+      <div className="flex justify-center text-center mt-2">
         {isLoading ? (
           <Skeleton width={200} />
         ) : (
@@ -118,8 +118,15 @@ const AlbumPage = () => {
             )}
           </div>
         )}
-      </p>
+      </div>
       <SongBlock
+        defaultValues={{
+          album: album?._id,
+          artists: album?.artists,
+          artistDisplayName: album?.artistDisplayName,
+          albumDisplayTitle: album?.displayTitle,
+          year: album?.year,
+        }}
         songs={
           album
             ? album.songs

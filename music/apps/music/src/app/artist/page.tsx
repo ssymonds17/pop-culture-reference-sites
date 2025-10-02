@@ -80,6 +80,15 @@ const ArtistPage = () => {
         isLoading={isFetchingArtist}
       />
       <SongBlock
+        defaultValues={
+          artist
+            ? {
+                artists: [artist._id],
+                artistDisplayName: artist.displayName,
+                album: undefined,
+              }
+            : {}
+        }
         songs={artist ? artist.songs : []}
         isLoading={isFetchingArtist}
       />

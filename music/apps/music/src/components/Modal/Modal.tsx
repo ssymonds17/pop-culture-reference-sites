@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Album, Artist, Song, Variation } from '../../types';
 import { ModalFooter } from './ModalFooter';
 import { ModalHeader } from './ModalHeader';
@@ -28,7 +28,9 @@ export const Modal = ({
     defaultValues || {}
   );
 
-  console.log('Form Values:', formValues);
+  useEffect(() => {
+    setFormValues(defaultValues || {});
+  }, [isOpen, defaultValues]);
 
   if (!isOpen) return false;
 
