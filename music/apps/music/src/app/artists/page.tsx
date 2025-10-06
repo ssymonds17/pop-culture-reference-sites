@@ -11,6 +11,7 @@ const ArtistsPage = () => {
   const [formValues, setFormValues] = useState<Partial<Artist>>({});
   const [isFetchingArtists, setIsFetchingArtists] = useState(false);
   const [isSearchingArtists, setIsSearchingArtists] = useState(false);
+  const [shouldRankArtists, setShouldRankArtists] = useState(false);
 
   const handleGetArtists = async () => {
     try {
@@ -20,9 +21,11 @@ const ArtistsPage = () => {
         (artist: Artist) => artist.displayName !== 'Various Artists'
       );
       setArtists(artistsVariousFiltered);
+      setShouldRankArtists(true);
     } catch (error) {
       setArtists([]);
       setFormValues({});
+      setShouldRankArtists(false);
       console.log('error', error);
     } finally {
       setIsFetchingArtists(false);
@@ -46,6 +49,7 @@ const ArtistsPage = () => {
       console.log('error', error);
     } finally {
       setIsSearchingArtists(false);
+      setShouldRankArtists(false);
     }
   };
 
@@ -81,7 +85,7 @@ const ArtistsPage = () => {
         <ArtistsTable
           artists={artists}
           isLoading={isFetchingArtists || isSearchingArtists}
-          isRanked={true}
+          isRanked={shouldRankArtists}
         />
       </ul>
     </div>
