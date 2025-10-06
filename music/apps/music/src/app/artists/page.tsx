@@ -81,6 +81,7 @@ const ArtistsPage = () => {
         <ArtistsTable
           artists={artists}
           isLoading={isFetchingArtists || isSearchingArtists}
+          isRanked={true}
         />
       </ul>
     </div>

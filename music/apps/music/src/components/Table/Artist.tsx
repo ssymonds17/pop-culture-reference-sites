@@ -5,9 +5,11 @@ import { SkeletonTable } from './Skeleton';
 export const ArtistsTable = ({
   artists,
   isLoading,
+  isRanked = false,
 }: {
   artists: Artist[];
   isLoading: boolean;
+  isRanked?: boolean;
 }) => {
   if (isLoading) {
     return <SkeletonTable cols={5} />;
@@ -17,6 +19,7 @@ export const ArtistsTable = ({
     <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
       <thead>
         <tr>
+          {isRanked && <th className="border border-gray-300">Rank</th>}
           <th className="border border-gray-300">Name</th>
           <th className="border border-gray-300 text-center">Gold Albums</th>
           <th className="border border-gray-300 text-center">Silver Albums</th>
@@ -27,8 +30,13 @@ export const ArtistsTable = ({
 
       <tbody>
         {artists.length ? (
-          artists.map((artist: Artist) => (
+          artists.map((artist: Artist, index: number) => (
             <tr key={artist._id}>
+              {isRanked && (
+                <td className="border border-gray-300 text-center">
+                  {index + 1}
+                </td>
+              )}
               <td className="border border-gray-300 text-center">
                 <Link
                   href={`/artist?id=${artist._id}`}
