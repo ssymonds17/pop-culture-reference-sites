@@ -1,5 +1,6 @@
 import { SortedYear, Year } from '../../types';
 import { SkeletonTable } from './Skeleton';
+import { ScoreBadge } from '../Rating';
 
 const renderYears = (years: SortedYear, sortColumn: keyof SortedYear) => {
   switch (sortColumn) {
@@ -92,8 +93,8 @@ export const YearsTable = ({
               <td className="text-center table-number">
                 {year.songs}
               </td>
-              <td className="text-center table-number font-semibold">
-                {year.totalScore}
+              <td className="text-center">
+                <ScoreBadge score={year.totalScore} size="sm" />
               </td>
             </tr>
           ))}

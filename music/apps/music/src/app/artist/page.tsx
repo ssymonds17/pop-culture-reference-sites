@@ -58,29 +58,29 @@ const ArtistPage = () => {
           <h1 className="mb-component-sm">
             {isFetchingArtist ? <Skeleton width={300} /> : artist?.displayName}
           </h1>
-          <div className="component-spacing-sm">
-            <p className="text-neutral-600">
+          <div className="component-spacing-sm space-y-1">
+            <p className="text-sm text-neutral-500 font-medium">
               {isFetchingArtist ? (
                 <Skeleton width={200} />
               ) : (
                 `Total Score: ${artist?.totalScore}`
               )}
             </p>
-            <p className="text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {isFetchingArtist ? (
                 <Skeleton width={150} />
               ) : (
                 `Total Songs: ${artist?.totalSongs}`
               )}
             </p>
-            <p className="text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {isFetchingArtist ? (
                 <Skeleton width={150} />
               ) : (
                 `Gold Albums: ${artist?.goldAlbums}`
               )}
             </p>
-            <p className="text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {isFetchingArtist ? (
                 <Skeleton width={150} />
               ) : (

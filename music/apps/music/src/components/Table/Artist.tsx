@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Artist } from '../../types';
 import { SkeletonTable } from './Skeleton';
+import { ScoreBadge } from '../Rating';
 
 export const ArtistsTable = ({
   artists,
@@ -55,8 +56,8 @@ export const ArtistsTable = ({
                 <td className="text-center table-number">
                   {artist.totalSongs}
                 </td>
-                <td className="text-center table-number font-semibold">
-                  {artist.totalScore}
+                <td className="text-center">
+                  <ScoreBadge score={artist.totalScore} size="sm" />
                 </td>
               </tr>
             ))

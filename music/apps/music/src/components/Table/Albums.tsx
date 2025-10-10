@@ -3,18 +3,11 @@
 import Link from 'next/link';
 import { Album, Rating } from '../../types';
 import { SkeletonTable } from './Skeleton';
-import { Medal } from '../Rating';
+import { RatingIcon } from '../Rating';
 import { ArtistLink } from './ArtistsLink';
 
 const displayRating = (rating: Rating) => {
-  switch (rating) {
-    case Rating.GOLD:
-      return <Medal albumId="" medalRating={Rating.GOLD} active />;
-    case Rating.SILVER:
-      return <Medal albumId="" medalRating={Rating.SILVER} active />;
-    default:
-      return <Medal albumId="" medalRating={Rating.NONE} active={false} />;
-  }
+  return <RatingIcon rating={rating} size="md" />;
 };
 
 export const AlbumsTable = ({

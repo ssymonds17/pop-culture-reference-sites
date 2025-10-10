@@ -2,8 +2,8 @@
 
 import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 import { InputField } from '../InputField';
-import { Album, Artist, Variation } from '../../types';
-import { Rating } from '../Select';
+import { Album, Artist, Variation, Rating } from '../../types';
+import { RatingSelector } from '../Rating';
 import { Search } from '../Search';
 
 export const AlbumFormFields = ({
@@ -77,11 +77,14 @@ export const AlbumFormFields = ({
             setFormValues={setFormValues}
             placeholder="Display name for artist(s)..."
           />
-          <Rating
-            id="rating"
-            value={formValues['rating']}
-            setFormValues={setFormValues}
-          />
+          <div className="form-group">
+            <label className="form-label">Rating</label>
+            <RatingSelector
+              currentRating={formValues.rating || Rating.NONE}
+              onChange={(rating) => setFormValues((prev) => ({ ...prev, rating }))}
+              size="md"
+            />
+          </div>
         </>
       )}
     </div>

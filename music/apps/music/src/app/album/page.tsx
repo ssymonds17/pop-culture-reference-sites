@@ -6,7 +6,8 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useMusicContext } from '@music/shared-state';
 import { API_URL } from '../../constants';
-import { MedalRating, SongBlock } from '../../components';
+import { SongBlock } from '../../components';
+import { RatingSelector, RatingBadge } from '../../components/Rating';
 import { AlbumFull, Rating } from '../../types';
 import { ArtistLink } from '../../components/Table/ArtistsLink';
 
@@ -74,11 +75,11 @@ const AlbumPage = () => {
           <h1 className="mb-component-sm">
             {isLoading ? <Skeleton width={300} /> : album?.displayTitle}
           </h1>
-          <div className="component-spacing-sm">
-            <p className="text-neutral-600">
+          <div className="component-spacing-sm space-y-1">
+            <p className="text-sm text-neutral-500">
               {isLoading ? <Skeleton width={200} /> : `Year: ${album?.year}`}
             </p>
-            <p className="text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {isLoading ? (
                 <Skeleton width={200} />
               ) : (
@@ -91,7 +92,7 @@ const AlbumPage = () => {
                 </span>
               )}
             </p>
-            <p className="text-neutral-600">
+            <p className="text-sm text-neutral-500">
               {isLoading ? (
                 <Skeleton width={200} />
               ) : (
@@ -101,33 +102,25 @@ const AlbumPage = () => {
           </div>
           <div className="layout-flex-center mt-component-md">
             {isLoading ? (
-              <Skeleton width={200} />
+              <Skeleton width={200} height={50} />
             ) : (
-              <div className="flex">
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-neutral-600">Album Rating:</span>
+                  <RatingBadge rating={album?.rating ?? Rating.NONE} size="lg" />
+                </div>
                 {isMedalLoading ? (
-                  <div className="flex justify-between w-12">
-                    <Skeleton width={18} height={18} circle />
-                    <Skeleton width={18} height={18} circle />
+                  <div className="flex justify-center">
+                    <div className="modal-spinner"></div>
                   </div>
                 ) : (
-                  <>
-                    <MedalRating
-                      albumId={album?._id ?? ''}
-                      albumRating={album?.rating ?? Rating.NONE}
-                      medalRating={Rating.GOLD}
-                      handleOnClick={updateAlbumRating}
-                    />
-                    <MedalRating
-                      albumId={album?._id ?? ''}
-                      albumRating={album?.rating ?? Rating.NONE}
-                      medalRating={Rating.SILVER}
-                      handleOnClick={
-                        album?.rating === Rating.SILVER && album?.songs?.length >= 6
-                          ? undefined
-                          : updateAlbumRating
-                      }
-                    />
-                  </>
+                  <RatingSelector
+                    currentRating={album?.rating ?? Rating.NONE}
+                    onChange={(newRating) => updateAlbumRating(album?._id ?? '', newRating)}
+                    size="lg"
+                    disabled={isMedalLoading}
+                    showLabels={true}
+                  />
                 )}
               </div>
             )}
