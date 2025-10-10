@@ -54,10 +54,15 @@ const ArtistsPage = () => {
   };
 
   return (
-    <div className="m-4">
-      <h1 className="text-4xl font-bold text-center text-gray-900">
-        Artists Page
-      </h1>
+    <div className="container mx-auto px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-center mb-2">
+          Artists
+        </h1>
+        <p className="text-center text-neutral-600">
+          Browse and search through your music artist collection
+        </p>
+      </div>
       <div className="flex mt-4">
         <button
           onClick={handleGetArtists}
