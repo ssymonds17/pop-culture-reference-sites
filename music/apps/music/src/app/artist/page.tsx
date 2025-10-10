@@ -52,58 +52,65 @@ const ArtistPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          {isFetchingArtist ? <Skeleton width={300} /> : artist?.displayName}
-        </h1>
-        <p className="text-center text-neutral-600 mt-2">
-          {isFetchingArtist ? (
-            <Skeleton width={200} />
-          ) : (
-            `Total Score: ${artist?.totalScore}`
-          )}
-        </p>
-        <p className="text-center text-neutral-600 mt-2">
-          {isFetchingArtist ? (
-            <Skeleton width={150} />
-          ) : (
-            `Total Songs: ${artist?.totalSongs}`
-          )}
-        </p>
-        <p className="text-center text-neutral-600 mt-2">
-          {isFetchingArtist ? (
-            <Skeleton width={150} />
-          ) : (
-            `Gold Albums: ${artist?.goldAlbums}`
-          )}
-        </p>
-        <p className="text-center text-neutral-600 mt-2">
-          {isFetchingArtist ? (
-            <Skeleton width={150} />
-          ) : (
-            `Silver Albums: ${artist?.silverAlbums}`
-          )}
-        </p>
-      </div>
-      <AlbumBlock
-        artist={artist}
-        albums={artist ? artist.albums : []}
-        isLoading={isFetchingArtist}
-      />
-      <SongBlock
-        defaultValues={
-          artist
-            ? {
-                artists: [artist._id],
-                artistDisplayName: artist.displayName,
-                album: undefined,
-              }
-            : {}
-        }
-        songs={artist ? artist.songs : []}
-        isLoading={isFetchingArtist}
-      />
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            {isFetchingArtist ? <Skeleton width={300} /> : artist?.displayName}
+          </h1>
+          <div className="component-spacing-sm">
+            <p className="text-neutral-600">
+              {isFetchingArtist ? (
+                <Skeleton width={200} />
+              ) : (
+                `Total Score: ${artist?.totalScore}`
+              )}
+            </p>
+            <p className="text-neutral-600">
+              {isFetchingArtist ? (
+                <Skeleton width={150} />
+              ) : (
+                `Total Songs: ${artist?.totalSongs}`
+              )}
+            </p>
+            <p className="text-neutral-600">
+              {isFetchingArtist ? (
+                <Skeleton width={150} />
+              ) : (
+                `Gold Albums: ${artist?.goldAlbums}`
+              )}
+            </p>
+            <p className="text-neutral-600">
+              {isFetchingArtist ? (
+                <Skeleton width={150} />
+              ) : (
+                `Silver Albums: ${artist?.silverAlbums}`
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="layout-content">
+          <AlbumBlock
+            artist={artist}
+            albums={artist ? artist.albums : []}
+            isLoading={isFetchingArtist}
+          />
+          <SongBlock
+            defaultValues={
+              artist
+                ? {
+                    artists: [artist._id],
+                    artistDisplayName: artist.displayName,
+                    album: undefined,
+                  }
+                : {}
+            }
+            songs={artist ? artist.songs : []}
+            isLoading={isFetchingArtist}
+          />
+        </div>
+      </section>
     </div>
   );
 };

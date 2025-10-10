@@ -68,6 +68,72 @@
 }
 
 @layer components {
+  /* Layout System - 8px Base Unit */
+  .layout-container {
+    @apply container mx-auto px-layout-sm py-layout-md max-w-container-lg;
+  }
+
+  .layout-section {
+    @apply mb-layout-lg;
+  }
+
+  .layout-header {
+    @apply mb-layout-md;
+  }
+
+  .layout-content {
+    @apply space-y-layout-sm;
+  }
+
+  .layout-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-layout-sm;
+  }
+
+  .layout-grid-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-layout-sm;
+  }
+
+  .layout-grid-4 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-layout-sm;
+  }
+
+  .layout-flex-between {
+    @apply flex items-center justify-between gap-component-sm;
+  }
+
+  .layout-flex-center {
+    @apply flex items-center justify-center gap-component-sm;
+  }
+
+  .layout-stack {
+    @apply flex flex-col gap-component-sm;
+  }
+
+  .layout-stack-lg {
+    @apply flex flex-col gap-component-lg;
+  }
+
+  /* Component Spacing Utilities */
+  .component-spacing {
+    @apply p-component-md;
+  }
+
+  .component-spacing-sm {
+    @apply p-component-sm;
+  }
+
+  .component-spacing-lg {
+    @apply p-component-lg;
+  }
+
+  .component-card {
+    @apply bg-white rounded-lg p-component-md shadow-sm border border-neutral-200;
+  }
+
+  .component-card-interactive {
+    @apply component-card hover:shadow-md transition-shadow duration-200 cursor-pointer;
+  }
+
   /* Music-specific typography utilities */
   .text-music-title {
     @apply text-4xl font-bold font-display text-music-600;

@@ -49,23 +49,26 @@ const YearsPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          Years
-        </h1>
-        <p className="text-center text-neutral-600">
-          View your music collection organized by year with statistics
-        </p>
-      </div>
-      <ul className="mt-4">
-        <YearsTable
-          years={years}
-          isLoading={isFetchingYears}
-          sortColumn={sortColumn}
-          setSortColumn={setSortColumn}
-        />
-      </ul>
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            Years
+          </h1>
+          <p className="text-neutral-600">
+            View your music collection organized by year with statistics
+          </p>
+        </div>
+
+        <div className="layout-content">
+          <YearsTable
+            years={years}
+            isLoading={isFetchingYears}
+            sortColumn={sortColumn}
+            setSortColumn={setSortColumn}
+          />
+        </div>
+      </section>
     </div>
   );
 };

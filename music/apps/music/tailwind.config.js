@@ -102,6 +102,62 @@ module.exports = {
         loose: '1.5',
         extra: '1.6',
       },
+      spacing: {
+        // 8px base unit system for consistent spacing
+        '0': '0px',
+        '0.5': '2px',    // 0.25 * 8px
+        '1': '4px',      // 0.5 * 8px
+        '1.5': '6px',    // 0.75 * 8px
+        '2': '8px',      // 1 * 8px (base unit)
+        '3': '12px',     // 1.5 * 8px
+        '4': '16px',     // 2 * 8px
+        '5': '20px',     // 2.5 * 8px
+        '6': '24px',     // 3 * 8px
+        '7': '28px',     // 3.5 * 8px
+        '8': '32px',     // 4 * 8px
+        '10': '40px',    // 5 * 8px
+        '12': '48px',    // 6 * 8px
+        '14': '56px',    // 7 * 8px
+        '16': '64px',    // 8 * 8px
+        '20': '80px',    // 10 * 8px
+        '24': '96px',    // 12 * 8px
+        '28': '112px',   // 14 * 8px
+        '32': '128px',   // 16 * 8px
+        '36': '144px',   // 18 * 8px
+        '40': '160px',   // 20 * 8px
+        '44': '176px',   // 22 * 8px
+        '48': '192px',   // 24 * 8px
+        '52': '208px',   // 26 * 8px
+        '56': '224px',   // 28 * 8px
+        '60': '240px',   // 30 * 8px
+        '64': '256px',   // 32 * 8px
+        '72': '288px',   // 36 * 8px
+        '80': '320px',   // 40 * 8px
+        '96': '384px',   // 48 * 8px
+        // Layout spacing
+        'layout-xs': '16px',   // 2 * 8px
+        'layout-sm': '24px',   // 3 * 8px
+        'layout-md': '32px',   // 4 * 8px
+        'layout-lg': '48px',   // 6 * 8px
+        'layout-xl': '64px',   // 8 * 8px
+        'layout-2xl': '96px',  // 12 * 8px
+        // Component spacing
+        'component-xs': '8px',   // 1 * 8px
+        'component-sm': '16px',  // 2 * 8px
+        'component-md': '24px',  // 3 * 8px
+        'component-lg': '32px',  // 4 * 8px
+        'component-xl': '48px',  // 6 * 8px
+      },
+      maxWidth: {
+        'container-xs': '480px',
+        'container-sm': '640px',
+        'container-md': '768px',
+        'container-lg': '1024px',
+        'container-xl': '1280px',
+        'container-2xl': '1536px',
+        'content': '65ch',        // Optimal reading width
+        'prose': '75ch',          // Prose content width
+      },
       colors: {
         // Primary Brand Colors - Music Theme
         music: {

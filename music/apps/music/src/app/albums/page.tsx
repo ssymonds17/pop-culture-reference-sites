@@ -44,44 +44,48 @@ const AlbumsPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          Albums
-        </h1>
-        <p className="text-center text-neutral-600">
-          Browse and search through your album collection with ratings
-        </p>
-      </div>
-      <div className="flex mt-4">
-        <button
-          onClick={handleGetAlbums}
-          className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
-        >
-          {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
-        </button>
-        <div className="flex">
-          <InputField
-            id="title"
-            setFormValues={setFormValues}
-            value={formValues['title']}
-            showLabel={false}
-          />
-          <button
-            onClick={handleSearchAlbumsByName}
-            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
-            disabled={!formValues.title}
-          >
-            {isSearchingAlbums ? 'Searching...' : 'Search'}
-          </button>
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            Albums
+          </h1>
+          <p className="text-neutral-600">
+            Browse and search through your album collection with ratings
+          </p>
         </div>
-      </div>
-      <ul className="mt-4">
-        <AlbumsTable
-          albums={albums}
-          isLoading={isFetchingAlbums || isSearchingAlbums}
-        />
-      </ul>
+
+        <div className="layout-flex-between">
+          <button
+            onClick={handleGetAlbums}
+            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md"
+          >
+            {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
+          </button>
+          <div className="flex">
+            <InputField
+              id="title"
+              setFormValues={setFormValues}
+              value={formValues['title']}
+              showLabel={false}
+            />
+            <button
+              onClick={handleSearchAlbumsByName}
+              className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+              disabled={!formValues.title}
+            >
+              {isSearchingAlbums ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        <div className="layout-content">
+          <AlbumsTable
+            albums={albums}
+            isLoading={isFetchingAlbums || isSearchingAlbums}
+          />
+        </div>
+      </section>
     </div>
   );
 };

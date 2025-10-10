@@ -29,35 +29,39 @@ const SongsPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          Songs
-        </h1>
-        <p className="text-center text-neutral-600">
-          Search for individual songs in your music collection
-        </p>
-      </div>
-      <div className="flex mt-4">
-        <div className="flex">
-          <InputField
-            id="title"
-            setFormValues={setFormValues}
-            value={formValues['title']}
-            showLabel={false}
-          />
-          <button
-            onClick={handleSearchSongsByName}
-            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
-            disabled={!formValues.title}
-          >
-            {isSearchingSongs ? 'Searching...' : 'Search'}
-          </button>
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            Songs
+          </h1>
+          <p className="text-neutral-600">
+            Search for individual songs in your music collection
+          </p>
         </div>
-      </div>
-      <ul className="mt-4">
-        <SongsTable songs={songs} isLoading={isSearchingSongs} />
-      </ul>
+
+        <div className="layout-flex-center">
+          <div className="flex">
+            <InputField
+              id="title"
+              setFormValues={setFormValues}
+              value={formValues['title']}
+              showLabel={false}
+            />
+            <button
+              onClick={handleSearchSongsByName}
+              className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+              disabled={!formValues.title}
+            >
+              {isSearchingSongs ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        <div className="layout-content">
+          <SongsTable songs={songs} isLoading={isSearchingSongs} />
+        </div>
+      </section>
     </div>
   );
 };

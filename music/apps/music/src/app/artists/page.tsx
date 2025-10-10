@@ -54,45 +54,49 @@ const ArtistsPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          Artists
-        </h1>
-        <p className="text-center text-neutral-600">
-          Browse and search through your music artist collection
-        </p>
-      </div>
-      <div className="flex mt-4">
-        <button
-          onClick={handleGetArtists}
-          className="min-w-100px mx-4 px-4 py-2 text-white bg-blue-500 rounded-md cursor-pointer "
-        >
-          {isFetchingArtists ? 'Loading...' : 'Get All Artists'}
-        </button>
-        <div className="flex">
-          <InputField
-            id="name"
-            setFormValues={setFormValues}
-            value={formValues['name']}
-            showLabel={false}
-          />
-          <button
-            onClick={handleSearchArtistByName}
-            className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
-            disabled={!formValues.name}
-          >
-            {isSearchingArtists ? 'Searching...' : 'Search'}
-          </button>
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            Artists
+          </h1>
+          <p className="text-neutral-600">
+            Browse and search through your music artist collection
+          </p>
         </div>
-      </div>
-      <ul className="mt-4">
-        <ArtistsTable
-          artists={artists}
-          isLoading={isFetchingArtists || isSearchingArtists}
-          isRanked={shouldRankArtists}
-        />
-      </ul>
+
+        <div className="layout-flex-between">
+          <button
+            onClick={handleGetArtists}
+            className="min-w-100px mx-4 px-4 py-2 text-white bg-blue-500 rounded-md cursor-pointer "
+          >
+            {isFetchingArtists ? 'Loading...' : 'Get All Artists'}
+          </button>
+          <div className="flex">
+            <InputField
+              id="name"
+              setFormValues={setFormValues}
+              value={formValues['name']}
+              showLabel={false}
+            />
+            <button
+              onClick={handleSearchArtistByName}
+              className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+              disabled={!formValues.name}
+            >
+              {isSearchingArtists ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        <div className="layout-content">
+          <ArtistsTable
+            artists={artists}
+            isLoading={isFetchingArtists || isSearchingArtists}
+            isRanked={shouldRankArtists}
+          />
+        </div>
+      </section>
     </div>
   );
 };

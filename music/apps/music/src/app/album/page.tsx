@@ -68,85 +68,92 @@ const AlbumPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-2">
-          {isLoading ? <Skeleton width={300} /> : album?.displayTitle}
-        </h1>
-        <p className="text-center text-neutral-600 mt-2">
-          {isLoading ? <Skeleton width={200} /> : `Year: ${album?.year}`}
-        </p>
-        <p className="text-center text-neutral-600 mt-2">
-          {isLoading ? (
-            <Skeleton width={200} />
-          ) : (
-            <span>
-              Artist:{' '}
-              <ArtistLink
-                artists={album?.artists ?? []}
-                artistDisplayName={album?.artistDisplayName ?? ''}
-              />
-            </span>
-          )}
-        </p>
-        <p className="text-center text-neutral-600 mt-2">
-          {isLoading ? (
-            <Skeleton width={200} />
-          ) : (
-            `Total Songs: ${album?.songs.length}`
-          )}
-        </p>
-        <div className="flex justify-center text-center mt-4">
-          {isLoading ? (
-            <Skeleton width={200} />
-          ) : (
-            <div className="flex">
-              {isMedalLoading ? (
-                <div className="flex justify-between w-12">
-                  <Skeleton width={18} height={18} circle />
-                  <Skeleton width={18} height={18} circle />
-                </div>
+    <div className="layout-container">
+      <section className="layout-section">
+        <div className="layout-header text-center">
+          <h1 className="mb-component-sm">
+            {isLoading ? <Skeleton width={300} /> : album?.displayTitle}
+          </h1>
+          <div className="component-spacing-sm">
+            <p className="text-neutral-600">
+              {isLoading ? <Skeleton width={200} /> : `Year: ${album?.year}`}
+            </p>
+            <p className="text-neutral-600">
+              {isLoading ? (
+                <Skeleton width={200} />
               ) : (
-                <>
-                  <MedalRating
-                    albumId={album?._id ?? ''}
-                    albumRating={album?.rating ?? Rating.NONE}
-                    medalRating={Rating.GOLD}
-                    handleOnClick={updateAlbumRating}
+                <span>
+                  Artist:{' '}
+                  <ArtistLink
+                    artists={album?.artists ?? []}
+                    artistDisplayName={album?.artistDisplayName ?? ''}
                   />
-                  <MedalRating
-                    albumId={album?._id ?? ''}
-                    albumRating={album?.rating ?? Rating.NONE}
-                    medalRating={Rating.SILVER}
-                    handleOnClick={
-                      album?.rating === Rating.SILVER && album?.songs?.length >= 6
-                        ? undefined
-                        : updateAlbumRating
-                    }
-                  />
-                </>
+                </span>
               )}
-            </div>
-          )}
+            </p>
+            <p className="text-neutral-600">
+              {isLoading ? (
+                <Skeleton width={200} />
+              ) : (
+                `Total Songs: ${album?.songs.length}`
+              )}
+            </p>
+          </div>
+          <div className="layout-flex-center mt-component-md">
+            {isLoading ? (
+              <Skeleton width={200} />
+            ) : (
+              <div className="flex">
+                {isMedalLoading ? (
+                  <div className="flex justify-between w-12">
+                    <Skeleton width={18} height={18} circle />
+                    <Skeleton width={18} height={18} circle />
+                  </div>
+                ) : (
+                  <>
+                    <MedalRating
+                      albumId={album?._id ?? ''}
+                      albumRating={album?.rating ?? Rating.NONE}
+                      medalRating={Rating.GOLD}
+                      handleOnClick={updateAlbumRating}
+                    />
+                    <MedalRating
+                      albumId={album?._id ?? ''}
+                      albumRating={album?.rating ?? Rating.NONE}
+                      medalRating={Rating.SILVER}
+                      handleOnClick={
+                        album?.rating === Rating.SILVER && album?.songs?.length >= 6
+                          ? undefined
+                          : updateAlbumRating
+                      }
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      <SongBlock
-        defaultValues={{
-          album: album?._id,
-          artists: album?.artists,
-          artistDisplayName: album?.artistDisplayName,
-          albumDisplayTitle: album?.displayTitle,
-          year: album?.year,
-        }}
-        songs={
-          album
-            ? album.songs
-                .toSorted((a, b) => a.title.localeCompare(b.title))
-                .toSorted((a, b) => a.year - b.year)
-            : []
-        }
-        isLoading={isLoading}
-      />
+
+        <div className="layout-content">
+          <SongBlock
+            defaultValues={{
+              album: album?._id,
+              artists: album?.artists,
+              artistDisplayName: album?.artistDisplayName,
+              albumDisplayTitle: album?.displayTitle,
+              year: album?.year,
+            }}
+            songs={
+              album
+                ? album.songs
+                    .toSorted((a, b) => a.title.localeCompare(b.title))
+                    .toSorted((a, b) => a.year - b.year)
+                : []
+            }
+            isLoading={isLoading}
+          />
+        </div>
+      </section>
     </div>
   );
 };
