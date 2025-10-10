@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@music/dynamodb": ["libs/dynamodb/src/index.ts"]
+      "@music/dynamodb": ["libs/dynamodb/src/index.ts"],
+      "@music/shared-state": ["libs/shared-state/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
