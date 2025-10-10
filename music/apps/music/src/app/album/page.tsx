@@ -68,65 +68,67 @@ const AlbumPage = () => {
   }
 
   return (
-    <div className="m-4">
-      <h1 className="text-2xl font-semibold text-center mt-4">
-        {isLoading ? <Skeleton width={300} /> : album?.displayTitle}
-      </h1>
-      <p className="text-center mt-2">
-        {isLoading ? <Skeleton width={200} /> : `Year: ${album?.year}`}
-      </p>
-      <p className="text-center mt-2">
-        {isLoading ? (
-          <Skeleton width={200} />
-        ) : (
-          <span>
-            Artist:{' '}
-            <ArtistLink
-              artists={album?.artists ?? []}
-              artistDisplayName={album?.artistDisplayName ?? ''}
-            />
-          </span>
-        )}
-      </p>
-      <p className="text-center mt-2">
-        {isLoading ? (
-          <Skeleton width={200} />
-        ) : (
-          `Total Songs: ${album?.songs.length}`
-        )}
-      </p>
-      <div className="flex justify-center text-center mt-2">
-        {isLoading ? (
-          <Skeleton width={200} />
-        ) : (
-          <div className="flex">
-            {isMedalLoading ? (
-              <div className="flex justify-between w-12">
-                <Skeleton width={18} height={18} circle />
-                <Skeleton width={18} height={18} circle />
-              </div>
-            ) : (
-              <>
-                <MedalRating
-                  albumId={album?._id ?? ''}
-                  albumRating={album?.rating ?? Rating.NONE}
-                  medalRating={Rating.GOLD}
-                  handleOnClick={updateAlbumRating}
-                />
-                <MedalRating
-                  albumId={album?._id ?? ''}
-                  albumRating={album?.rating ?? Rating.NONE}
-                  medalRating={Rating.SILVER}
-                  handleOnClick={
-                    album?.rating === Rating.SILVER && album?.songs?.length >= 6
-                      ? undefined
-                      : updateAlbumRating
-                  }
-                />
-              </>
-            )}
-          </div>
-        )}
+    <div className="container mx-auto px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-center mb-2">
+          {isLoading ? <Skeleton width={300} /> : album?.displayTitle}
+        </h1>
+        <p className="text-center text-neutral-600 mt-2">
+          {isLoading ? <Skeleton width={200} /> : `Year: ${album?.year}`}
+        </p>
+        <p className="text-center text-neutral-600 mt-2">
+          {isLoading ? (
+            <Skeleton width={200} />
+          ) : (
+            <span>
+              Artist:{' '}
+              <ArtistLink
+                artists={album?.artists ?? []}
+                artistDisplayName={album?.artistDisplayName ?? ''}
+              />
+            </span>
+          )}
+        </p>
+        <p className="text-center text-neutral-600 mt-2">
+          {isLoading ? (
+            <Skeleton width={200} />
+          ) : (
+            `Total Songs: ${album?.songs.length}`
+          )}
+        </p>
+        <div className="flex justify-center text-center mt-4">
+          {isLoading ? (
+            <Skeleton width={200} />
+          ) : (
+            <div className="flex">
+              {isMedalLoading ? (
+                <div className="flex justify-between w-12">
+                  <Skeleton width={18} height={18} circle />
+                  <Skeleton width={18} height={18} circle />
+                </div>
+              ) : (
+                <>
+                  <MedalRating
+                    albumId={album?._id ?? ''}
+                    albumRating={album?.rating ?? Rating.NONE}
+                    medalRating={Rating.GOLD}
+                    handleOnClick={updateAlbumRating}
+                  />
+                  <MedalRating
+                    albumId={album?._id ?? ''}
+                    albumRating={album?.rating ?? Rating.NONE}
+                    medalRating={Rating.SILVER}
+                    handleOnClick={
+                      album?.rating === Rating.SILVER && album?.songs?.length >= 6
+                        ? undefined
+                        : updateAlbumRating
+                    }
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <SongBlock
         defaultValues={{

@@ -52,38 +52,40 @@ const ArtistPage = () => {
   }
 
   return (
-    <div className="m-4">
-      <h1 className="text-2xl font-semibold text-center mt-4">
-        {isFetchingArtist ? <Skeleton width={300} /> : artist?.displayName}
-      </h1>
-      <p className="text-center mt-2">
-        {isFetchingArtist ? (
-          <Skeleton width={200} />
-        ) : (
-          `Total Score: ${artist?.totalScore}`
-        )}
-      </p>
-      <p className="text-center mt-2">
-        {isFetchingArtist ? (
-          <Skeleton width={150} />
-        ) : (
-          `Total Songs: ${artist?.totalSongs}`
-        )}
-      </p>
-      <p className="text-center mt-2">
-        {isFetchingArtist ? (
-          <Skeleton width={150} />
-        ) : (
-          `Gold Albums: ${artist?.goldAlbums}`
-        )}
-      </p>
-      <p className="text-center mt-2">
-        {isFetchingArtist ? (
-          <Skeleton width={150} />
-        ) : (
-          `Silver Albums: ${artist?.silverAlbums}`
-        )}
-      </p>
+    <div className="container mx-auto px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-center mb-2">
+          {isFetchingArtist ? <Skeleton width={300} /> : artist?.displayName}
+        </h1>
+        <p className="text-center text-neutral-600 mt-2">
+          {isFetchingArtist ? (
+            <Skeleton width={200} />
+          ) : (
+            `Total Score: ${artist?.totalScore}`
+          )}
+        </p>
+        <p className="text-center text-neutral-600 mt-2">
+          {isFetchingArtist ? (
+            <Skeleton width={150} />
+          ) : (
+            `Total Songs: ${artist?.totalSongs}`
+          )}
+        </p>
+        <p className="text-center text-neutral-600 mt-2">
+          {isFetchingArtist ? (
+            <Skeleton width={150} />
+          ) : (
+            `Gold Albums: ${artist?.goldAlbums}`
+          )}
+        </p>
+        <p className="text-center text-neutral-600 mt-2">
+          {isFetchingArtist ? (
+            <Skeleton width={150} />
+          ) : (
+            `Silver Albums: ${artist?.silverAlbums}`
+          )}
+        </p>
+      </div>
       <AlbumBlock
         artist={artist}
         albums={artist ? artist.albums : []}
