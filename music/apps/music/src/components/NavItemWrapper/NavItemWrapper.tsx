@@ -19,12 +19,12 @@ type NavItemProps = {
 };
 
 export const NavItemWrapper = ({ label, action }: NavItemProps) => (
-  <li className="p-2 m-2 border-2">
+  <>
     {action.type === 'navigation' && (
       <NavigationItem label={label} url={action.url} />
     )}
     {action.type === 'add element' && (
       <AddElementItem label={label} variation={action.actionType} />
     )}
-  </li>
+  </>
 );

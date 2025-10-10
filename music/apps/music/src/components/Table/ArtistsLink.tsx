@@ -21,7 +21,7 @@ export const ArtistLink = ({
     return (
       <Link
         href={`/artist?id=${artists[0]}`}
-        className="text-blue-500 hover:underline"
+        className="btn-link-sm"
       >
         {artistDisplayName}
       </Link>
@@ -32,7 +32,7 @@ export const ArtistLink = ({
     <div className="relative">
       <button
         onClick={() => setIsOpen(true)}
-        className="text-blue-500 hover:underline cursor-pointer"
+        className="btn-link-sm"
       >
         {artistDisplayName}
       </button>

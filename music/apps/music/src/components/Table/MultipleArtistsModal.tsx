@@ -56,10 +56,10 @@ export const MultipleArtistsModal = ({
       className="absolute -top-10 w-full color-blue-500 p-2 bg-white border-2 z-10 rounded-sm"
     >
       <button
-        className="border-2 rounded-full top-0 right-0 bg-white w-8 h-8 text-center mb-1"
+        className="btn-icon-sm btn-ghost mb-1"
         onClick={onClose}
       >
-        X
+        ×
       </button>
       <div className=" w-full flex flex-col">
         {isFetchingArtists ? (
@@ -70,7 +70,7 @@ export const MultipleArtistsModal = ({
               <Link
                 key={artist._id}
                 href={`/artist?id=${artist._id}`}
-                className="text-blue-500 hover:underline"
+                className="btn-link-sm"
                 onClick={onClose}
               >
                 {artist.displayName}

@@ -52,7 +52,7 @@ export const AlbumsTable = ({
               <td className="border border-gray-300 text-center">
                 <Link
                   href={`/album?id=${album._id}`}
-                  className="text-blue-500 hover:underline"
+                  className="btn-link-sm"
                 >
                   {album.displayTitle}
                 </Link>

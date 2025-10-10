@@ -54,7 +54,7 @@ export const ModalFooter = ({
             type="button"
             onClick={handleOnSubmit}
             disabled={isDisabled}
-            className="border-2 border-blue-500 text-white bg-blue-500 w-1/2 disabled:bg-gray-300 disabled:text-gray-500 hover:bg-blue-600 hover:border-blue-600 transition-colors duration-200 p-2 rounded"
+            className="btn-primary-md w-1/2"
           >
             Submit
           </button>

@@ -68,7 +68,7 @@ const ArtistsPage = () => {
         <div className="layout-flex-between">
           <button
             onClick={handleGetArtists}
-            className="min-w-100px mx-4 px-4 py-2 text-white bg-blue-500 rounded-md cursor-pointer "
+            className="btn-primary-md mx-4 min-w-[100px]"
           >
             {isFetchingArtists ? 'Loading...' : 'Get All Artists'}
           </button>
@@ -81,7 +81,7 @@ const ArtistsPage = () => {
             />
             <button
               onClick={handleSearchArtistByName}
-              className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+              className="btn-secondary-md mx-4"
               disabled={!formValues.name}
             >
               {isSearchingArtists ? 'Searching...' : 'Search'}

@@ -40,7 +40,7 @@ export const ArtistsTable = ({
               <td className="border border-gray-300 text-center">
                 <Link
                   href={`/artist?id=${artist._id}`}
-                  className="text-blue-500 hover:underline"
+                  className="btn-link-sm"
                 >
                   {artist.displayName}
                 </Link>

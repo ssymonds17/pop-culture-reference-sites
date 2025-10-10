@@ -158,6 +158,262 @@
   .text-rating-metadata {
     @apply text-xs font-medium text-neutral-500 uppercase;
   }
+
+  /* Navigation Utilities */
+  .nav-brand {
+    @apply text-xl font-semibold text-music-600 hover:text-music-700 transition-colors;
+  }
+
+  .nav-link {
+    @apply px-3 py-2 text-sm font-medium text-neutral-700 rounded-md hover:text-music-600 hover:bg-neutral-50 transition-colors;
+  }
+
+  .nav-link-active {
+    @apply nav-link text-music-600 bg-music-50;
+  }
+
+  .nav-button-primary {
+    @apply px-3 py-2 text-sm font-medium text-white bg-music-600 rounded-md hover:bg-music-700 focus:outline-none focus:ring-2 focus:ring-music-500 focus:ring-offset-2 transition-colors;
+  }
+
+  .nav-button-secondary {
+    @apply px-3 py-2 text-sm font-medium text-music-600 bg-white border border-music-300 rounded-md hover:bg-music-50 focus:outline-none focus:ring-2 focus:ring-music-500 focus:ring-offset-2 transition-colors;
+  }
+
+  .nav-mobile-toggle {
+    @apply p-2 text-neutral-600 hover:text-music-600 transition-colors md:hidden;
+  }
+
+  /* Button System - Comprehensive variants and sizes */
+
+  /* Base button styles */
+  .btn-base {
+    @apply inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Button sizes */
+  .btn-xs {
+    @apply btn-base px-2 py-1 text-xs;
+  }
+
+  .btn-sm {
+    @apply btn-base px-3 py-2 text-sm;
+  }
+
+  .btn-md {
+    @apply btn-base px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply btn-base px-6 py-3 text-base;
+  }
+
+  .btn-xl {
+    @apply btn-base px-8 py-4 text-lg;
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply text-white bg-music-600 hover:bg-music-700 focus:ring-music-500;
+  }
+
+  .btn-secondary {
+    @apply text-music-600 bg-white border border-music-300 hover:bg-music-50 focus:ring-music-500;
+  }
+
+  .btn-success {
+    @apply text-white bg-success-600 hover:bg-success-700 focus:ring-success-500;
+  }
+
+  .btn-warning {
+    @apply text-white bg-warning-600 hover:bg-warning-700 focus:ring-warning-500;
+  }
+
+  .btn-danger {
+    @apply text-white bg-error-600 hover:bg-error-700 focus:ring-error-500;
+  }
+
+  .btn-ghost {
+    @apply text-neutral-700 bg-transparent hover:bg-neutral-100 focus:ring-neutral-500;
+  }
+
+  .btn-link {
+    @apply text-music-600 bg-transparent hover:text-music-700 hover:underline focus:ring-music-500;
+  }
+
+  /* Icon buttons */
+  .btn-icon {
+    @apply btn-base p-2 rounded-full;
+  }
+
+  .btn-icon-xs {
+    @apply btn-icon w-6 h-6;
+  }
+
+  .btn-icon-sm {
+    @apply btn-icon w-8 h-8;
+  }
+
+  .btn-icon-md {
+    @apply btn-icon w-10 h-10;
+  }
+
+  .btn-icon-lg {
+    @apply btn-icon w-12 h-12;
+  }
+
+  /* Loading state */
+  .btn-loading {
+    @apply opacity-75 cursor-wait;
+  }
+
+  /* Combined size + variant classes for common use cases */
+  .btn-primary-sm {
+    @apply btn-sm btn-primary;
+  }
+
+  .btn-primary-md {
+    @apply btn-md btn-primary;
+  }
+
+  .btn-primary-lg {
+    @apply btn-lg btn-primary;
+  }
+
+  .btn-secondary-sm {
+    @apply btn-sm btn-secondary;
+  }
+
+  .btn-secondary-md {
+    @apply btn-md btn-secondary;
+  }
+
+  .btn-danger-sm {
+    @apply btn-sm btn-danger;
+  }
+
+  .btn-ghost-sm {
+    @apply btn-sm btn-ghost;
+  }
+
+  .btn-link-sm {
+    @apply btn-sm btn-link;
+  }
+
+  /* Form Control System - Comprehensive input and form styling */
+
+  /* Base form control styles */
+  .form-control {
+    @apply block w-full px-3 py-2 text-sm text-neutral-900 bg-white border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 transition-colors focus:outline-none focus:ring-2 focus:ring-music-500 focus:border-music-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:border-neutral-200;
+  }
+
+  /* Form control sizes */
+  .form-control-xs {
+    @apply form-control px-2 py-1 text-xs;
+  }
+
+  .form-control-sm {
+    @apply form-control px-3 py-2 text-sm;
+  }
+
+  .form-control-md {
+    @apply form-control px-3 py-2 text-sm;
+  }
+
+  .form-control-lg {
+    @apply form-control px-4 py-3 text-base;
+  }
+
+  /* Form control variants */
+  .form-control-error {
+    @apply border-error-300 text-error-900 placeholder-error-300 focus:ring-error-500 focus:border-error-500;
+  }
+
+  .form-control-success {
+    @apply border-success-300 text-success-900 placeholder-success-300 focus:ring-success-500 focus:border-success-500;
+  }
+
+  /* Select specific styling */
+  .form-select {
+    @apply form-control bg-white bg-no-repeat bg-right pr-10 appearance-none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+
+  .form-select-sm {
+    @apply form-select px-3 py-2 text-sm pr-8;
+    background-position: right 0.5rem center;
+    background-size: 0.875rem 0.875rem;
+  }
+
+  .form-select-lg {
+    @apply form-select px-4 py-3 text-base pr-12;
+    background-position: right 1rem center;
+    background-size: 1.25rem 1.25rem;
+  }
+
+  /* Label styling */
+  .form-label {
+    @apply block text-sm font-medium text-neutral-700 mb-1;
+  }
+
+  .form-label-sm {
+    @apply form-label text-xs;
+  }
+
+  .form-label-lg {
+    @apply form-label text-base;
+  }
+
+  /* Required indicator */
+  .form-label-required::after {
+    @apply text-error-500 ml-1;
+    content: '*';
+  }
+
+  /* Form group for consistent spacing */
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-group-sm {
+    @apply mb-3;
+  }
+
+  .form-group-lg {
+    @apply mb-6;
+  }
+
+  /* Error and help text */
+  .form-error {
+    @apply text-error-600 text-sm mt-1;
+  }
+
+  .form-help {
+    @apply text-neutral-500 text-sm mt-1;
+  }
+
+  /* Search input specific styling */
+  .form-search {
+    @apply form-control pl-10 bg-no-repeat bg-left;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z'/%3e%3c/svg%3e");
+    background-position: left 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+
+  /* Form layout utilities */
+  .form-row {
+    @apply flex flex-wrap -mx-2;
+  }
+
+  .form-col {
+    @apply px-2 flex-1 min-w-0;
+  }
+
+  .form-col-auto {
+    @apply px-2 flex-shrink-0;
+  }
 }
 
 *,

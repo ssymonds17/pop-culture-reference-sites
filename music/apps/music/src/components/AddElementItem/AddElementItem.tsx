@@ -18,7 +18,11 @@ export const AddElementItem = ({ label, variation }: AddElementItemProps) => {
   };
   return (
     <>
-      <button type="button" onClick={handleClick}>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="nav-button-primary"
+      >
         {label}
       </button>
       <Modal

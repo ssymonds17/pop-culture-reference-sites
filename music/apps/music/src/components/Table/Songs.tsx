@@ -45,7 +45,7 @@ export const SongsTable = ({
                 {song.albumDisplayTitle ? (
                   <Link
                     href={`/album?id=${song.album}`}
-                    className="text-blue-500 hover:underline"
+                    className="btn-link-sm"
                   >
                     {song.albumDisplayTitle}
                   </Link>

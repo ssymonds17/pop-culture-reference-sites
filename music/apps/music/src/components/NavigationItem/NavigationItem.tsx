@@ -7,7 +7,10 @@ type NavigationItemProps = {
 
 export const NavigationItem = ({ label, url }: NavigationItemProps) => {
   return (
-    <Link href={`/${url}`} className="underline">
+    <Link
+      href={`/${url}`}
+      className="nav-link"
+    >
       {label}
     </Link>
   );

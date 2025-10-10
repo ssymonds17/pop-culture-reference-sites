@@ -23,7 +23,7 @@ export const AlbumBlock = ({
           <div className="flex-col marginitems-center justify-center mt-6 ml-2">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex flex-col marginitems-center justify-center border-2 w-7 h-7 rounded-full bg-blue-500 text-white font-bold cursor-pointer hover:bg-blue-600 transition-colors duration-200 ml-2 hover:pointer"
+              className="btn-icon-sm btn-primary ml-2"
               type="button"
             >
               +

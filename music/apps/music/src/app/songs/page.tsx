@@ -50,7 +50,7 @@ const SongsPage = () => {
             />
             <button
               onClick={handleSearchSongsByName}
-              className="mx-4 px-4 py-2 text-white bg-blue-500 rounded-md disabled:bg-gray-300"
+              className="btn-primary-md mx-4"
               disabled={!formValues.title}
             >
               {isSearchingSongs ? 'Searching...' : 'Search'}
