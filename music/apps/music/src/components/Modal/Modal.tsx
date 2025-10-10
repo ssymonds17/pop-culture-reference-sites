@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Album, Artist, Song, Variation } from '../../types';
 import { ModalFooter } from './ModalFooter';
 import { ModalHeader } from './ModalHeader';
@@ -27,10 +27,6 @@ export const Modal = ({
     defaultValues || {}
   );
 
-  useEffect(() => {
-    setFormValues(defaultValues || {});
-  }, [isOpen, defaultValues]);
-
   if (!isOpen) return false;
 
   const formFields = renderFormFields(
@@ -40,7 +36,7 @@ export const Modal = ({
     isQuickAdd
   );
   const handleOnClose = () => {
-    setFormValues({});
+    setFormValues(defaultValues || {});
     onClose();
   };
 
@@ -55,6 +51,7 @@ export const Modal = ({
             setFormValues={setFormValues}
             variation={variation}
             isDisabled={Object.keys(formValues).length === 0}
+            defaultValues={defaultValues}
           />
         </div>
       </div>

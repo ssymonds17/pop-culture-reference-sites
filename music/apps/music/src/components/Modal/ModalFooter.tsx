@@ -8,11 +8,13 @@ export const ModalFooter = ({
   setFormValues,
   variation,
   isDisabled,
+  defaultValues,
 }: {
   formValues: Partial<Artist | Album | Song>;
   setFormValues: Dispatch<SetStateAction<Partial<Artist | Album | Song>>>;
   variation: Variation;
   isDisabled: boolean;
+  defaultValues?: Partial<Artist | Album | Song>;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
@@ -25,7 +27,7 @@ export const ModalFooter = ({
       await axios.post(`${API_URL}/${variation}`, formValues);
 
       setIsSubmitting(false);
-      setFormValues({});
+      setFormValues(defaultValues || {});
       setShowSuccessMessage(true);
       setTimeout(() => {
         setShowSuccessMessage(false);
