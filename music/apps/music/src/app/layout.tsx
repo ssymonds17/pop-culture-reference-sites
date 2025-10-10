@@ -1,3 +1,4 @@
+import { MusicProvider } from '@music/shared-state';
 import { Navbar } from '../components';
 import './global.css';
 
@@ -14,8 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        {children}
+        <MusicProvider>
+          <Navbar />
+          {children}
+        </MusicProvider>
       </body>
     </html>
   );

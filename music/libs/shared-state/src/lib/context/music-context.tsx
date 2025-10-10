@@ -4,7 +4,6 @@ import React, { createContext, useReducer, ReactNode } from 'react';
 
 // State interface
 interface MusicState {
-  // User preferences
   dataRefreshRequired: boolean;
 }
 
@@ -35,7 +34,6 @@ function musicReducer(state: MusicState, action: MusicAction): MusicState {
 export interface MusicContextType {
   state: MusicState;
   dispatch: React.Dispatch<MusicAction>;
-  setDataRefreshRequired?: (required: boolean) => void;
 }
 
 // Create context
@@ -53,14 +51,9 @@ export function MusicProvider({ children, initialData }: MusicProviderProps) {
     ...initialData,
   });
 
-  const setDataRefreshRequired = (required: boolean) => {
-    dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: required });
-  };
-
   const contextValue: MusicContextType = {
     state,
     dispatch,
-    setDataRefreshRequired,
   };
 
   return (
