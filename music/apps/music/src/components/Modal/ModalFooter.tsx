@@ -1,4 +1,7 @@
+'use client';
+
 import axios from 'axios';
+import { useMusicContext } from '@music/shared-state';
 import { API_URL } from '../../constants';
 import { Album, Artist, Song, Variation } from '../../types';
 import { Dispatch, SetStateAction, useState } from 'react';
@@ -16,6 +19,7 @@ export const ModalFooter = ({
   isDisabled: boolean;
   defaultValues?: Partial<Artist | Album | Song>;
 }) => {
+  const { dispatch } = useMusicContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -29,6 +33,7 @@ export const ModalFooter = ({
       setIsSubmitting(false);
       setFormValues(defaultValues || {});
       setShowSuccessMessage(true);
+      dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: true });
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 3000);

@@ -4,18 +4,27 @@ import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { useMusicContext } from '@music/shared-state';
 import { API_URL } from '../../constants';
 import { MedalRating, SongBlock } from '../../components';
 import { AlbumFull, Rating } from '../../types';
 import { ArtistLink } from '../../components/Table/ArtistsLink';
 
 const AlbumPage = () => {
+  const { state, dispatch } = useMusicContext();
   const [album, setAlbum] = useState<AlbumFull | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMedalLoading, setIsMedalLoading] = useState(false);
   const params = useSearchParams();
   const albumId = params.get('id');
   const router = useRouter();
+
+  useEffect(() => {
+    if (state.dataRefreshRequired && albumId) {
+      fetchAlbum(albumId);
+      dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: false });
+    }
+  }, [state.dataRefreshRequired, albumId, dispatch]);
 
   if (!albumId) {
     router.replace('/albums');

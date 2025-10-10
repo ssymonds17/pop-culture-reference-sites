@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useMusicContext } from '@music/shared-state';
+
 import { useSearchParams, useRouter } from 'next/navigation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -9,11 +11,19 @@ import { AlbumBlock, SongBlock } from '../../components';
 import { ArtistFull } from '../../types';
 
 const ArtistPage = () => {
+  const { state, dispatch } = useMusicContext();
   const [artist, setArtist] = useState<ArtistFull | null>(null);
   const [isFetchingArtist, setIsFetchingArtist] = useState(true);
   const params = useSearchParams();
   const artistId = params.get('id');
   const router = useRouter();
+
+  useEffect(() => {
+    if (state.dataRefreshRequired && artistId) {
+      fetchArtist(artistId);
+      dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: false });
+    }
+  }, [state.dataRefreshRequired, artistId, dispatch]);
 
   if (!artistId) {
     router.replace('/artists');
