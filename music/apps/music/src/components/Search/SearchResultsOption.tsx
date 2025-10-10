@@ -16,25 +16,30 @@ export const SearchResultsOption = ({
 
   if (isArtist(item)) {
     return (
-      <div
+      <button
         key={item._id}
         onClick={handleOnClick}
-        className="cursor-pointer hover:bg-gray-200"
+        className="popover-item text-left"
+        type="button"
       >
-        {item.displayName}
-      </div>
+        <div className="font-medium">{item.displayName}</div>
+      </button>
     );
   } else if (isAlbum(item)) {
     return (
-      <div
+      <button
         key={item._id}
         onClick={handleOnClick}
-        className="cursor-pointer hover:bg-gray-200"
+        className="popover-item text-left"
+        type="button"
       >
-        {item.displayTitle} - {item.artistDisplayName} ({item.year})
-      </div>
+        <div className="font-medium">{item.displayTitle}</div>
+        <div className="text-xs text-neutral-500">
+          {item.artistDisplayName} • {item.year}
+        </div>
+      </button>
     );
   } else {
-    return <div key="unknown-option">UNKNOWN OPTION</div>;
+    return <div key="unknown-option" className="popover-item">UNKNOWN OPTION</div>;
   }
 };

@@ -56,7 +56,7 @@ const AlbumsPage = () => {
         <div className="layout-flex-between">
           <button
             onClick={handleGetAlbums}
-            className="btn-primary-md mx-4"
+            className="btn-search-primary mx-4"
           >
             {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
           </button>
@@ -72,7 +72,7 @@ const AlbumsPage = () => {
             />
             <button
               onClick={handleSearchAlbumsByName}
-              className="btn-secondary-md mx-4"
+              className="btn-search-secondary mx-4"
               disabled={!formValues.title}
             >
               {isSearchingAlbums ? 'Searching...' : 'Search'}

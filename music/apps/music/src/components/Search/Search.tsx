@@ -45,25 +45,25 @@ export const Search = ({
   };
 
   return (
-    <div className="relative">
+    <div className="form-group relative">
       {showLabel && (
-        <>
-          <label htmlFor={id}>{_.upperFirst(id)}</label>
-          <br />
-        </>
+        <label htmlFor={id} className="form-label">
+          {_.upperFirst(id)}
+        </label>
       )}
-      <div className="flex border-2 w-full justify-between">
+      <div className="flex gap-2">
         <input
-          className="w-full"
+          className="form-control flex-1"
           onChange={handleOnChange}
           value={searchTerm ?? ''}
-          type="text"
+          type="search"
           id={id}
           name={id}
+          placeholder={`Search ${variation}s...`}
         />
         <button
           type="button"
-          className="bg-blue-500 text-white border-2 border-blue-500 disabled:bg-gray-300"
+          className="btn-search-primary"
           disabled={searchTerm === ''}
           onClick={handleOnSearch}
         >
@@ -71,10 +71,12 @@ export const Search = ({
         </button>
       </div>
       {searchResults.length > 0 && (
-        <SearchResultsDisplay
-          searchItems={searchResults}
-          setSearchResult={handleSetSearchResult}
-        />
+        <div className="absolute top-full left-0 right-0 z-10 mt-1">
+          <SearchResultsDisplay
+            searchItems={searchResults}
+            setSearchResult={handleSetSearchResult}
+          />
+        </div>
       )}
     </div>
   );

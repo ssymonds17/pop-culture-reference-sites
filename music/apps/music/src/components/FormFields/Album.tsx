@@ -56,14 +56,19 @@ export const AlbumFormFields = ({
             setSearchResult={handleSetArtists}
           />
           {artists.length > 0 && (
-            <div>
-              <ul className="flex flex-col gap-2 p-2">
-                {artists.map((artist) => (
-                  <li key={artist._id} className="border-2 p-1">
-                    {artist.displayName}
-                  </li>
-                ))}
-              </ul>
+            <div className="form-group">
+              <label className="form-label">Selected Artists</label>
+              <div className="component-card">
+                <div className="space-y-1">
+                  {artists.map((artist, index) => (
+                    <div key={artist._id} className="flex items-center">
+                      <span className="font-medium text-music-600">
+                        {artist.displayName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           <InputField

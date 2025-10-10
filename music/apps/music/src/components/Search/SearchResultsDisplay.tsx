@@ -18,16 +18,18 @@ export const SearchResultsDisplay = ({
     setSearchResult(selectedItem);
   };
   return (
-    <div className="border-2 w-full">
-      {searchItems.map((item) => {
-        return (
-          <SearchResultsOption
-            key={item._id}
-            item={item}
-            onClick={handleOnClick}
-          />
-        );
-      })}
+    <div className="popover w-full">
+      <div className="popover-content">
+        {searchItems.map((item) => {
+          return (
+            <SearchResultsOption
+              key={item._id}
+              item={item}
+              onClick={handleOnClick}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -51,7 +51,7 @@ const SongsPage = () => {
             />
             <button
               onClick={handleSearchSongsByName}
-              className="btn-primary-md mx-4"
+              className="btn-search-primary mx-4"
               disabled={!formValues.title}
             >
               {isSearchingSongs ? 'Searching...' : 'Search'}

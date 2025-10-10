@@ -300,6 +300,21 @@
     @apply btn-sm btn-link;
   }
 
+  /* Search-specific button to match input field height exactly */
+  .btn-search {
+    @apply btn-base px-4 py-2 text-sm;
+    height: 42px; /* Exact height to match form-control-btn */
+    border: 1px solid transparent;
+  }
+
+  .btn-search-primary {
+    @apply btn-search btn-primary;
+  }
+
+  .btn-search-secondary {
+    @apply btn-search btn-secondary;
+  }
+
   /* Form Control System - Comprehensive input and form styling */
 
   /* Base form control styles */
