@@ -45,10 +45,13 @@ export const ModalFooter = ({
     }
   };
   return (
-    <div className="pt-4 border-t border-neutral-200">
-      <div className="flex w-full justify-center">
+    <div className="modal-footer">
+      <div className="flex flex-col items-center w-full">
         {isSubmitting ? (
-          <span className="text-music-600">Submitting...</span>
+          <div className="flex items-center gap-2 text-music-600">
+            <div className="modal-spinner"></div>
+            <span>Submitting...</span>
+          </div>
         ) : (
           <button
             type="button"
@@ -59,17 +62,19 @@ export const ModalFooter = ({
             Submit
           </button>
         )}
+
+        {showSuccessMessage && (
+          <div className="mt-3 text-success-600 text-sm font-medium">
+            ✓ Successfully submitted!
+          </div>
+        )}
+
+        {showErrorMessage && (
+          <div className="mt-3 text-error-600 text-sm font-medium">
+            ✕ Error submitting data. Please try again.
+          </div>
+        )}
       </div>
-      {showSuccessMessage && (
-        <div className="flex mt-3 w-full justify-center text-success-600 text-sm">
-          Successfully submitted!
-        </div>
-      )}
-      {showErrorMessage && (
-        <div className="flex mt-3 w-full justify-center text-error-600 text-sm">
-          Error submitting data. Please try again.
-        </div>
-      )}
     </div>
   );
 };

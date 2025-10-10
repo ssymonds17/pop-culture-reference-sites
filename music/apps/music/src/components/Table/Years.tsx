@@ -40,59 +40,65 @@ export const YearsTable = ({
   };
 
   return (
-    <table className="w-full mt-4 table-auto border-collapse border border-gray-400">
-      <thead>
-        <tr>
-          <th
-            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
-            onClick={() => handleColumnClick('byYear')}
-          >
-            Year
-          </th>
-          <th
-            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
-            onClick={() => handleColumnClick('byGoldAlbums')}
-          >
-            Gold Albums
-          </th>
-          <th
-            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
-            onClick={() => handleColumnClick('bySilverAlbums')}
-          >
-            Silver Albums
-          </th>
-          <th
-            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
-            onClick={() => handleColumnClick('bySongs')}
-          >
-            Songs
-          </th>
-          <th
-            className="border border-gray-300 cursor-pointer hover:bg-gray-100"
-            onClick={() => handleColumnClick('byTotalScore')}
-          >
-            Total Score
-          </th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {renderYears(years, sortColumn).map((year: Year) => (
-          <tr key={year.year}>
-            <td className="border border-gray-300 text-center">{year.year}</td>
-            <td className="border border-gray-300 text-center">
-              {year.goldAlbums}
-            </td>
-            <td className="border border-gray-300 text-center">
-              {year.silverAlbums}
-            </td>
-            <td className="border border-gray-300 text-center">{year.songs}</td>
-            <td className="border border-gray-300 text-center">
-              {year.totalScore}
-            </td>
+    <div className="table-modern mt-6">
+      <table>
+        <thead>
+          <tr>
+            <th
+              className="text-center cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => handleColumnClick('byYear')}
+            >
+              Year
+            </th>
+            <th
+              className="text-center cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => handleColumnClick('byGoldAlbums')}
+            >
+              Gold Albums
+            </th>
+            <th
+              className="text-center cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => handleColumnClick('bySilverAlbums')}
+            >
+              Silver Albums
+            </th>
+            <th
+              className="text-center cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => handleColumnClick('bySongs')}
+            >
+              Songs
+            </th>
+            <th
+              className="text-center cursor-pointer hover:bg-neutral-100 transition-colors"
+              onClick={() => handleColumnClick('byTotalScore')}
+            >
+              Total Score
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {renderYears(years, sortColumn).map((year: Year) => (
+            <tr key={year.year}>
+              <td className="text-center table-number font-semibold">
+                {year.year}
+              </td>
+              <td className="text-center table-number">
+                {year.goldAlbums}
+              </td>
+              <td className="text-center table-number">
+                {year.silverAlbums}
+              </td>
+              <td className="text-center table-number">
+                {year.songs}
+              </td>
+              <td className="text-center table-number font-semibold">
+                {year.totalScore}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };

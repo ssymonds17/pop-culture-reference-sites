@@ -32,11 +32,9 @@ const SongsPage = () => {
     <div className="layout-container">
       <section className="layout-section">
         <div className="layout-header text-center">
-          <h1 className="mb-component-sm">
-            Songs
-          </h1>
-          <p className="text-neutral-600">
-            Search for individual songs in your music collection
+          <h1 className="mb-component-sm">Songs</h1>
+          <p className="text-neutral-600 max-w-md mx-auto">
+            Discover and search through your complete song library with our advanced music database
           </p>
         </div>
 
@@ -49,7 +47,7 @@ const SongsPage = () => {
               showLabel={false}
               type="search"
               placeholder="Search songs..."
-              size="md"
+              size="btn"
             />
             <button
               onClick={handleSearchSongsByName}

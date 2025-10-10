@@ -324,6 +324,11 @@
     @apply form-control px-4 py-3 text-base;
   }
 
+  /* Button-matching input size for perfect alignment */
+  .form-control-btn {
+    @apply form-control px-4 py-2 text-sm;
+  }
+
   /* Form control variants */
   .form-control-error {
     @apply border-error-300 text-error-900 placeholder-error-300 focus:ring-error-500 focus:border-error-500;
@@ -411,6 +416,13 @@
     background-size: 1rem 1rem;
   }
 
+  .form-search-btn {
+    @apply form-control-btn pl-10 bg-no-repeat bg-left;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z'/%3e%3c/svg%3e");
+    background-position: left 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+
   /* Form layout utilities */
   .form-row {
     @apply flex flex-wrap -mx-2;
@@ -422,6 +434,363 @@
 
   .form-col-auto {
     @apply px-2 flex-shrink-0;
+  }
+
+  /* Table System - Modern data presentation */
+
+  /* Base table styles */
+  .table-modern {
+    @apply w-full bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden;
+  }
+
+  .table-modern table {
+    @apply w-full border-collapse;
+  }
+
+  /* Table header styling */
+  .table-modern thead {
+    @apply bg-neutral-50 border-b border-neutral-200;
+  }
+
+  .table-modern th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider;
+  }
+
+  /* Table body styling */
+  .table-modern tbody {
+    @apply bg-white divide-y divide-neutral-100;
+  }
+
+  .table-modern tr {
+    @apply hover:bg-neutral-50 transition-colors duration-200;
+  }
+
+  .table-modern td {
+    @apply px-4 py-3 text-sm text-neutral-900;
+  }
+
+  /* Special content styling */
+  .table-modern .table-link {
+    @apply text-music-600 hover:text-music-700 font-medium transition-colors;
+  }
+
+  .table-modern .table-muted {
+    @apply text-neutral-500;
+  }
+
+  .table-modern .table-number {
+    @apply font-mono text-neutral-600;
+  }
+
+  .table-modern .table-rank {
+    @apply font-bold text-music-600 text-lg;
+  }
+
+  /* Empty state */
+  .table-empty {
+    @apply text-center py-8 text-neutral-500;
+  }
+
+  /* Table variants */
+  .table-striped tbody tr:nth-child(even) {
+    @apply bg-neutral-25;
+  }
+
+  .table-compact th {
+    @apply px-3 py-2;
+  }
+
+  .table-compact td {
+    @apply px-3 py-2;
+  }
+
+  /* Table loading skeleton */
+  .table-skeleton {
+    @apply bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden p-4 space-y-3;
+  }
+
+  .table-skeleton-header {
+    @apply flex gap-4 mb-4;
+  }
+
+  .table-skeleton-row {
+    @apply flex gap-4 py-2;
+  }
+
+  /* Modal and Overlay System - Modern interactive components */
+
+  /* Modal backdrop/overlay */
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: modal-backdrop-in 0.2s ease-out;
+  }
+
+  @keyframes modal-backdrop-in {
+    from {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+    }
+    to {
+      opacity: 1;
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  /* Main modal container */
+  .modal-container {
+    @apply bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden;
+    animation: modal-in 0.2s ease-out;
+    transform-origin: center;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Modal size variants */
+  .modal-sm {
+    @apply max-w-sm;
+  }
+
+  .modal-md {
+    @apply max-w-md;
+  }
+
+  .modal-lg {
+    @apply max-w-2xl;
+  }
+
+  .modal-xl {
+    @apply max-w-4xl;
+  }
+
+  .modal-full {
+    @apply max-w-7xl mx-4;
+  }
+
+  /* Modal header */
+  .modal-header {
+    @apply flex items-center justify-between p-6 border-b border-neutral-200;
+  }
+
+  .modal-title {
+    @apply text-xl font-semibold text-neutral-900;
+  }
+
+  .modal-close {
+    @apply p-2 -m-2 text-neutral-400 hover:text-neutral-600 rounded-lg hover:bg-neutral-100 transition-colors;
+  }
+
+  /* Modal body */
+  .modal-body {
+    @apply p-6 flex-1 overflow-y-auto;
+  }
+
+  .modal-body-compact {
+    @apply p-4;
+  }
+
+  /* Modal footer */
+  .modal-footer {
+    @apply flex items-center justify-end gap-3 p-6 pt-4 border-t border-neutral-200;
+  }
+
+  .modal-footer-full {
+    @apply justify-between;
+  }
+
+  /* Popover/Dropdown Modal - Smaller overlays */
+  .popover {
+    @apply absolute z-40 bg-white rounded-lg shadow-lg border border-neutral-200 overflow-hidden;
+    animation: popover-in 0.15s ease-out;
+    transform-origin: top;
+  }
+
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: scaleY(0.95) translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+    }
+  }
+
+  .popover-content {
+    @apply p-3 max-h-64 overflow-y-auto;
+  }
+
+  .popover-item {
+    @apply block w-full px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-music-600 transition-colors rounded-md;
+  }
+
+  .popover-divider {
+    @apply border-t border-neutral-100 my-1;
+  }
+
+  /* Loading states for modals */
+  .modal-loading {
+    @apply flex items-center justify-center py-8;
+  }
+
+  .modal-spinner {
+    @apply w-6 h-6 border-2 border-music-200 border-t-music-600 rounded-full animate-spin;
+  }
+
+  /* Music-Specific Branding Elements */
+
+  /* Album Art Placeholders */
+  .album-art-placeholder {
+    @apply bg-gradient-to-br from-music-100 to-music-200 rounded-md flex items-center justify-center;
+    background-image: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+  }
+
+  .album-art-sm {
+    @apply w-12 h-12;
+  }
+
+  .album-art-md {
+    @apply w-16 h-16;
+  }
+
+  .album-art-lg {
+    @apply w-24 h-24;
+  }
+
+  .album-art-xl {
+    @apply w-32 h-32;
+  }
+
+  /* Vinyl Record Aesthetic */
+  .vinyl-record {
+    @apply relative rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900;
+    background-image:
+      radial-gradient(circle at 50% 50%, transparent 20%, rgba(255, 255, 255, 0.1) 21%, rgba(255, 255, 255, 0.1) 22%, transparent 23%),
+      radial-gradient(circle at 50% 50%, transparent 35%, rgba(255, 255, 255, 0.05) 36%, rgba(255, 255, 255, 0.05) 37%, transparent 38%);
+  }
+
+  .vinyl-record::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25%;
+    height: 25%;
+    background: radial-gradient(circle, #1f2937 40%, #374151 100%);
+    border-radius: 50%;
+  }
+
+  /* Music Note Decorations */
+  .music-note-bg {
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23065f46' fill-opacity='0.05'%3E%3Cpath d='M8 4.5C8 2.01 9.79.5 12 .5s4 1.51 4 4-1.79 3.5-4 3.5S8 6.99 8 4.5zM12 12c2.21 0 4-1.51 4-4s-1.79-4-4-4-4 1.51-4 4 1.79 4 4 4z'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* Genre Badges */
+  .genre-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .genre-rock {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .genre-pop {
+    @apply bg-pink-100 text-pink-800;
+  }
+
+  .genre-jazz {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .genre-classical {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .genre-electronic {
+    @apply bg-cyan-100 text-cyan-800;
+  }
+
+  .genre-default {
+    @apply bg-music-100 text-music-800;
+  }
+
+  /* Sound Wave Animation */
+  @keyframes sound-wave {
+    0%, 100% { height: 4px; }
+    50% { height: 12px; }
+  }
+
+  .sound-wave {
+    @apply flex items-end gap-0.5;
+  }
+
+  .sound-wave span {
+    @apply w-1 bg-music-500 rounded-full;
+    height: 4px;
+    animation: sound-wave 1.5s ease-in-out infinite;
+  }
+
+  .sound-wave span:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .sound-wave span:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  .sound-wave span:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+
+  .sound-wave span:nth-child(5) {
+    animation-delay: 0.4s;
+  }
+
+  /* Music-themed hover effects */
+  .music-hover {
+    @apply transition-all duration-300;
+  }
+
+  .music-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(6, 95, 70, 0.2);
+  }
+
+  /* Rating Stars for Music */
+  .rating-stars {
+    @apply flex items-center gap-1;
+  }
+
+  .rating-star {
+    @apply w-4 h-4 text-amber-400;
+  }
+
+  .rating-star.filled {
+    @apply text-amber-500;
+  }
+
+  /* Waveform visualizer */
+  .waveform {
+    @apply flex items-center gap-px h-8;
+  }
+
+  .waveform-bar {
+    @apply w-1 bg-music-300 rounded-full transition-all duration-200;
+  }
+
+  .waveform-bar:hover {
+    @apply bg-music-500;
   }
 }
 

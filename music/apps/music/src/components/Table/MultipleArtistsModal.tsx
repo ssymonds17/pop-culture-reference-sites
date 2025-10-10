@@ -51,32 +51,46 @@ export const MultipleArtistsModal = ({
   if (!isOpen) return false;
 
   return (
-    <div
-      id="#multiple-artist-modal"
-      className="absolute -top-10 w-full color-blue-500 p-2 bg-white border-2 z-10 rounded-sm"
-    >
-      <button
-        className="btn-icon-sm btn-ghost mb-1"
-        onClick={onClose}
-      >
-        ×
-      </button>
-      <div className=" w-full flex flex-col">
+    <div className="popover -top-2 w-full min-w-48">
+      <div className="popover-content">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+            Artists
+          </span>
+          <button
+            className="modal-close text-neutral-400 hover:text-neutral-600"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M15 5L5 15M5 5L15 15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+
         {isFetchingArtists ? (
-          <div>Loading...</div>
+          <div className="modal-loading py-4">
+            <div className="modal-spinner"></div>
+          </div>
         ) : (
-          <>
+          <div className="space-y-1">
             {artists.map((artist) => (
               <Link
                 key={artist._id}
                 href={`/artist?id=${artist._id}`}
-                className="btn-link-sm"
+                className="popover-item"
                 onClick={onClose}
               >
                 {artist.displayName}
               </Link>
             ))}
-          </>
+          </div>
         )}
       </div>
     </div>

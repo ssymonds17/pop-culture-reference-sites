@@ -21,7 +21,7 @@ export const InputField = ({
   showLabel?: boolean;
   placeholder?: string;
   type?: 'text' | 'email' | 'password' | 'number' | 'search';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'btn';
   error?: string;
   required?: boolean;
 }) => {
@@ -34,6 +34,8 @@ export const InputField = ({
         return 'form-control-sm';
       case 'lg':
         return 'form-control-lg';
+      case 'btn':
+        return 'form-control-btn';
       default:
         return 'form-control-md';
     }
@@ -42,7 +44,11 @@ export const InputField = ({
   const getInputClass = () => {
     let baseClass = getSizeClass();
     if (type === 'search') {
-      baseClass = baseClass.replace('form-control', 'form-search');
+      if (size === 'btn') {
+        baseClass = 'form-search-btn';
+      } else {
+        baseClass = baseClass.replace('form-control', 'form-search');
+      }
     }
     if (error) {
       baseClass += ' form-control-error';

@@ -47,11 +47,9 @@ const AlbumsPage = () => {
     <div className="layout-container">
       <section className="layout-section">
         <div className="layout-header text-center">
-          <h1 className="mb-component-sm">
-            Albums
-          </h1>
-          <p className="text-neutral-600">
-            Browse and search through your album collection with ratings
+          <h1 className="mb-component-sm">Albums</h1>
+          <p className="text-neutral-600 max-w-md mx-auto">
+            Explore your curated album collection with detailed ratings and comprehensive search
           </p>
         </div>
 
@@ -70,7 +68,7 @@ const AlbumsPage = () => {
               showLabel={false}
               type="search"
               placeholder="Search albums..."
-              size="md"
+              size="btn"
             />
             <button
               onClick={handleSearchAlbumsByName}

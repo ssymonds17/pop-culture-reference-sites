@@ -57,11 +57,9 @@ const ArtistsPage = () => {
     <div className="layout-container">
       <section className="layout-section">
         <div className="layout-header text-center">
-          <h1 className="mb-component-sm">
-            Artists
-          </h1>
-          <p className="text-neutral-600">
-            Browse and search through your music artist collection
+          <h1 className="mb-component-sm">Artists</h1>
+          <p className="text-neutral-600 max-w-md mx-auto">
+            Discover talented artists in your music library with comprehensive rankings and statistics
           </p>
         </div>
 
@@ -80,7 +78,7 @@ const ArtistsPage = () => {
               showLabel={false}
               type="search"
               placeholder="Search artists..."
-              size="md"
+              size="btn"
             />
             <button
               onClick={handleSearchArtistByName}
