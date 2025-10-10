@@ -47,6 +47,9 @@ const SongsPage = () => {
               setFormValues={setFormValues}
               value={formValues['title']}
               showLabel={false}
+              type="search"
+              placeholder="Search songs..."
+              size="md"
             />
             <button
               onClick={handleSearchSongsByName}

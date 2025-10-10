@@ -45,31 +45,31 @@ export const ModalFooter = ({
     }
   };
   return (
-    <>
-      <div className="flex mt-8 w-full justify-center">
+    <div className="pt-4 border-t border-neutral-200">
+      <div className="flex w-full justify-center">
         {isSubmitting ? (
-          <span className="text-blue-500">Submitting...</span>
+          <span className="text-music-600">Submitting...</span>
         ) : (
           <button
             type="button"
             onClick={handleOnSubmit}
             disabled={isDisabled}
-            className="btn-primary-md w-1/2"
+            className="btn-primary-md w-full max-w-xs"
           >
             Submit
           </button>
         )}
       </div>
       {showSuccessMessage && (
-        <span className="flex mt-2 w-full justify-center text-green-500 ml-2 ">
+        <div className="flex mt-3 w-full justify-center text-success-600 text-sm">
           Successfully submitted!
-        </span>
+        </div>
       )}
       {showErrorMessage && (
-        <span className="flex mt-2 w-full justify-center text-red-500 ml-2">
+        <div className="flex mt-3 w-full justify-center text-error-600 text-sm">
           Error submitting data. Please try again.
-        </span>
+        </div>
       )}
-    </>
+    </div>
   );
 };

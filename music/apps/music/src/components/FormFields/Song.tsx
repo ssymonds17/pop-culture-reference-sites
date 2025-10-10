@@ -47,11 +47,16 @@ export const SongFormFields = ({
         id="title"
         value={formValues['title']}
         setFormValues={setFormValues}
+        placeholder="Enter song title..."
+        required={true}
       />
       <InputField
         id="year"
         value={formValues['year']}
         setFormValues={setFormValues}
+        type="number"
+        placeholder="Enter release year..."
+        required={true}
       />
       {!isQuickAdd && (
         <>

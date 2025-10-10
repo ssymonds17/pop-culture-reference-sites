@@ -68,6 +68,9 @@ const AlbumsPage = () => {
               setFormValues={setFormValues}
               value={formValues['title']}
               showLabel={false}
+              type="search"
+              placeholder="Search albums..."
+              size="md"
             />
             <button
               onClick={handleSearchAlbumsByName}

@@ -78,6 +78,9 @@ const ArtistsPage = () => {
               setFormValues={setFormValues}
               value={formValues['name']}
               showLabel={false}
+              type="search"
+              placeholder="Search artists..."
+              size="md"
             />
             <button
               onClick={handleSearchArtistByName}

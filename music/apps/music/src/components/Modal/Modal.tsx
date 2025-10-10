@@ -42,10 +42,12 @@ export const Modal = ({
 
   return (
     <div className="flex z-50 top-0 left-0 absolute justify-center items-center w-screen h-screen bg-gray-400 bg-opacity-75">
-      <div className="flex w-1/2 h-min border-2 bg-opacity-100 bg-white p-2">
-        <div className="flex flex-col relative h-full w-full">
+      <div className="flex w-1/2 h-min bg-white rounded-lg shadow-xl">
+        <div className="flex flex-col relative h-full w-full p-6">
           <ModalHeader label={label} onClose={handleOnClose} />
-          {formFields}
+          <div className="flex-1 py-4 modal-form">
+            {formFields}
+          </div>
           <ModalFooter
             formValues={formValues}
             setFormValues={setFormValues}

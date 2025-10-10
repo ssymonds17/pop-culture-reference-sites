@@ -385,6 +385,15 @@
     @apply mb-6;
   }
 
+  /* Modal-specific form spacing - tighter for compact modal layout */
+  .modal-form .form-group {
+    @apply mb-3;
+  }
+
+  .modal-form .form-group:last-child {
+    @apply mb-0;
+  }
+
   /* Error and help text */
   .form-error {
     @apply text-error-600 text-sm mt-1;

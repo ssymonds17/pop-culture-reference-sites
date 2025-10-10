@@ -37,11 +37,16 @@ export const AlbumFormFields = ({
         id="title"
         value={formValues['title']}
         setFormValues={setFormValues}
+        placeholder="Enter album title..."
+        required={true}
       />
       <InputField
         id="year"
         value={formValues['year']}
         setFormValues={setFormValues}
+        type="number"
+        placeholder="Enter release year..."
+        required={true}
       />
       {!isQuickAdd && (
         <>
@@ -65,6 +70,7 @@ export const AlbumFormFields = ({
             id="artistDisplayName"
             value={formValues['artistDisplayName']}
             setFormValues={setFormValues}
+            placeholder="Display name for artist(s)..."
           />
           <Rating
             id="rating"
