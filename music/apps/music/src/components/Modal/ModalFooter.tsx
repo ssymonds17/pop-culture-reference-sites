@@ -33,10 +33,10 @@ export const ModalFooter = ({
       setIsSubmitting(false);
       setFormValues(defaultValues || {});
       setShowSuccessMessage(true);
-      dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: true });
       setTimeout(() => {
         setShowSuccessMessage(false);
       }, 3000);
+      dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: true });
     } catch (error) {
       setIsSubmitting(false);
       setShowSuccessMessage(false);
