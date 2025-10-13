@@ -20,7 +20,7 @@ const ArtistPage = () => {
 
   useEffect(() => {
     if (state.dataRefreshRequired && artistId) {
-      fetchArtist(artistId);
+      fetchArtist(artistId, false);
       dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: false });
     }
   }, [state.dataRefreshRequired, artistId, dispatch]);
@@ -29,9 +29,10 @@ const ArtistPage = () => {
     router.replace('/artists');
   }
 
-  const fetchArtist = async (artistId: string) => {
+  const fetchArtist = async (artistId: string, isHardLoad = true) => {
     try {
-      setIsFetchingArtist(true);
+      if (isHardLoad) setIsFetchingArtist(true);
+
       const response = await axios.get(`${API_URL}/artist/${artistId}`);
       setArtist(response.data.artist);
     } catch (error) {

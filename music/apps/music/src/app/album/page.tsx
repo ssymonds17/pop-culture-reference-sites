@@ -22,7 +22,7 @@ const AlbumPage = () => {
 
   useEffect(() => {
     if (state.dataRefreshRequired && albumId) {
-      fetchAlbum(albumId);
+      fetchAlbum(albumId, false);
       dispatch({ type: 'SET_DATA_REFRESH_REQUIRED', payload: false });
     }
   }, [state.dataRefreshRequired, albumId, dispatch]);
@@ -31,9 +31,10 @@ const AlbumPage = () => {
     router.replace('/albums');
   }
 
-  const fetchAlbum = async (albumId: string) => {
+  const fetchAlbum = async (albumId: string, isHardLoad = true) => {
     try {
-      setIsLoading(true);
+      if (isHardLoad) setIsLoading(true);
+
       const response = await axios.get(`${API_URL}/album/${albumId}`);
       setAlbum(response.data.album);
     } catch (error) {
@@ -44,7 +45,6 @@ const AlbumPage = () => {
   };
 
   const updateAlbumRating = async (albumId: string, newRating: Rating) => {
-    console.log('updating album rating to:', newRating);
     try {
       setIsMedalLoading(true);
       await axios.put(`${API_URL}/album/${albumId}/rating`, {
@@ -106,8 +106,13 @@ const AlbumPage = () => {
             ) : (
               <div className="flex flex-col items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-neutral-600">Album Rating:</span>
-                  <RatingBadge rating={album?.rating ?? Rating.NONE} size="lg" />
+                  <span className="text-sm font-medium text-neutral-600">
+                    Album Rating:
+                  </span>
+                  <RatingBadge
+                    rating={album?.rating ?? Rating.NONE}
+                    size="lg"
+                  />
                 </div>
                 {isMedalLoading ? (
                   <div className="flex justify-center">
@@ -116,7 +121,9 @@ const AlbumPage = () => {
                 ) : (
                   <RatingSelector
                     currentRating={album?.rating ?? Rating.NONE}
-                    onChange={(newRating) => updateAlbumRating(album?._id ?? '', newRating)}
+                    onChange={(newRating) =>
+                      updateAlbumRating(album?._id ?? '', newRating)
+                    }
                     size="lg"
                     disabled={isMedalLoading}
                     showLabels={true}
