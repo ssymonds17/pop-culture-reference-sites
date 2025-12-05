@@ -34,7 +34,7 @@ export const getYears = async () => {
       const goldAlbums = await getAlbumsByRating(Rating.GOLD, year)
       const silverAlbums = await getAlbumsByRating(Rating.SILVER, year)
       const totalScore =
-        songs.length * 1 + goldAlbums.length * 10 + silverAlbums.length * 5
+        songs.length * 1 + goldAlbums.length * 15 + silverAlbums.length * 5
       return {
         year,
         songs: songs.length,

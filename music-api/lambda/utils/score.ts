@@ -3,7 +3,7 @@ import { Rating } from "../schemas"
 export const ratingsMap = {
   [Rating.NONE]: 0,
   [Rating.SILVER]: 5,
-  [Rating.GOLD]: 10,
+  [Rating.GOLD]: 15,
 }
 
 export const updateScoreBasedOnAlbumRatings = (

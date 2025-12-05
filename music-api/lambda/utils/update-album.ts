@@ -19,7 +19,6 @@ export const updateAlbumTotal = (
 
 export const updateAssociatedArtists = async (
   artists: ArtistDocument[],
-  albumId: string,
   oldRating: Rating,
   newRating: Rating
 ) => {
