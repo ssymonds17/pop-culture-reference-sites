@@ -46,7 +46,6 @@ const handler = async (event: any) => {
 
     await updateAssociatedArtists(
       fullArtists,
-      updatedAlbum.id,
       currentAlbum.rating,
       updatedAlbum.rating
     )
