@@ -19,10 +19,7 @@ export const ArtistLink = ({
 
   if (artists.length === 1) {
     return (
-      <Link
-        href={`/artist?id=${artists[0]}`}
-        className="btn-link-sm"
-      >
+      <Link href={`/artist?id=${artists[0]}`} className="btn-link-sm">
         {artistDisplayName}
       </Link>
     );
@@ -32,7 +29,7 @@ export const ArtistLink = ({
     <div className="relative">
       <button
         onClick={() => setIsOpen(true)}
-        className="btn-link-sm"
+        className="px-3 py-2 text-left text-music-600 hover:text-music-700 hover:underline cursor-pointer"
       >
         {artistDisplayName}
       </button>
