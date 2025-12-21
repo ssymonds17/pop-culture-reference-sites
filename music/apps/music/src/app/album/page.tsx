@@ -10,6 +10,7 @@ import { SongBlock } from '../../components';
 import { RatingSelector, RatingBadge } from '../../components/Rating';
 import { AlbumFull, Rating } from '../../types';
 import { ArtistLink } from '../../components/Table/ArtistsLink';
+import { useScrollToTop } from '../../utils';
 
 const AlbumPage = () => {
   const { state, dispatch } = useMusicContext();
@@ -19,6 +20,7 @@ const AlbumPage = () => {
   const params = useSearchParams();
   const albumId = params.get('id');
   const router = useRouter();
+  useScrollToTop();
 
   useEffect(() => {
     if (state.dataRefreshRequired && albumId) {
