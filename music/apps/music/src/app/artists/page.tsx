@@ -5,6 +5,7 @@ import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Artist } from '../../types';
 import { ArtistsTable } from '../../components/Table/Artist';
+import { useScrollToTop } from '../../utils';
 
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
@@ -12,6 +13,7 @@ const ArtistsPage = () => {
   const [isFetchingArtists, setIsFetchingArtists] = useState(false);
   const [isSearchingArtists, setIsSearchingArtists] = useState(false);
   const [shouldRankArtists, setShouldRankArtists] = useState(false);
+  useScrollToTop();
 
   const handleGetArtists = async () => {
     try {
@@ -59,7 +61,8 @@ const ArtistsPage = () => {
         <div className="layout-header text-center">
           <h1 className="mb-component-sm">Artists</h1>
           <p className="text-neutral-600 max-w-md mx-auto">
-            Discover talented artists in your music library with comprehensive rankings and statistics
+            Discover talented artists in your music library with comprehensive
+            rankings and statistics
           </p>
         </div>
 

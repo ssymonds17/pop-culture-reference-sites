@@ -5,12 +5,14 @@ import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Album } from '../../types';
 import { AlbumsTable } from '../../components';
+import { useScrollToTop } from '../../utils';
 
 const AlbumsPage = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [formValues, setFormValues] = useState<Partial<Album>>({});
   const [isFetchingAlbums, setIsFetchingAlbums] = useState(false);
   const [isSearchingAlbums, setIsSearchingAlbums] = useState(false);
+  useScrollToTop();
 
   const handleGetAlbums = async () => {
     try {
@@ -49,15 +51,13 @@ const AlbumsPage = () => {
         <div className="layout-header text-center">
           <h1 className="mb-component-sm">Albums</h1>
           <p className="text-neutral-600 max-w-md mx-auto">
-            Explore your curated album collection with detailed ratings and comprehensive search
+            Explore your curated album collection with detailed ratings and
+            comprehensive search
           </p>
         </div>
 
         <div className="layout-flex-between">
-          <button
-            onClick={handleGetAlbums}
-            className="btn-search-primary mx-4"
-          >
+          <button onClick={handleGetAlbums} className="btn-search-primary mx-4">
             {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
           </button>
           <div className="flex">

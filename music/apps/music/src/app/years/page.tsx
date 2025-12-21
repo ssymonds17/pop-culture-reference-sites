@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { API_URL } from '../../constants';
 import { YearsTable } from '../../components/Table/Years';
 import { SortedYear, Year } from '../../types';
+import { useScrollToTop } from '../../utils';
 
 const sortYearsByField = (years: Year[], field: keyof Year) => {
   if (!years) return [];
@@ -17,6 +18,7 @@ const YearsPage = () => {
   const [years, setYears] = useState<SortedYear | null>(null);
   const [sortColumn, setSortColumn] = useState<keyof SortedYear>('byYear');
   const [isFetchingYears, setIsFetchingYears] = useState(true);
+  useScrollToTop();
 
   const handleGetYears = async () => {
     try {
@@ -52,9 +54,7 @@ const YearsPage = () => {
     <div className="layout-container">
       <section className="layout-section">
         <div className="layout-header text-center">
-          <h1 className="mb-component-sm">
-            Years
-          </h1>
+          <h1 className="mb-component-sm">Years</h1>
           <p className="text-neutral-600">
             View your music collection organized by year with statistics
           </p>

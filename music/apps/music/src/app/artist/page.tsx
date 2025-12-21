@@ -9,6 +9,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { API_URL } from '../../constants';
 import { AlbumBlock, SongBlock } from '../../components';
 import { ArtistFull } from '../../types';
+import { useScrollToTop } from '../../utils';
 
 const ArtistPage = () => {
   const { state, dispatch } = useMusicContext();
@@ -17,6 +18,7 @@ const ArtistPage = () => {
   const params = useSearchParams();
   const artistId = params.get('id');
   const router = useRouter();
+  useScrollToTop();
 
   useEffect(() => {
     if (state.dataRefreshRequired && artistId) {

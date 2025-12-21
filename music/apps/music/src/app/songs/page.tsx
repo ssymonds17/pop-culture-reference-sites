@@ -5,11 +5,13 @@ import { API_URL } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Song } from '../../types';
 import { SongsTable } from '../../components';
+import { useScrollToTop } from '../../utils';
 
 const SongsPage = () => {
   const [songs, setSongs] = useState([]);
   const [formValues, setFormValues] = useState<Partial<Song>>({});
   const [isSearchingSongs, setIsSearchingSongs] = useState(false);
+  useScrollToTop();
 
   const handleSearchSongsByName = async () => {
     try {
@@ -34,7 +36,8 @@ const SongsPage = () => {
         <div className="layout-header text-center">
           <h1 className="mb-component-sm">Songs</h1>
           <p className="text-neutral-600 max-w-md mx-auto">
-            Discover and search through your complete song library with our advanced music database
+            Discover and search through your complete song library with our
+            advanced music database
           </p>
         </div>
 
