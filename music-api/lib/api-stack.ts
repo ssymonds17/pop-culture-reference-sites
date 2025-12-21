@@ -5,7 +5,7 @@ import { LambdaConstruct } from "./constructs/lambda"
 
 export class ApiStack extends core.Stack {
   constructor(scope: core.App, id: string, props: any) {
-    super(scope, id)
+    super(scope, id, props)
 
     // Lambda functions
     const createArtistLambda = new LambdaConstruct(this, "CreateArtist", {
