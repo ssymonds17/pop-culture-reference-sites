@@ -11,8 +11,8 @@ const getProgressColor = (current: number, total: number) => {
 
   const percentage = (current / total) * 100;
 
-  if (percentage >= 75) return 'text-music-600 bg-music-100';
-  if (percentage >= 50) return 'text-amber-600 bg-amber-100';
+  if (percentage >= 75) return 'text-purple-700 bg-purple-100';
+  if (percentage >= 50) return 'text-emerald-600 bg-emerald-100';
   if (percentage >= 25) return 'text-orange-600 bg-orange-100';
   return 'text-red-500 bg-red-100';
 };
@@ -22,8 +22,8 @@ const getBarColor = (current: number, total: number) => {
 
   const percentage = (current / total) * 100;
 
-  if (percentage >= 75) return 'bg-music-500';
-  if (percentage >= 50) return 'bg-amber-500';
+  if (percentage >= 75) return 'bg-purple-700';
+  if (percentage >= 50) return 'bg-emerald-600';
   if (percentage >= 25) return 'bg-orange-500';
   return 'bg-red-500';
 };
