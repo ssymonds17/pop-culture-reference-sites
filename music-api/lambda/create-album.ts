@@ -7,15 +7,15 @@ import { connectToDatabase, createAlbum } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
 
 const handler = async (event: any) => {
-  const { title, artistDisplayName, year, artists, rating } = JSON.parse(
-    event.body
-  )
+  const { title, artistDisplayName, year, artists, rating, totalSongs } =
+    JSON.parse(event.body)
 
   const defaultAlbum: AlbumData = {
     title: _.toLower(title),
     displayTitle: title,
     artistDisplayName,
     songs: [],
+    totalSongs: totalSongs ?? 0,
     rating: rating ?? Rating.NONE,
     artists,
     year,
@@ -32,7 +32,7 @@ const handler = async (event: any) => {
     // If any artist does not exist return an error
     const fullArtists = (await validateAssociatedEntities(
       artists,
-      "artist"
+      "artist",
     )) as ArtistDocument[] | null
 
     if (!fullArtists) {
