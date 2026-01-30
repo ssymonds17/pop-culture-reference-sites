@@ -29,7 +29,7 @@ export const ArtistLink = ({
     <div className="relative">
       <button
         onClick={() => setIsOpen(true)}
-        className="px-3 py-2 text-left text-music-600 hover:text-music-700 hover:underline cursor-pointer"
+        className="px-3 py-2 text-center text-music-600 hover:text-music-700 hover:underline cursor-pointer"
       >
         {artistDisplayName}
       </button>
