@@ -1,12 +1,12 @@
 import Song from "../models/song"
 import Album, { Rating } from "../models/album"
 
-export const getSongsByYear = async (year: number) => {
-  return Song.find({ year }, null)
+export const countSongsByYear = async (year: number) => {
+  return Song.countDocuments({ year })
 }
 
-export const getAlbumsByRating = async (rating: Rating, year: number) => {
-  return Album.find({ rating, year }, null)
+export const countAlbumsByRating = async (rating: Rating, year: number) => {
+  return Album.countDocuments({ rating, year })
 }
 
 export const getYearRanges = async () => {
@@ -28,20 +28,20 @@ export const getYears = async () => {
   return await Promise.all(
     Array.from(
       { length: newestYear - oldestYear + 1 },
-      (_, i) => oldestYear + i
+      (_, i) => oldestYear + i,
     ).map(async (year) => {
-      const songs = await getSongsByYear(year)
-      const goldAlbums = await getAlbumsByRating(Rating.GOLD, year)
-      const silverAlbums = await getAlbumsByRating(Rating.SILVER, year)
+      const songsCount = await countSongsByYear(year)
+      const goldAlbumsCount = await countAlbumsByRating(Rating.GOLD, year)
+      const silverAlbumsCount = await countAlbumsByRating(Rating.SILVER, year)
       const totalScore =
-        songs.length * 1 + goldAlbums.length * 15 + silverAlbums.length * 5
+        songsCount * 1 + goldAlbumsCount * 15 + silverAlbumsCount * 5
       return {
         year,
-        songs: songs.length,
-        goldAlbums: goldAlbums.length,
-        silverAlbums: silverAlbums.length,
+        songs: songsCount,
+        goldAlbums: goldAlbumsCount,
+        silverAlbums: silverAlbumsCount,
         totalScore,
       }
-    })
+    }),
   )
 }
