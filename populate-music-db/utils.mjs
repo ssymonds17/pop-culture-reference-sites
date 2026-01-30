@@ -119,3 +119,23 @@ export function formatArtistNames(artistString) {
   if (names.length === 2) return `${names[0]} & ${names[1]}`
   return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`
 }
+
+export async function updateAlbumTotalSongs(albumId, totalSongs) {
+  try {
+    console.log(`Updating album ${albumId} with totalSongs: ${totalSongs}`)
+    const response = await axios.put(
+      `${API_BASE_URL}/album/${albumId}/totalsongs`,
+      {
+        totalSongs: totalSongs,
+      }
+    )
+    console.log(`✓ Updated album ${albumId}`)
+    return response.data
+  } catch (error) {
+    console.error(
+      `✗ Failed to update album ${albumId}:`,
+      error.response?.data || error.message
+    )
+    throw error
+  }
+}
