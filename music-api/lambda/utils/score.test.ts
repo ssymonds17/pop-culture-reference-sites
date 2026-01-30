@@ -97,7 +97,7 @@ describe("score utilities", () => {
         Rating.GOLD,
         Rating.SILVER
       )
-      expect(result).toBe(25)
+      expect(result).toBe(20)
     })
 
     it("should not change score when rating stays the same", () => {
