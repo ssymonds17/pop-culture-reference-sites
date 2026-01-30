@@ -33,7 +33,7 @@ const handler = async (event: any) => {
     // Check that each artist associated with the song exists
     const validatedArtists = (await validateAssociatedEntities(
       artists,
-      "artist"
+      "artist",
     )) as ArtistDocument[] | null
 
     // If an album is provided, check that it exists
@@ -53,18 +53,11 @@ const handler = async (event: any) => {
 
     const song = await createSong(defaultSong)
 
-    let upgradingAlbumToSilver = false
     if (album && validatedAlbum) {
-      upgradingAlbumToSilver = await updateAssociatedAlbum(
-        validatedAlbum[0],
-        song.id
-      )
+      await updateAssociatedAlbum(validatedAlbum[0], song.id)
     }
-    await updateAssociatedArtists(
-      validatedArtists,
-      song.id,
-      upgradingAlbumToSilver
-    )
+
+    await updateAssociatedArtists(validatedArtists, song.id)
 
     return createApiResponse(201, {
       id: song.id,
