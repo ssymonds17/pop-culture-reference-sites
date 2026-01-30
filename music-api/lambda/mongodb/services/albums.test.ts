@@ -5,6 +5,7 @@ import {
   getAlbumByIdFull,
   findAlbumsByTitle,
   updateAlbumRatingById,
+  updateAlbumTotalSongsById,
 } from "./albums"
 import Album, { Rating } from "../models/album"
 
@@ -215,6 +216,58 @@ describe("albums service", () => {
       mockAlbum.findByIdAndUpdate = jest.fn().mockResolvedValueOnce(null) as any
 
       const result = await updateAlbumRatingById("nonexistent", Rating.GOLD)
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe("updateAlbumTotalSongsById", () => {
+    it("should update album totalSongs and return updated album", async () => {
+      const mockUpdatedAlbum = {
+        id: "album1",
+        title: "Test Album",
+        totalSongs: 12,
+      }
+
+      mockAlbum.findByIdAndUpdate = jest
+        .fn()
+        .mockResolvedValueOnce(mockUpdatedAlbum) as any
+
+      const result = await updateAlbumTotalSongsById("album1", 12)
+
+      expect(result).toEqual(mockUpdatedAlbum)
+      expect(mockAlbum.findByIdAndUpdate).toHaveBeenCalledWith(
+        "album1",
+        { totalSongs: 12 },
+        { new: true }
+      )
+    })
+
+    it("should update album totalSongs to 0", async () => {
+      const mockUpdatedAlbum = {
+        id: "album2",
+        title: "Another Album",
+        totalSongs: 0,
+      }
+
+      mockAlbum.findByIdAndUpdate = jest
+        .fn()
+        .mockResolvedValueOnce(mockUpdatedAlbum) as any
+
+      const result = await updateAlbumTotalSongsById("album2", 0)
+
+      expect(result).toEqual(mockUpdatedAlbum)
+      expect(mockAlbum.findByIdAndUpdate).toHaveBeenCalledWith(
+        "album2",
+        { totalSongs: 0 },
+        { new: true }
+      )
+    })
+
+    it("should return null when album not found", async () => {
+      mockAlbum.findByIdAndUpdate = jest.fn().mockResolvedValueOnce(null) as any
+
+      const result = await updateAlbumTotalSongsById("nonexistent", 10)
 
       expect(result).toBeNull()
     })

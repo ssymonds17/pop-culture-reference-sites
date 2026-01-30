@@ -38,6 +38,17 @@ export class ApiStack extends core.Stack {
       }
     )
 
+    const updateAlbumTotalSongsLambda = new LambdaConstruct(
+      this,
+      "UpdateAlbumTotalSongs",
+      {
+        functionName: "update-album-total-songs-handler",
+        code: lambda.Code.fromAsset("build/apps/update-album-total-songs"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+      }
+    )
+
     const getArtistsLambda = new LambdaConstruct(this, "GetArtists", {
       functionName: "get-artists-handler",
       code: lambda.Code.fromAsset("build/apps/get-artists"),
@@ -127,6 +138,7 @@ export class ApiStack extends core.Stack {
     const album = api.root.addResource("album")
     const getAlbumById = album.addResource("{id}")
     const updateAlbumRating = getAlbumById.addResource("rating")
+    const updateAlbumTotalSongs = getAlbumById.addResource("totalsongs")
 
     getAlbums.addMethod(
       "GET",
@@ -144,6 +156,10 @@ export class ApiStack extends core.Stack {
       "PUT",
       new apigateway.LambdaIntegration(updateAlbumRatingLambda.function)
     )
+    updateAlbumTotalSongs.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateAlbumTotalSongsLambda.function)
+    )
 
     getAlbums.addCorsPreflight({
       allowOrigins: ["*"],
@@ -158,6 +174,10 @@ export class ApiStack extends core.Stack {
       allowMethods: ["GET"],
     })
     updateAlbumRating.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["PUT"],
+    })
+    updateAlbumTotalSongs.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["PUT"],
     })

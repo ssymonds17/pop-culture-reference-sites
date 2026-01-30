@@ -47,3 +47,7 @@ export const findAlbumsByTitle = async (title: string) => {
 export const updateAlbumRatingById = async (id: string, newRating: Rating) => {
   return Album.findByIdAndUpdate(id, { rating: newRating }, { new: true })
 }
+
+export const updateAlbumTotalSongsById = async (id: string, totalSongs: number) => {
+  return Album.findByIdAndUpdate(id, { totalSongs }, { new: true })
+}

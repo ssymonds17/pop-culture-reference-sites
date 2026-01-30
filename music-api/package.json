@@ -5,11 +5,12 @@
     "music-api": "bin/music-api.js"
   },
   "scripts": {
-    "build:all": "npm run build:create-artist && npm run build:get-artists && npm run build:get-artist-by-id && npm run build:search && npm run build:create-album && npm run build:get-album-by-id && npm run build:create-song && npm run build:get-song-by-id && npm run build:get-albums && npm run build:get-years && npm run build:update-album-rating",
+    "build:all": "npm run build:create-artist && npm run build:get-artists && npm run build:get-artist-by-id && npm run build:search && npm run build:create-album && npm run build:get-album-by-id && npm run build:create-song && npm run build:get-song-by-id && npm run build:get-albums && npm run build:get-years && npm run build:update-album-rating && npm run build:update-album-total-songs",
     "build:create-artist": "esbuild lambda/create-artist.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-artist/index.js",
     "build:create-album": "esbuild lambda/create-album.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-album/index.js",
     "build:create-song": "esbuild lambda/create-song.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-song/index.js",
     "build:update-album-rating": "esbuild lambda/update-album-rating.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-album-rating/index.js",
+    "build:update-album-total-songs": "esbuild lambda/update-album-total-songs.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-album-total-songs/index.js",
     "build:get-artists": "esbuild lambda/get-artists.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-artists/index.js",
     "build:get-albums": "esbuild lambda/get-albums.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-albums/index.js",
     "build:get-artist-by-id": "esbuild lambda/get-artist-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-artist-by-id/index.js",
