@@ -7,7 +7,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { useMusicContext } from '@music/shared-state';
 import { API_URL } from '../../constants';
 import { SongBlock } from '../../components';
-import { RatingSelector, RatingBadge } from '../../components/Rating';
+import { RatingSelector, RatingBadge, SongProgress } from '../../components/Rating';
 import { AlbumFull, Rating } from '../../types';
 import { ArtistLink } from '../../components/Table/ArtistsLink';
 import { useScrollToTop } from '../../utils';
@@ -94,13 +94,20 @@ const AlbumPage = () => {
                 </span>
               )}
             </p>
-            <p className="text-sm text-neutral-500">
+            <div className="flex items-center justify-center gap-2">
               {isLoading ? (
                 <Skeleton width={200} />
               ) : (
-                `Total Songs: ${album?.songs.length}`
+                <>
+                  <span className="text-sm text-neutral-500">Songs:</span>
+                  <SongProgress
+                    currentSongs={album?.songs.length ?? 0}
+                    totalSongs={album?.totalSongs}
+                    size="sm"
+                  />
+                </>
               )}
-            </p>
+            </div>
           </div>
           <div className="layout-flex-center mt-component-md">
             {isLoading ? (

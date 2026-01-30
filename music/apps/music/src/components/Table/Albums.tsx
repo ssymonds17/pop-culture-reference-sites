@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Album, Rating } from '../../types';
 import { SkeletonTable } from './Skeleton';
-import { RatingIcon } from '../Rating';
+import { RatingIcon, SongProgressBadge } from '../Rating';
 import { ArtistLink } from './ArtistsLink';
 
 const displayRating = (rating: Rating) => {
@@ -18,7 +18,7 @@ export const AlbumsTable = ({
   isLoading: boolean;
 }) => {
   if (isLoading) {
-    return <SkeletonTable cols={4} />;
+    return <SkeletonTable cols={5} />;
   }
 
   return (
@@ -28,6 +28,7 @@ export const AlbumsTable = ({
           <tr>
             <th className="text-center">Rating</th>
             <th className="text-center">Year</th>
+            <th className="text-center">Songs</th>
             <th>Title</th>
             <th>Artist</th>
           </tr>
@@ -42,6 +43,13 @@ export const AlbumsTable = ({
                 </td>
                 <td className="text-center table-number">
                   {album.year}
+                </td>
+                <td className="text-center">
+                  <SongProgressBadge
+                    currentSongs={album.songs.length}
+                    totalSongs={album.totalSongs}
+                    size="sm"
+                  />
                 </td>
                 <td className="font-medium">
                   <Link
@@ -61,7 +69,7 @@ export const AlbumsTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan={4} className="table-empty">
+              <td colSpan={5} className="table-empty">
                 No albums found
               </td>
             </tr>
