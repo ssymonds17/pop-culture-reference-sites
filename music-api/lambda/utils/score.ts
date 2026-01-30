@@ -1,4 +1,4 @@
-import { Rating } from "../schemas"
+import { Rating } from "../mongodb/models/album"
 
 export const ratingsMap = {
   [Rating.NONE]: 0,
@@ -8,11 +8,11 @@ export const ratingsMap = {
 
 export const updateScoreBasedOnAlbumRatings = (
   currentScore: number,
-  rating: Rating
+  rating: Rating,
 ) => currentScore + ratingsMap[rating]
 
 export const updateScoreBasedOnAlbumRatingUpdate = (
   currentScore: number,
   oldRating: Rating,
-  newRating: Rating
+  newRating: Rating,
 ) => currentScore + ratingsMap[newRating] - ratingsMap[oldRating]
