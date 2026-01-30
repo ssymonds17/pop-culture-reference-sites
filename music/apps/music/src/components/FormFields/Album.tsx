@@ -48,6 +48,13 @@ export const AlbumFormFields = ({
         placeholder="Enter release year..."
         required={true}
       />
+      <InputField
+        id="totalSongs"
+        value={formValues['totalSongs']}
+        setFormValues={setFormValues}
+        type="number"
+        placeholder="Total number of songs on album..."
+      />
       {!isQuickAdd && (
         <>
           <Search
@@ -81,7 +88,9 @@ export const AlbumFormFields = ({
             <label className="form-label">Rating</label>
             <RatingSelector
               currentRating={formValues.rating || Rating.NONE}
-              onChange={(rating) => setFormValues((prev) => ({ ...prev, rating }))}
+              onChange={(rating) =>
+                setFormValues((prev) => ({ ...prev, rating }))
+              }
               size="md"
             />
           </div>

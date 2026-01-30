@@ -29,6 +29,7 @@ export interface Album {
   artistDisplayName: string; // the display name of the artist of the album
   artists: string[]; // the ids of the artists who should be credited with this album
   songs: string[]; // the ids songs on the album
+  totalSongs?: number; // {optional} the total number of songs on the album
   rating: Rating; // what is the rating of the album (if applicable)
 }
 
