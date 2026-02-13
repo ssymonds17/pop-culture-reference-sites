@@ -60,7 +60,7 @@ This script will:
 
 **Rate Limiting**: 250ms delay between requests (4 req/sec)
 
-**Estimated Time**: ~20 minutes for 2,398 films
+**Estimated Time**: ~20 minutes for 2,415 films
 
 ### Update Year Statistics
 
@@ -164,7 +164,7 @@ mongo films --eval "db.films.findOne()"
 
 Expected results:
 
-- ~2,398 films
-- ~1,073 directors (extracted from TMDb)
+- ~2,415 films
+- ~1,078 directors (extracted from TMDb)
 - Films have director ObjectId references
 - Directors have aggregated statistics

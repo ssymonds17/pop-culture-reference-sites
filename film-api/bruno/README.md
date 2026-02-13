@@ -89,9 +89,9 @@ Update the `API_URL` variable in Bruno with this URL.
 
 After running the data import scripts, test these endpoints:
 
-1. **Get Stats** - Verify total film count (~2,398)
+1. **Get Stats** - Verify total film count (~2,415)
 2. **Get Films** - Try different filters (watched, minRating, year, genre)
-3. **Get Directors** - Check director rankings (should have ~1,073 directors)
+3. **Get Directors** - Check director rankings (should have ~1,078 directors)
 4. **Get Years** - Verify year statistics are calculated
 
 ### 3. Get Sample IDs for Testing
