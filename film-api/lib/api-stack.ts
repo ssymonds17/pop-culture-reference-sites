@@ -19,7 +19,7 @@ export class ApiStack extends core.Stack {
 
     // Lambda functions for Films
     const createFilmLambda = new LambdaConstruct(this, "CreateFilm", {
-      functionName: "create-film-handler",
+      functionName: "film-create-film-handler",
       code: lambda.Code.fromAsset("build/apps/create-film"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -27,7 +27,7 @@ export class ApiStack extends core.Stack {
     })
 
     const getFilmsLambda = new LambdaConstruct(this, "GetFilms", {
-      functionName: "get-films-handler",
+      functionName: "film-get-films-handler",
       code: lambda.Code.fromAsset("build/apps/get-films"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -35,7 +35,7 @@ export class ApiStack extends core.Stack {
     })
 
     const getFilmByIdLambda = new LambdaConstruct(this, "GetFilmById", {
-      functionName: "get-film-by-id-handler",
+      functionName: "film-get-film-by-id-handler",
       code: lambda.Code.fromAsset("build/apps/get-film-by-id"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -46,7 +46,7 @@ export class ApiStack extends core.Stack {
       this,
       "UpdateFilmRating",
       {
-        functionName: "update-film-rating-handler",
+        functionName: "film-update-film-rating-handler",
         code: lambda.Code.fromAsset("build/apps/update-film-rating"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
@@ -55,7 +55,7 @@ export class ApiStack extends core.Stack {
     )
 
     const deleteFilmLambda = new LambdaConstruct(this, "DeleteFilm", {
-      functionName: "delete-film-handler",
+      functionName: "film-delete-film-handler",
       code: lambda.Code.fromAsset("build/apps/delete-film"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -64,7 +64,7 @@ export class ApiStack extends core.Stack {
 
     // Lambda functions for Directors
     const getDirectorsLambda = new LambdaConstruct(this, "GetDirectors", {
-      functionName: "get-directors-handler",
+      functionName: "film-get-directors-handler",
       code: lambda.Code.fromAsset("build/apps/get-directors"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -75,7 +75,7 @@ export class ApiStack extends core.Stack {
       this,
       "GetDirectorByPersonId",
       {
-        functionName: "get-director-by-person-id-handler",
+        functionName: "film-get-director-by-person-id-handler",
         code: lambda.Code.fromAsset("build/apps/get-director-by-person-id"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
@@ -87,7 +87,7 @@ export class ApiStack extends core.Stack {
       this,
       "UpdateDirectorStats",
       {
-        functionName: "update-director-stats-handler",
+        functionName: "film-update-director-stats-handler",
         code: lambda.Code.fromAsset("build/apps/update-director-stats"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
@@ -97,7 +97,7 @@ export class ApiStack extends core.Stack {
 
     // Lambda functions for Stats and Years
     const getStatsLambda = new LambdaConstruct(this, "GetStats", {
-      functionName: "get-stats-handler",
+      functionName: "film-get-stats-handler",
       code: lambda.Code.fromAsset("build/apps/get-stats"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -105,7 +105,7 @@ export class ApiStack extends core.Stack {
     })
 
     const getYearsLambda = new LambdaConstruct(this, "GetYears", {
-      functionName: "get-years-handler",
+      functionName: "film-get-years-handler",
       code: lambda.Code.fromAsset("build/apps/get-years"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -113,7 +113,7 @@ export class ApiStack extends core.Stack {
     })
 
     const getYearLambda = new LambdaConstruct(this, "GetYear", {
-      functionName: "get-year-handler",
+      functionName: "film-get-year-handler",
       code: lambda.Code.fromAsset("build/apps/get-year"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -124,7 +124,7 @@ export class ApiStack extends core.Stack {
       this,
       "UpdateYearStats",
       {
-        functionName: "update-year-stats-handler",
+        functionName: "film-update-year-stats-handler",
         code: lambda.Code.fromAsset("build/apps/update-year-stats"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
@@ -134,7 +134,7 @@ export class ApiStack extends core.Stack {
 
     // Lambda functions for Search and Import
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
-      functionName: "search-handler",
+      functionName: "film-search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
@@ -142,7 +142,7 @@ export class ApiStack extends core.Stack {
     })
 
     const importFilmsLambda = new LambdaConstruct(this, "ImportFilms", {
-      functionName: "import-films-handler",
+      functionName: "film-import-films-handler",
       code: lambda.Code.fromAsset("build/apps/import-films"),
       handler: "index.handler",
       timeout: core.Duration.minutes(5), // Longer timeout for import operations
