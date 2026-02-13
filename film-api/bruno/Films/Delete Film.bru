@@ -13,8 +13,9 @@ delete {
 docs {
   Deletes a film by its MongoDB ObjectId.
 
-  WARNING: This does NOT cascade to directors or year stats.
-  You should manually recalculate stats after deleting films.
+  This triggers cascading updates to:
+  1. All associated directors' statistics
+  2. Year statistics for the film's release year
 
   Set the FILM_ID environment variable to test this endpoint.
 }
