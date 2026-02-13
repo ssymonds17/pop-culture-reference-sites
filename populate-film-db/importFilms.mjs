@@ -192,6 +192,7 @@ const importFilms = async () => {
   let successCount = 0
   let skipCount = 0
   let errorCount = 0
+  const failedImports = []
 
   for (let i = 0; i < csvData.length; i++) {
     const row = csvData[i]
@@ -208,6 +209,13 @@ const importFilms = async () => {
 
     if (!tmdbId) {
       console.log(`  ⚠️  Could not find on TMDb, skipping...`)
+      failedImports.push({
+        title: originalTitle,
+        year: year,
+        watched: watched,
+        rating: rating,
+        reason: "Not found on TMDb"
+      })
       skipCount++
       continue
     }
@@ -226,6 +234,14 @@ const importFilms = async () => {
 
     if (!tmdbDetails) {
       console.log(`  ⚠️  Could not get TMDb details, skipping...`)
+      failedImports.push({
+        title: originalTitle,
+        year: year,
+        watched: watched,
+        rating: rating,
+        reason: "Could not get TMDb details",
+        tmdbId: tmdbId
+      })
       skipCount++
       continue
     }
@@ -277,6 +293,14 @@ const importFilms = async () => {
       successCount++
     } catch (error) {
       console.error(`  ❌ Error importing film:`, error.message)
+      failedImports.push({
+        title: originalTitle,
+        year: year,
+        watched: watched,
+        rating: rating,
+        reason: `Import error: ${error.message}`,
+        tmdbId: tmdbId
+      })
       errorCount++
     }
   }
@@ -288,6 +312,17 @@ const importFilms = async () => {
   console.log(`  Skipped: ${skipCount}`)
   console.log(`  Errors: ${errorCount}`)
   console.log("=".repeat(60))
+
+  // Write failed imports to file for manual review
+  if (failedImports.length > 0) {
+    const failedImportsFile = "./failed-imports.json"
+    fs.writeFileSync(failedImportsFile, JSON.stringify(failedImports, null, 2))
+    console.log(`\n⚠️  ${failedImports.length} films failed to import`)
+    console.log(`   Details saved to: ${failedImportsFile}`)
+    console.log(`   You can review and manually add these films later`)
+  } else {
+    console.log(`\n✅ All films imported successfully!`)
+  }
 
   // Update all director statistics
   console.log("\nUpdating director statistics...")
