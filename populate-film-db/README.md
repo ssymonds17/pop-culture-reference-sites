@@ -62,6 +62,31 @@ This script will:
 
 **Estimated Time**: ~20 minutes for 2,415 films
 
+**Output:** The script will generate a single `import-issues.json` file containing all issues found during import. Each issue has a `type` field to categorize it:
+- `FAILED` - Films that couldn't be imported
+- `DUPLICATE` - Films already in database
+- `WARNING` - Films imported with issues (missing directors, invalid ratings, etc.)
+
+**Summary Example:**
+```
+Import Summary:
+  Total films in CSV: 2,415
+  Successfully imported: 2,350
+  Skipped (duplicates): 48
+  Failed: 12
+  Warnings: 5
+  Errors: 0
+
+⚠️  65 total issues found during import
+   Details saved to: ./import-issues.json
+   Issue breakdown:
+     - FAILED: 12 (films that couldn't be imported)
+     - DUPLICATE: 48 (films already in database)
+     - WARNING: 5 (films imported with issues)
+
+   Filter by type field to review specific issues
+```
+
 ### Update Year Statistics
 
 ```bash
@@ -107,15 +132,14 @@ The script provides real-time progress output:
 
 ## Handling Import Issues
 
-The import script tracks two types of issues:
+All issues are tracked in a single `import-issues.json` file. Each issue has a `type` field indicating the category:
 
-### 1. Skipped Duplicates (`skipped-duplicates.json`)
-
-Films that were skipped because they appear to already exist in the database (matching TMDb ID):
+### Example `import-issues.json`:
 
 ```json
 [
   {
+    "type": "DUPLICATE",
     "csvTitle": "Film Title from CSV",
     "csvYear": 1994,
     "watched": true,
@@ -126,44 +150,75 @@ Films that were skipped because they appear to already exist in the database (ma
     "existingFilmYear": 1994,
     "existingFilmId": "507f1f77bcf86cd799439011",
     "reason": "Already exists in database"
-  }
-]
-```
-
-**Action:** Review this file to verify these are actual duplicates. If a film was incorrectly flagged:
-1. Check if the existing film is correct
-2. If not, delete the existing film and re-run the import for that film
-
-### 2. Failed Imports (`failed-imports.json`)
-
-Films that couldn't be imported due to errors (not found on TMDb, API errors, etc.):
-
-```json
-[
+  },
   {
-    "title": "Film Title",
+    "type": "FAILED",
+    "title": "Another Film",
     "year": 1994,
     "watched": true,
     "rating": 8,
     "owned": false,
     "reason": "Not found on TMDb"
+  },
+  {
+    "type": "WARNING",
+    "title": "Third Film",
+    "year": 2000,
+    "tmdbId": "123",
+    "tmdbTitle": "Third Film",
+    "reason": "No directors found in TMDb crew data, film imported without directors"
   }
 ]
 ```
 
+### Issue Types:
+
+#### 1. `FAILED` - Films that couldn't be imported
+
+**Common reasons:**
+- Not found on TMDb
+- Could not get TMDb details (API error)
+- Missing or empty title in CSV
+- Invalid year in CSV
+- Database/import error
+
 **Action:** Manually add these films:
 1. Search for the film on https://www.themoviedb.org/ to get its TMDb ID
-2. Use the Bruno collection's "Create Film" endpoint with the TMDb data
-3. Fill in the film details including the TMDb ID, watched status, rating, and owned from failed-imports.json
+2. Use the Bruno collection's "Create Film" endpoint
+3. Fill in the details from the import-issues.json entry
+
+#### 2. `DUPLICATE` - Films already in database
+
+**Reason:** Film with matching TMDb ID already exists in database
+
+**Action:** Review to verify these are actual duplicates:
+1. Compare CSV title/year with existing database title/year
+2. If incorrectly flagged, delete the existing film from MongoDB
+3. Re-run the import to add the film again
+
+#### 3. `WARNING` - Films imported with issues
+
+**Common warnings:**
+- No directors found in TMDb crew data
+- Invalid rating (outside 1-10 range)
+
+**Action:** Review warnings and use the API to correct any issues if needed
 
 ## Troubleshooting
+
+### Missing or invalid CSV data
+
+- **Missing title:** Row will be skipped and tracked with `type: "FAILED"`
+- **Invalid year:** Row will be skipped if year is missing, non-numeric, or outside 1800-2100
+- **Invalid rating:** Film will import but without rating (tracked with `type: "WARNING"`)
+- Check your CSV for empty cells or incorrect data types
 
 ### Film not found on TMDb
 
 - Check spelling in CSV
 - Verify year is correct
 - TMDb may not have the film
-- Failed films will be tracked in `failed-imports.json`
+- Failed films will be tracked with `type: "FAILED"`
 
 ### Rate limit errors
 
@@ -178,7 +233,7 @@ Films that couldn't be imported due to errors (not found on TMDb, API errors, et
 
 ### Films skipped as duplicates
 
-- Check `skipped-duplicates.json` to verify these are actual duplicates
+- Filter `import-issues.json` for `type: "DUPLICATE"` to verify these are actual duplicates
 - Compare CSV title/year with existing database title/year
 - If incorrectly flagged, delete the existing film from MongoDB and re-run import
 
@@ -190,7 +245,25 @@ The import script is idempotent - it skips films that already exist (by TMDb ID)
 2. **Full re-run:** Delete all films from MongoDB first, then run the import
 3. **Selective re-run:** Delete specific films from MongoDB, then run the import
 
-All skipped duplicates are tracked in `skipped-duplicates.json` for verification.
+All skipped duplicates are tracked in `import-issues.json` with `type: "DUPLICATE"` for verification.
+
+### Filtering Issues by Type
+
+To review specific issue types, filter the JSON:
+
+```bash
+# View only failed imports
+cat import-issues.json | jq '.[] | select(.type == "FAILED")'
+
+# View only duplicates
+cat import-issues.json | jq '.[] | select(.type == "DUPLICATE")'
+
+# View only warnings
+cat import-issues.json | jq '.[] | select(.type == "WARNING")'
+
+# Count by type
+cat import-issues.json | jq 'group_by(.type) | map({type: .[0].type, count: length})'
+```
 
 ## Data Validation
 

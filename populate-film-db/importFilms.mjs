@@ -193,14 +193,40 @@ const importFilms = async () => {
   let successCount = 0
   let skipCount = 0
   let errorCount = 0
-  const failedImports = []
-  const skippedDuplicates = []
+  const issues = [] // Combined array for all issues
 
   for (let i = 0; i < csvData.length; i++) {
     const row = csvData[i]
 
     const originalTitle = row.Title || row.title
     const year = parseInt(row.Year || row.year)
+
+    // Validate required CSV fields
+    if (!originalTitle || originalTitle.trim() === "") {
+      console.log(`\n[${i + 1}/${csvData.length}] ❌ Missing title, skipping...`)
+      issues.push({
+        type: "FAILED",
+        rowNumber: i + 1,
+        title: originalTitle,
+        year: year,
+        reason: "Missing or empty title in CSV"
+      })
+      skipCount++
+      continue
+    }
+
+    if (isNaN(year) || year < 1800 || year > 2100) {
+      console.log(`\n[${i + 1}/${csvData.length}] ❌ Invalid year for "${originalTitle}", skipping...`)
+      issues.push({
+        type: "FAILED",
+        rowNumber: i + 1,
+        title: originalTitle,
+        year: row.Year || row.year,
+        reason: "Missing or invalid year in CSV"
+      })
+      skipCount++
+      continue
+    }
 
     // Parse 'Seen' column (TRUE/FALSE)
     const seenValue = (row.Seen || "").toString().toLowerCase()
@@ -210,7 +236,19 @@ const importFilms = async () => {
     let rating = undefined
     const scoreValue = row.Score
     if (scoreValue !== undefined && scoreValue !== null && scoreValue !== "") {
-      rating = parseInt(scoreValue)
+      const parsedRating = parseInt(scoreValue)
+      if (parsedRating >= 1 && parsedRating <= 10) {
+        rating = parsedRating
+      } else {
+        console.log(`\n[${i + 1}/${csvData.length}] ⚠️  Invalid rating ${parsedRating} for "${originalTitle}" (should be 1-10)`)
+        issues.push({
+          type: "WARNING",
+          title: originalTitle,
+          year: year,
+          rating: parsedRating,
+          reason: "Rating outside valid range (1-10), will import without rating"
+        })
+      }
     }
 
     // Parse 'Link' column - owned if it says "Hard Drive"
@@ -226,7 +264,8 @@ const importFilms = async () => {
 
     if (!tmdbId) {
       console.log(`  ⚠️  Could not find on TMDb, skipping...`)
-      failedImports.push({
+      issues.push({
+        type: "FAILED",
         title: originalTitle,
         year: year,
         watched: watched,
@@ -243,7 +282,8 @@ const importFilms = async () => {
     if (existingFilm) {
       console.log(`  ℹ️  Film already exists in database, skipping...`)
       console.log(`      Existing: "${existingFilm.title}" (${existingFilm.year})`)
-      skippedDuplicates.push({
+      issues.push({
+        type: "DUPLICATE",
         csvTitle: originalTitle,
         csvYear: year,
         watched: watched,
@@ -265,7 +305,8 @@ const importFilms = async () => {
 
     if (!tmdbDetails) {
       console.log(`  ⚠️  Could not get TMDb details, skipping...`)
-      failedImports.push({
+      issues.push({
+        type: "FAILED",
         title: originalTitle,
         year: year,
         watched: watched,
@@ -292,6 +333,19 @@ const importFilms = async () => {
           )
           directors.push(director._id)
         }
+      }
+
+      // Warn if no directors found
+      if (directors.length === 0) {
+        console.log(`  ⚠️  No directors found in TMDb data`)
+        issues.push({
+          type: "WARNING",
+          title: originalTitle,
+          year: year,
+          tmdbId: tmdbId.toString(),
+          tmdbTitle: tmdbDetails.title,
+          reason: "No directors found in TMDb crew data, film imported without directors"
+        })
       }
 
       // Create film document
@@ -327,7 +381,8 @@ const importFilms = async () => {
       successCount++
     } catch (error) {
       console.error(`  ❌ Error importing film:`, error.message)
-      failedImports.push({
+      issues.push({
+        type: "FAILED",
         title: originalTitle,
         year: year,
         watched: watched,
@@ -340,35 +395,34 @@ const importFilms = async () => {
     }
   }
 
+  // Count issues by type
+  const failedCount = issues.filter(i => i.type === "FAILED").length
+  const duplicateCount = issues.filter(i => i.type === "DUPLICATE").length
+  const warningCount = issues.filter(i => i.type === "WARNING").length
+
   console.log("\n" + "=".repeat(60))
   console.log("Import Summary:")
   console.log(`  Total films in CSV: ${csvData.length}`)
   console.log(`  Successfully imported: ${successCount}`)
-  console.log(`  Skipped (duplicates): ${skippedDuplicates.length}`)
-  console.log(`  Failed: ${failedImports.length}`)
+  console.log(`  Skipped (duplicates): ${duplicateCount}`)
+  console.log(`  Failed: ${failedCount}`)
+  console.log(`  Warnings: ${warningCount}`)
   console.log(`  Errors: ${errorCount}`)
   console.log("=".repeat(60))
 
-  // Write skipped duplicates to file for review
-  if (skippedDuplicates.length > 0) {
-    const duplicatesFile = "./skipped-duplicates.json"
-    fs.writeFileSync(duplicatesFile, JSON.stringify(skippedDuplicates, null, 2))
-    console.log(`\n⚠️  ${skippedDuplicates.length} films skipped (already in database)`)
-    console.log(`   Details saved to: ${duplicatesFile}`)
-    console.log(`   Review this file to verify these are actual duplicates`)
-  }
-
-  // Write failed imports to file for manual review
-  if (failedImports.length > 0) {
-    const failedImportsFile = "./failed-imports.json"
-    fs.writeFileSync(failedImportsFile, JSON.stringify(failedImports, null, 2))
-    console.log(`\n⚠️  ${failedImports.length} films failed to import`)
-    console.log(`   Details saved to: ${failedImportsFile}`)
-    console.log(`   You can review and manually add these films later`)
-  }
-
-  if (failedImports.length === 0 && skippedDuplicates.length === 0) {
-    console.log(`\n✅ All films imported successfully!`)
+  // Write all issues to a single file
+  if (issues.length > 0) {
+    const issuesFile = "./import-issues.json"
+    fs.writeFileSync(issuesFile, JSON.stringify(issues, null, 2))
+    console.log(`\n⚠️  ${issues.length} total issues found during import`)
+    console.log(`   Details saved to: ${issuesFile}`)
+    console.log(`   Issue breakdown:`)
+    console.log(`     - FAILED: ${failedCount} (films that couldn't be imported)`)
+    console.log(`     - DUPLICATE: ${duplicateCount} (films already in database)`)
+    console.log(`     - WARNING: ${warningCount} (films imported with issues)`)
+    console.log(`\n   Filter by type field to review specific issues`)
+  } else {
+    console.log(`\n✅ All films imported successfully with no issues!`)
   }
 
   // Update all director statistics
