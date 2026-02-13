@@ -1,0 +1,39 @@
+export const getRatingColor = (rating: number): string => {
+  const colors: Record<number, string> = {
+    1: 'bg-rating-1',
+    2: 'bg-rating-2',
+    3: 'bg-rating-3',
+    4: 'bg-rating-4',
+    5: 'bg-rating-5',
+    6: 'bg-rating-6',
+    7: 'bg-rating-7',
+    8: 'bg-rating-8',
+    9: 'bg-rating-9',
+    10: 'bg-rating-10',
+  }
+  return colors[rating] || 'bg-gray-400'
+}
+
+export const getRatingTextColor = (rating: number): string => {
+  const colors: Record<number, string> = {
+    1: 'text-rating-1',
+    2: 'text-rating-2',
+    3: 'text-rating-3',
+    4: 'text-rating-4',
+    5: 'text-rating-5',
+    6: 'text-rating-6',
+    7: 'text-rating-7',
+    8: 'text-rating-8',
+    9: 'text-rating-9',
+    10: 'text-rating-10',
+  }
+  return colors[rating] || 'text-gray-400'
+}
+
+export const formatDirectorNames = (directors: Array<{ displayName: string }>): string => {
+  return directors.map((d) => d.displayName).join(' & ')
+}
+
+export const getTmdbPosterUrl = (posterPath: string, size: string = 'w500'): string => {
+  return `https://image.tmdb.org/t/p/${size}${posterPath}`
+}

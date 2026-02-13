@@ -1,0 +1,33 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { FilmProvider } from '@/lib/context/FilmContext'
+import Navbar from '@/components/Navbar/Navbar'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Film Ratings',
+  description: 'Track and rate your film collection',
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <FilmProvider>
+          <div className="min-h-screen bg-gray-950 text-gray-100">
+            <Navbar />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+          </div>
+        </FilmProvider>
+      </body>
+    </html>
+  )
+}
