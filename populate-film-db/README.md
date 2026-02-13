@@ -105,9 +105,38 @@ The script provides real-time progress output:
 - Genres added
 - Success/skip/error counts
 
-## Handling Failed Imports
+## Handling Import Issues
 
-If any films fail to import, they'll be saved to `failed-imports.json`:
+The import script tracks two types of issues:
+
+### 1. Skipped Duplicates (`skipped-duplicates.json`)
+
+Films that were skipped because they appear to already exist in the database (matching TMDb ID):
+
+```json
+[
+  {
+    "csvTitle": "Film Title from CSV",
+    "csvYear": 1994,
+    "watched": true,
+    "rating": 8,
+    "owned": true,
+    "tmdbId": "278",
+    "existingFilmTitle": "Film Title in Database",
+    "existingFilmYear": 1994,
+    "existingFilmId": "507f1f77bcf86cd799439011",
+    "reason": "Already exists in database"
+  }
+]
+```
+
+**Action:** Review this file to verify these are actual duplicates. If a film was incorrectly flagged:
+1. Check if the existing film is correct
+2. If not, delete the existing film and re-run the import for that film
+
+### 2. Failed Imports (`failed-imports.json`)
+
+Films that couldn't be imported due to errors (not found on TMDb, API errors, etc.):
 
 ```json
 [
@@ -116,16 +145,16 @@ If any films fail to import, they'll be saved to `failed-imports.json`:
     "year": 1994,
     "watched": true,
     "rating": 8,
+    "owned": false,
     "reason": "Not found on TMDb"
   }
 ]
 ```
 
-To manually add failed films:
-
+**Action:** Manually add these films:
 1. Search for the film on https://www.themoviedb.org/ to get its TMDb ID
 2. Use the Bruno collection's "Create Film" endpoint with the TMDb data
-3. Fill in the film details including the TMDb ID, watched status, and rating from failed-imports.json
+3. Fill in the film details including the TMDb ID, watched status, rating, and owned from failed-imports.json
 
 ## Troubleshooting
 
@@ -146,6 +175,22 @@ To manually add failed films:
 - Verify MONGODB_URI is correct
 - Ensure MongoDB is running
 - Check network connectivity
+
+### Films skipped as duplicates
+
+- Check `skipped-duplicates.json` to verify these are actual duplicates
+- Compare CSV title/year with existing database title/year
+- If incorrectly flagged, delete the existing film from MongoDB and re-run import
+
+## Re-running the Import
+
+The import script is idempotent - it skips films that already exist (by TMDb ID):
+
+1. **Partial re-run:** Simply run `npm run import` again - it will only import missing films
+2. **Full re-run:** Delete all films from MongoDB first, then run the import
+3. **Selective re-run:** Delete specific films from MongoDB, then run the import
+
+All skipped duplicates are tracked in `skipped-duplicates.json` for verification.
 
 ## Data Validation
 

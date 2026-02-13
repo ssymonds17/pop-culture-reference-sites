@@ -194,6 +194,7 @@ const importFilms = async () => {
   let skipCount = 0
   let errorCount = 0
   const failedImports = []
+  const skippedDuplicates = []
 
   for (let i = 0; i < csvData.length; i++) {
     const row = csvData[i]
@@ -241,6 +242,19 @@ const importFilms = async () => {
     const existingFilm = await Film.findOne({ tmdbId: tmdbId.toString() })
     if (existingFilm) {
       console.log(`  ℹ️  Film already exists in database, skipping...`)
+      console.log(`      Existing: "${existingFilm.title}" (${existingFilm.year})`)
+      skippedDuplicates.push({
+        csvTitle: originalTitle,
+        csvYear: year,
+        watched: watched,
+        rating: rating,
+        owned: owned,
+        tmdbId: tmdbId.toString(),
+        existingFilmTitle: existingFilm.title,
+        existingFilmYear: existingFilm.year,
+        existingFilmId: existingFilm._id.toString(),
+        reason: "Already exists in database"
+      })
       skipCount++
       continue
     }
@@ -330,9 +344,19 @@ const importFilms = async () => {
   console.log("Import Summary:")
   console.log(`  Total films in CSV: ${csvData.length}`)
   console.log(`  Successfully imported: ${successCount}`)
-  console.log(`  Skipped: ${skipCount}`)
+  console.log(`  Skipped (duplicates): ${skippedDuplicates.length}`)
+  console.log(`  Failed: ${failedImports.length}`)
   console.log(`  Errors: ${errorCount}`)
   console.log("=".repeat(60))
+
+  // Write skipped duplicates to file for review
+  if (skippedDuplicates.length > 0) {
+    const duplicatesFile = "./skipped-duplicates.json"
+    fs.writeFileSync(duplicatesFile, JSON.stringify(skippedDuplicates, null, 2))
+    console.log(`\n⚠️  ${skippedDuplicates.length} films skipped (already in database)`)
+    console.log(`   Details saved to: ${duplicatesFile}`)
+    console.log(`   Review this file to verify these are actual duplicates`)
+  }
 
   // Write failed imports to file for manual review
   if (failedImports.length > 0) {
@@ -341,7 +365,9 @@ const importFilms = async () => {
     console.log(`\n⚠️  ${failedImports.length} films failed to import`)
     console.log(`   Details saved to: ${failedImportsFile}`)
     console.log(`   You can review and manually add these films later`)
-  } else {
+  }
+
+  if (failedImports.length === 0 && skippedDuplicates.length === 0) {
     console.log(`\n✅ All films imported successfully!`)
   }
 
