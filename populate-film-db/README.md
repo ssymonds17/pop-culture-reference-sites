@@ -90,10 +90,70 @@ Import Summary:
 ### Update Year Statistics
 
 ```bash
-node updateYearStats.mjs
+npm run update-years
 ```
 
 This script recalculates statistics for all years based on current film data.
+
+### Manual Import by TMDb ID
+
+For films where the automatic search finds the wrong match, you can manually import by TMDb ID:
+
+```bash
+npm run manual-import <tmdbId> <watched> [rating] [owned]
+```
+
+**Example:**
+```bash
+# Import "October" (1928) - TMDb ID: 44315
+npm run manual-import 44315 true 5 true
+
+# Import unwatched film
+npm run manual-import 550 false null false
+
+# Import with rating
+npm run manual-import 278 true 9 true
+```
+
+**How to find TMDb ID:**
+1. Search for the film on https://www.themoviedb.org/
+2. The URL contains the ID: `themoviedb.org/movie/44315-october`
+3. The ID is the number: `44315`
+
+**What the script does:**
+- Fetches complete film data from TMDb
+- Automatically extracts and creates directors
+- Creates film with all metadata
+- Updates director statistics
+- Links everything properly in the database
+
+### Add Director to Existing Film
+
+For films that were imported without directors (or with incomplete director info), you can add a director to an existing film:
+
+```bash
+npm run add-director <filmTmdbId> <directorTmdbPersonId>
+```
+
+**Example:**
+```bash
+# Add Sergei Eisenstein (person ID: 4627) to October (film ID: 44315)
+npm run add-director 44315 4627
+```
+
+**How to find Director TMDb Person ID:**
+1. Go to the film's page on https://www.themoviedb.org/
+2. Click on the director's name in the cast/crew section
+3. The URL contains the person ID: `themoviedb.org/person/4627-sergei-eisenstein`
+4. The ID is the number: `4627`
+
+**What the script does:**
+- Fetches director details from TMDb
+- Creates director record if it doesn't exist
+- Links director to the film
+- Links film to the director
+- Updates director statistics
+- Prevents duplicate links
 
 ## What Gets Imported
 
@@ -129,6 +189,43 @@ The script provides real-time progress output:
 - Directors found
 - Genres added
 - Success/skip/error counts
+
+## When to Use Manual Import
+
+Use the manual import script (`npm run manual-import`) when:
+
+1. **Wrong film matched**: The automatic search finds a different film with the same name
+   - Example: "October" (1928) returns "October" (2000)
+
+2. **Search failed**: Film not found during automatic import
+   - Review `import-issues.json` for `type: "FAILED"` with `reason: "Not found on TMDb"`
+
+3. **Title variations**: Your CSV title differs significantly from TMDb's title
+   - Example: CSV has "La Dolce Vita" but TMDb lists it under "The Sweet Life"
+
+**Workflow:**
+1. Check `import-issues.json` for failed films
+2. Search https://www.themoviedb.org/ to find the correct film
+3. Copy the TMDb ID from the URL
+4. Run `npm run manual-import <tmdbId> <watched> <rating> <owned>`
+
+## When to Use Add Director
+
+Use the add director script (`npm run add-director`) when:
+
+1. **Film imported without directors**: Film exists in database but has no directors
+   - Review `import-issues.json` for `type: "WARNING"` with `reason: "No directors found"`
+
+2. **Missing directors**: Film has some directors but you know of others
+   - Example: Film has 1 director but you know it was co-directed
+
+3. **Fixing incomplete data**: After manual film import, you discover the director
+
+**Workflow:**
+1. Check `import-issues.json` for films with `type: "WARNING"` about missing directors
+2. Go to the film's page on https://www.themoviedb.org/
+3. Click on the director's name to get their person ID from the URL
+4. Run `npm run add-director <filmTmdbId> <directorTmdbPersonId>`
 
 ## Handling Import Issues
 
