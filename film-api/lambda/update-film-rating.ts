@@ -3,7 +3,7 @@ import { connectToDatabase, getFilmById, updateFilmRating, updateDirectorStats, 
 
 const handler = async (event: any) => {
   const filmId = event.pathParameters?.id
-  const { rating, watched } = JSON.parse(event.body)
+  const { rating, watched, owned } = JSON.parse(event.body)
 
   try {
     if (!filmId) {
@@ -22,7 +22,7 @@ const handler = async (event: any) => {
       throw new Error("Film not found")
     }
 
-    const updatedFilm = await updateFilmRating(filmId, rating, watched)
+    const updatedFilm = await updateFilmRating(filmId, rating, watched, owned)
 
     if (!updatedFilm) {
       throw new Error("Failed to update film")
@@ -42,6 +42,7 @@ const handler = async (event: any) => {
       title: updatedFilm.title,
       rating: updatedFilm.rating,
       watched: updatedFilm.watched,
+      owned: updatedFilm.owned,
       message: "Successfully updated film rating",
     })
   } catch (error) {

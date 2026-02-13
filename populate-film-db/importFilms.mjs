@@ -19,6 +19,7 @@ const filmSchema = new mongoose.Schema({
   directors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Director" }],
   watched: { type: Boolean, required: true, default: false },
   rating: { type: Number, min: 1, max: 10 },
+  owned: { type: Boolean, default: false },
   genres: [{ type: String }],
   language: { type: String },
   duration: { type: Number },
@@ -211,8 +212,12 @@ const importFilms = async () => {
       rating = parseInt(scoreValue)
     }
 
+    // Parse 'Link' column - owned if it says "Hard Drive"
+    const linkValue = (row.Link || "").toString()
+    const owned = linkValue === "Hard Drive"
+
     console.log(`\n[${i + 1}/${csvData.length}] Processing: ${originalTitle} (${year})`)
-    console.log(`  Watched: ${watched}, Rating: ${rating || "N/A"}`)
+    console.log(`  Watched: ${watched}, Rating: ${rating || "N/A"}, Owned: ${owned}`)
 
     // Search TMDb for the film
     const tmdbId = await searchTmdbFilm(originalTitle, year)
@@ -225,6 +230,7 @@ const importFilms = async () => {
         year: year,
         watched: watched,
         rating: rating,
+        owned: owned,
         reason: "Not found on TMDb"
       })
       skipCount++
@@ -250,6 +256,7 @@ const importFilms = async () => {
         year: year,
         watched: watched,
         rating: rating,
+        owned: owned,
         reason: "Could not get TMDb details",
         tmdbId: tmdbId
       })
@@ -280,6 +287,7 @@ const importFilms = async () => {
         directors: directors,
         watched: watched,
         rating: rating,
+        owned: owned,
         genres: tmdbDetails.genres ? tmdbDetails.genres.map((g) => g.name) : [],
         language: tmdbDetails.original_language,
         duration: tmdbDetails.runtime,
@@ -310,6 +318,7 @@ const importFilms = async () => {
         year: year,
         watched: watched,
         rating: rating,
+        owned: owned,
         reason: `Import error: ${error.message}`,
         tmdbId: tmdbId
       })

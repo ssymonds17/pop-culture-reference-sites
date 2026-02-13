@@ -11,6 +11,7 @@ export const getFilms = async (filters?: {
   year?: number
   genre?: string
   directorId?: string
+  owned?: boolean
 }) => {
   const query: any = {}
 
@@ -33,6 +34,9 @@ export const getFilms = async (filters?: {
     if (filters.directorId) {
       query.directors = filters.directorId
     }
+    if (filters.owned !== undefined) {
+      query.owned = filters.owned
+    }
   }
 
   return Film.find(query)
@@ -52,12 +56,18 @@ export const getFilmByTmdbId = async (tmdbId: string) => {
 
 export const updateFilmRating = async (
   id: string,
-  rating: number,
-  watched: boolean
+  rating?: number,
+  watched?: boolean,
+  owned?: boolean
 ) => {
+  const updates: any = {}
+  if (rating !== undefined) updates.rating = rating
+  if (watched !== undefined) updates.watched = watched
+  if (owned !== undefined) updates.owned = owned
+
   return Film.findByIdAndUpdate(
     id,
-    { rating, watched },
+    updates,
     { new: true }
   ).exec()
 }

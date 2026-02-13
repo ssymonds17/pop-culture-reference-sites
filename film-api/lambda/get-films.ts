@@ -28,6 +28,9 @@ const handler = async (event: any) => {
       if (params.directorId) {
         filters.directorId = params.directorId
       }
+      if (params.owned !== undefined) {
+        filters.owned = params.owned === "true"
+      }
     }
 
     const films = await getFilms(filters)

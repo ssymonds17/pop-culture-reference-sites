@@ -13,16 +13,19 @@ put {
 body:json {
   {
     "rating": 8,
-    "watched": true
+    "watched": true,
+    "owned": false
   }
 }
 
 docs {
-  Updates a film's rating and watched status.
+  Updates a film's rating, watched status, and/or owned status.
+
+  All fields are optional - only include the fields you want to update.
 
   This triggers cascading updates to:
-  1. All associated directors' statistics
-  2. Year statistics for the film's release year
+  1. All associated directors' statistics (if rating/watched changed)
+  2. Year statistics for the film's release year (if rating/watched changed)
 
   Set the FILM_ID environment variable to test this endpoint.
 }

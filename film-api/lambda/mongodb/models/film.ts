@@ -6,6 +6,7 @@ export interface FilmDocument extends mongoose.Document {
   directors: mongoose.Types.ObjectId[] // Array of Director IDs
   watched: boolean // Seen status
   rating?: number // 1-10 (optional if unwatched)
+  owned: boolean // Whether user owns the film
   genres: string[] // From TMDb API
   language?: string // From TMDb
   duration?: number // Runtime in minutes
@@ -32,6 +33,7 @@ const filmSchema = new mongoose.Schema({
   ],
   watched: { type: Boolean, required: true, default: false },
   rating: { type: Number, min: 1, max: 10 },
+  owned: { type: Boolean, default: false },
   genres: [{ type: String }],
   language: { type: String },
   duration: { type: Number },
