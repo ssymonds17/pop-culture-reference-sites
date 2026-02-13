@@ -1,0 +1,25 @@
+meta {
+  name: Update Year Stats
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{API_URL}}/year/{{YEAR}}/stats
+  body: none
+  auth: none
+}
+
+docs {
+  Manually recalculates statistics for a specific year.
+
+  Recalculates:
+  - totalFilms, watchedFilms
+  - averageRating, totalScore
+  - ratingDistribution
+  - filmsRated6Plus, percentRated6Plus
+  - yearScore (weighted formula)
+  - topGenres for the year
+
+  Set the YEAR environment variable to test this endpoint.
+}

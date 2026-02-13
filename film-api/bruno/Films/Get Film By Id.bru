@@ -1,0 +1,18 @@
+meta {
+  name: Get Film By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_URL}}/film/{{FILM_ID}}
+  body: none
+  auth: none
+}
+
+docs {
+  Retrieves a single film by its MongoDB ObjectId.
+  The film document is populated with full director information.
+
+  Set the FILM_ID environment variable to test this endpoint.
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Director Stats
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{API_URL}}/director/{{TMDB_PERSON_ID}}/stats
+  body: none
+  auth: none
+}
+
+docs {
+  Manually recalculates all statistics for a director.
+
+  Recalculates:
+  - totalFilms, seenFilms
+  - totalScore, averageRating
+  - ratingCounts (distribution by rating 1-10)
+  - totalPoints (weighted score: 6=1pt, 7=3pt, 8=6pt, 9=10pt, 10=15pt)
+
+  Set the TMDB_PERSON_ID environment variable to test this endpoint.
+}

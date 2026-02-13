@@ -1,0 +1,50 @@
+meta {
+  name: Import Films
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_URL}}/import/films
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "films": [
+      {
+        "title": "The Shawshank Redemption",
+        "year": 1994,
+        "watched": true,
+        "rating": 9,
+        "tmdbId": "278"
+      },
+      {
+        "title": "The Godfather",
+        "year": 1972,
+        "watched": true,
+        "rating": 10,
+        "tmdbId": "238"
+      }
+    ]
+  }
+}
+
+docs {
+  Bulk import endpoint for creating multiple films at once.
+
+  Timeout: 5 minutes (longer than other endpoints)
+
+  Each film object can include:
+  - title (required)
+  - year (required)
+  - tmdbId (required)
+  - watched (optional, default: false)
+  - rating (optional, 1-10)
+  - genres (optional, string array)
+  - directors (optional, ObjectId array)
+  - duration, posterPath, overview, etc.
+
+  This endpoint is primarily used by the populate-film-db scripts.
+}

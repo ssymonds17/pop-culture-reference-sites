@@ -1,0 +1,29 @@
+meta {
+  name: Search
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/search
+  body: none
+  auth: none
+}
+
+params:query {
+  searchString: chaplin
+  ~itemType:
+}
+
+docs {
+  Search films and directors by text.
+
+  Query Parameters:
+  - searchString: Text to search for (required)
+  - itemType: Filter results by type (film | director)
+
+  If itemType is omitted, searches both films and directors.
+
+  Film search matches: title, originalTitle
+  Director search matches: name, displayName
+}

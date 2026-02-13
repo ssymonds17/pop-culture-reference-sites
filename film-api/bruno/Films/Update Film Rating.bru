@@ -1,0 +1,28 @@
+meta {
+  name: Update Film Rating
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{API_URL}}/film/{{FILM_ID}}/rating
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "rating": 8,
+    "watched": true
+  }
+}
+
+docs {
+  Updates a film's rating and watched status.
+
+  This triggers cascading updates to:
+  1. All associated directors' statistics
+  2. Year statistics for the film's release year
+
+  Set the FILM_ID environment variable to test this endpoint.
+}

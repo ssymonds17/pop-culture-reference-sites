@@ -1,0 +1,26 @@
+meta {
+  name: Get Years
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_URL}}/years
+  body: none
+  auth: none
+}
+
+docs {
+  Returns year statistics for all years, sorted by yearScore (descending).
+
+  Year score formula:
+  yearScore = totalScore × (percentRated6Plus / 100)
+
+  Each year includes:
+  - totalFilms, watchedFilms
+  - averageRating, totalScore
+  - filmsRated6Plus, percentRated6Plus
+  - yearScore (weighted score)
+  - ratingDistribution
+  - topGenres
+}

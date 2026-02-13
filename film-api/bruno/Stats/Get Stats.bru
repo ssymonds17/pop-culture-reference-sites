@@ -1,0 +1,21 @@
+meta {
+  name: Get Stats
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/stats
+  body: none
+  auth: none
+}
+
+docs {
+  Returns overall application statistics:
+  - Total films count
+  - Watched films count
+  - Total directors count
+  - Average rating across all watched films
+  - Rating distribution (count per rating 1-10)
+  - Top genres with counts
+}

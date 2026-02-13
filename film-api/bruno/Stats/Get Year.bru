@@ -1,0 +1,19 @@
+meta {
+  name: Get Year
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_URL}}/year/{{YEAR}}
+  body: none
+  auth: none
+}
+
+docs {
+  Returns statistics for a single year.
+
+  Set the YEAR environment variable to test this endpoint.
+
+  Returns the same structure as Get Years, but for a single year.
+}

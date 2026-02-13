@@ -1,0 +1,32 @@
+meta {
+  name: Get Films
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_URL}}/films
+  body: none
+  auth: none
+}
+
+params:query {
+  ~watched: true
+  ~minRating: 7
+  ~maxRating: 10
+  ~year: 1994
+  ~genre: Drama
+  ~directorId:
+}
+
+docs {
+  Query Parameters:
+  - watched: Filter by watched status (true/false)
+  - minRating: Minimum rating (1-10)
+  - maxRating: Maximum rating (1-10)
+  - year: Filter by release year
+  - genre: Filter by genre
+  - directorId: Filter by director ObjectId
+
+  Enable/disable query params by toggling the ~ prefix
+}

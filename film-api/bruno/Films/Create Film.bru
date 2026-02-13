@@ -1,0 +1,27 @@
+meta {
+  name: Create Film
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_URL}}/film
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "The Shawshank Redemption",
+    "year": 1994,
+    "watched": true,
+    "rating": 9,
+    "genres": ["Drama", "Crime"],
+    "duration": 142,
+    "tmdbId": "278",
+    "imdbId": "tt0111161",
+    "posterPath": "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+    "overview": "Framed in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison.",
+    "directors": []
+  }
+}

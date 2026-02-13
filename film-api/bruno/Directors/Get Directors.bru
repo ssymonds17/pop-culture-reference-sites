@@ -1,0 +1,24 @@
+meta {
+  name: Get Directors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/directors
+  body: none
+  auth: none
+}
+
+params:query {
+  ~sortBy: totalPoints
+}
+
+docs {
+  Query Parameters:
+  - sortBy: Sort order (totalPoints | seenFilms | averageRating)
+
+  Default sort is by totalPoints (descending).
+
+  Limit: 200 directors per request
+}
