@@ -38,8 +38,8 @@ Expected columns:
 
 - `Title` - Film title
 - `Year` - Release year
-- `Watched` - "Yes" or "No"
-- `Rating` - 1-10 rating (optional if not watched)
+- `Seen` - "TRUE" or "FALSE" (whether film has been watched)
+- `Score` - 1-10 rating (optional if not watched)
 
 ## Usage
 

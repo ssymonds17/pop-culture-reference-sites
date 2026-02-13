@@ -196,12 +196,23 @@ const importFilms = async () => {
 
   for (let i = 0; i < csvData.length; i++) {
     const row = csvData[i]
+
     const originalTitle = row.Title || row.title
     const year = parseInt(row.Year || row.year)
-    const watched = (row.Watched || row.watched || "").toLowerCase() === "yes"
-    const rating = row.Rating || row.rating ? parseInt(row.Rating || row.rating) : undefined
+
+    // Parse 'Seen' column (TRUE/FALSE)
+    const seenValue = (row.Seen || "").toString().toLowerCase()
+    const watched = seenValue === "true" || seenValue === "yes"
+
+    // Parse 'Score' column - only set if value exists and isn't empty
+    let rating = undefined
+    const scoreValue = row.Score
+    if (scoreValue !== undefined && scoreValue !== null && scoreValue !== "") {
+      rating = parseInt(scoreValue)
+    }
 
     console.log(`\n[${i + 1}/${csvData.length}] Processing: ${originalTitle} (${year})`)
+    console.log(`  Watched: ${watched}, Rating: ${rating || "N/A"}`)
 
     // Search TMDb for the film
     const tmdbId = await searchTmdbFilm(originalTitle, year)
