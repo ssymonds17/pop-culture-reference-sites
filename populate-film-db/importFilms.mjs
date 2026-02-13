@@ -249,8 +249,9 @@ const importFilms = async () => {
     try {
       // Extract directors from crew
       const directors = []
+      let directorCrew = []
       if (tmdbDetails.credits && tmdbDetails.credits.crew) {
-        const directorCrew = tmdbDetails.credits.crew.filter((c) => c.job === "Director")
+        directorCrew = tmdbDetails.credits.crew.filter((c) => c.job === "Director")
 
         for (const directorData of directorCrew) {
           const director = await findOrCreateDirector(
