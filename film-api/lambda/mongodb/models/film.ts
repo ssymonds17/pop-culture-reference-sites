@@ -46,7 +46,6 @@ const filmSchema = new mongoose.Schema({
 })
 
 // Indexes for efficient querying
-filmSchema.index({ tmdbId: 1 })
 filmSchema.index({ title: 1 })
 filmSchema.index({ year: 1 })
 filmSchema.index({ directors: 1 })

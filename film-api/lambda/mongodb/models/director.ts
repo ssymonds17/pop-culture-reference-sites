@@ -58,7 +58,6 @@ const directorSchema = new mongoose.Schema({
 })
 
 // Indexes for efficient querying
-directorSchema.index({ tmdbPersonId: 1 })
 directorSchema.index({ name: 1 })
 directorSchema.index({ totalPoints: -1 })
 directorSchema.index({ seenFilms: -1 })

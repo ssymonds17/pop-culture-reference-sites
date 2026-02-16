@@ -60,7 +60,6 @@ const yearStatsSchema = new mongoose.Schema({
 })
 
 // Indexes for efficient querying
-yearStatsSchema.index({ year: 1 })
 yearStatsSchema.index({ yearScore: -1 })
 
 export default mongoose.model<YearStatsDocument>(
