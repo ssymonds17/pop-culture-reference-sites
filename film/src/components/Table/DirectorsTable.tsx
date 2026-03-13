@@ -1,15 +1,29 @@
-import { Director } from '@/types'
+import { useState } from "react"
+import { Director } from "@/types"
+import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
 
 interface DirectorsTableProps {
   directors: Director[]
 }
 
 export default function DirectorsTable({ directors }: DirectorsTableProps) {
+  const [selectedDirector, setSelectedDirector] = useState<Director | null>(
+    null,
+  )
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleDirectorClick = (director: Director) => {
+    setSelectedDirector(director)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedDirector(null)
+  }
   if (directors.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-400">
-        No directors found.
-      </div>
+      <div className="text-center py-12 text-gray-400">No directors found.</div>
     )
   }
 
@@ -44,7 +58,11 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {directors.map((director, index) => (
-              <tr key={director._id} className="hover:bg-gray-800/50 transition-colors">
+              <tr
+                key={director._id}
+                onClick={() => handleDirectorClick(director)}
+                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
+              >
                 <td className="px-6 py-4 text-center">
                   <span className="font-bold text-film-500">#{index + 1}</span>
                 </td>
@@ -72,10 +90,10 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center text-sm text-gray-300">
-                  {director.ratingCounts.rating10} /{' '}
-                  {director.ratingCounts.rating9} /{' '}
-                  {director.ratingCounts.rating8} /{' '}
-                  {director.ratingCounts.rating7} /{' '}
+                  {director.ratingCounts.rating10} /{" "}
+                  {director.ratingCounts.rating9} /{" "}
+                  {director.ratingCounts.rating8} /{" "}
+                  {director.ratingCounts.rating7} /{" "}
                   {director.ratingCounts.rating6}
                 </td>
               </tr>
@@ -83,6 +101,11 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
           </tbody>
         </table>
       </div>
+      <DirectorFilmsModal
+        director={selectedDirector}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }
