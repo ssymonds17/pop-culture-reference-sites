@@ -1,0 +1,33 @@
+meta {
+  name: Search TMDB
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/search/tmdb?query=fight club&year=1999
+  body: none
+  auth: none
+}
+
+params:query {
+  query: fight club
+  year: 1999
+}
+
+docs {
+  Search for films on The Movie Database (TMDB).
+
+  Query Parameters:
+  - query: Search query (film title) - REQUIRED
+  - year: Release year to narrow results (optional)
+
+  Returns a list of matching films from TMDB with:
+  - tmdbId: TMDB movie ID (use this to create film)
+  - title: Film title
+  - year: Release year
+  - posterPath: TMDB poster path
+  - overview: Film description
+
+  Use the tmdbId from results to create a film in the database.
+}

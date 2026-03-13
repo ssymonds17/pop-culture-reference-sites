@@ -7,14 +7,23 @@ export class ApiStack extends core.Stack {
   constructor(scope: core.App, id: string, props: any) {
     super(scope, id, props)
 
-    // Get MongoDB URI from environment variable
+    // Get environment variables
     const mongodbUri = process.env.MONGODB_URI
     if (!mongodbUri) {
       throw new Error("MONGODB_URI environment variable is required")
     }
 
+    const tmdbApiKey = process.env.TMDB_API_KEY
+    if (!tmdbApiKey) {
+      throw new Error("TMDB_API_KEY environment variable is required")
+    }
+
     const lambdaEnvironment = {
       MONGODB_URI: mongodbUri,
+    }
+
+    const tmdbLambdaEnvironment = {
+      TMDB_API_KEY: tmdbApiKey,
     }
 
     // Lambda functions for Films
@@ -139,6 +148,14 @@ export class ApiStack extends core.Stack {
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
       environment: lambdaEnvironment,
+    })
+
+    const searchTmdbLambda = new LambdaConstruct(this, "SearchTmdb", {
+      functionName: "film-search-tmdb-handler",
+      code: lambda.Code.fromAsset("build/apps/search-tmdb"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: tmdbLambdaEnvironment,
     })
 
     const importFilmsLambda = new LambdaConstruct(this, "ImportFilms", {
@@ -275,6 +292,16 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(searchLambda.function)
     )
     search.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+
+    const searchTmdb = search.addResource("tmdb")
+    searchTmdb.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(searchTmdbLambda.function)
+    )
+    searchTmdb.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
     })
