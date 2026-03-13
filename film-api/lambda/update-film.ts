@@ -28,14 +28,19 @@ const handler = async (event: any) => {
       throw new Error("Failed to update film")
     }
 
-    // Cascade update to all associated directors
-    const directorIds = currentFilm.directors as any[]
-    for (const directorId of directorIds) {
-      await updateDirectorStats(directorId.toString())
-    }
+    // Only cascade update stats if rating changed (which affects watched status)
+    if (rating !== undefined) {
+      // Cascade update to all associated directors
+      const directorIds = currentFilm.directors as any[]
+      for (const director of directorIds) {
+        // Access _id property from populated director object
+        const directorId = typeof director === 'object' && director._id ? director._id.toString() : director.toString()
+        await updateDirectorStats(directorId)
+      }
 
-    // Cascade update to year statistics
-    await updateYearStats(currentFilm.year)
+      // Cascade update to year statistics
+      await updateYearStats(currentFilm.year)
+    }
 
     return createApiResponse(200, {
       id: updatedFilm.id,
