@@ -41,7 +41,7 @@ export const getFilms = async (filters?: {
 
   return Film.find(query)
     .populate("directors")
-    .sort({ year: -1, title: 1 })
+    .sort({ rating: -1, year: -1, title: 1 })
     .limit(500)
     .exec()
 }
