@@ -30,7 +30,32 @@ export default function FilmsPage() {
 
         const url = `${API_ENDPOINTS.search}?${params.toString()}`
         const response = await axios.get(url)
-        setFilms(response.data.data)
+
+        // Apply other filters client-side to search results
+        let filteredFilms = response.data.data
+
+        if (selectedFilters.watched !== undefined) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.watched === selectedFilters.watched)
+        }
+        if (selectedFilters.minRating) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating >= selectedFilters.minRating!)
+        }
+        if (selectedFilters.maxRating) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating <= selectedFilters.maxRating!)
+        }
+        if (selectedFilters.year) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.year === selectedFilters.year)
+        }
+        if (selectedFilters.genre) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.genres?.includes(selectedFilters.genre!))
+        }
+        if (selectedFilters.directorId) {
+          filteredFilms = filteredFilms.filter((f: Film) =>
+            f.directors.some((d: any) => d._id === selectedFilters.directorId)
+          )
+        }
+
+        setFilms(filteredFilms)
         setError(null)
         setDataRefreshRequired(false)
       } else {
