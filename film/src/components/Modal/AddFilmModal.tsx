@@ -72,7 +72,7 @@ export const AddFilmModal = ({
       setError(null)
       setSuccessMessage(null)
 
-      await axios.post(API_ENDPOINTS.films, { tmdbId })
+      await axios.post(API_ENDPOINTS.createFilm, { tmdbId })
 
       setSuccessMessage(`"${title}" added successfully!`)
       setSearchQuery("")
