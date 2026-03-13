@@ -21,6 +21,9 @@ export {
   updateDirectorStats,
 } from "./services/directors"
 
+// Director model (for direct updates)
+export { default as Director } from "./models/director"
+
 // Year services
 export {
   getYears,

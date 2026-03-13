@@ -20,9 +20,6 @@ export class ApiStack extends core.Stack {
 
     const lambdaEnvironment = {
       MONGODB_URI: mongodbUri,
-    }
-
-    const tmdbLambdaEnvironment = {
       TMDB_API_KEY: tmdbApiKey,
     }
 
@@ -155,7 +152,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/search-tmdb"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
-      environment: tmdbLambdaEnvironment,
+      environment: lambdaEnvironment,
     })
 
     const importFilmsLambda = new LambdaConstruct(this, "ImportFilms", {

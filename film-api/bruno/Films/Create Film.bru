@@ -12,17 +12,35 @@ post {
 
 body:json {
   {
-    "title": "The Shawshank Redemption",
-    "year": 1994,
-    "watched": true,
-    "rating": 9,
-    "owned": false,
-    "genres": ["Drama", "Crime"],
-    "duration": 142,
-    "tmdbId": "278",
-    "imdbId": "tt0111161",
-    "posterPath": "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
-    "overview": "Framed in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison.",
-    "directors": []
+    "tmdbId": "550"
   }
+}
+
+docs {
+  Creates a new film in the database.
+
+  **Method 1: From TMDB (Recommended)**
+  Provide just the tmdbId and the backend will:
+  - Fetch all film details from TMDB
+  - Find or create director records
+  - Create the film with all metadata
+  - Update director statistics
+
+  Example:
+  {
+    "tmdbId": "550"
+  }
+
+  **Method 2: Manual (Legacy)**
+  Provide complete film data manually:
+  {
+    "title": "Fight Club",
+    "year": 1999,
+    "watched": false,
+    "tmdbId": "550",
+    "directors": [],
+    "genres": ["Drama"]
+  }
+
+  The API will return 409 if the film already exists (duplicate tmdbId).
 }
