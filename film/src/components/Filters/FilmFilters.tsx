@@ -21,10 +21,30 @@ export default function FilmFilters() {
     if (maxRating) filters.maxRating = parseInt(maxRating)
     if (year) filters.year = parseInt(year)
     if (genre) filters.genre = genre
+    // Note: searchString is NOT included here - it's submitted manually
+
+    setSelectedFilters(filters)
+  }, [watched, minRating, maxRating, year, genre])
+
+  const handleSearchSubmit = () => {
+    const filters: any = {}
+
+    if (watched === "watched") filters.watched = true
+    if (watched === "unwatched") filters.watched = false
+    if (minRating) filters.minRating = parseInt(minRating)
+    if (maxRating) filters.maxRating = parseInt(maxRating)
+    if (year) filters.year = parseInt(year)
+    if (genre) filters.genre = genre
     if (searchString) filters.searchString = searchString
 
     setSelectedFilters(filters)
-  }, [watched, minRating, maxRating, year, genre, searchString])
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit()
+    }
+  }
 
   const handleReset = () => {
     setWatched("all")
@@ -33,7 +53,7 @@ export default function FilmFilters() {
     setYear("")
     setGenre("")
     setSearchString("")
-    resetFilters()
+    setSelectedFilters({})
   }
 
   return (
@@ -47,7 +67,8 @@ export default function FilmFilters() {
             type="text"
             value={searchString}
             onChange={(e) => setSearchString(e.target.value)}
-            placeholder="Search films..."
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search films"
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
           />
         </div>
@@ -123,10 +144,16 @@ export default function FilmFilters() {
           />
         </div>
 
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
+          <button
+            onClick={handleSearchSubmit}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 border border-blue-600 rounded px-3 py-2 text-sm font-medium transition-colors"
+          >
+            Search
+          </button>
           <button
             onClick={handleReset}
-            className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded px-3 py-2 text-sm font-medium transition-colors"
+            className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded px-3 py-2 text-sm font-medium transition-colors"
           >
             Reset
           </button>
