@@ -18,15 +18,14 @@ export default function GenreDistribution({ genres }: GenreDistributionProps) {
             <div className="w-24 text-right mr-3 font-medium truncate text-sm">
               {genre}
             </div>
-            <div className="flex-1 bg-gray-800 rounded-full h-8 overflow-hidden">
+            <div className="flex-1 bg-gray-800 rounded-full h-8 overflow-hidden relative">
               <div
-                className="h-full bg-film-600 flex items-center justify-end px-3 transition-all duration-500"
+                className="h-full bg-film-600 transition-all duration-500"
                 style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
-              >
-                {count > 0 && (
-                  <span className="text-white font-semibold text-sm">{count}</span>
-                )}
-              </div>
+              />
+              <span className={`absolute inset-0 flex items-center justify-end px-3 font-semibold text-sm ${count === 0 ? 'text-gray-500' : 'text-white'}`}>
+                {count}
+              </span>
             </div>
           </div>
         ))}

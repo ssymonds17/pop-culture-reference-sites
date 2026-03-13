@@ -1,5 +1,3 @@
-import { getRatingColor } from '@/lib/utils'
-
 interface RatingDistributionProps {
   distribution: {
     rating1: number
@@ -16,10 +14,12 @@ interface RatingDistributionProps {
 }
 
 export default function RatingDistribution({ distribution }: RatingDistributionProps) {
-  const ratings = Object.entries(distribution).map(([key, value]) => ({
-    rating: parseInt(key.replace('rating', '')),
-    count: value,
-  }))
+  const ratings = Object.entries(distribution)
+    .map(([key, value]) => ({
+      rating: parseInt(key.replace('rating', '')),
+      count: value,
+    }))
+    .reverse() // Reverse to show 10 at top, 1 at bottom
 
   const maxCount = Math.max(...ratings.map((r) => r.count))
 
@@ -30,15 +30,14 @@ export default function RatingDistribution({ distribution }: RatingDistributionP
         {ratings.map(({ rating, count }) => (
           <div key={rating} className="flex items-center">
             <div className="w-8 text-right mr-3 font-medium">{rating}</div>
-            <div className="flex-1 bg-gray-800 rounded-full h-8 overflow-hidden">
+            <div className="flex-1 bg-gray-800 rounded-full h-8 overflow-hidden relative">
               <div
-                className={`h-full ${getRatingColor(rating)} flex items-center justify-end px-3 transition-all duration-500`}
+                className="h-full bg-green-600 transition-all duration-500"
                 style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
-              >
-                {count > 0 && (
-                  <span className="text-white font-semibold text-sm">{count}</span>
-                )}
-              </div>
+              />
+              <span className={`absolute inset-0 flex items-center justify-end px-3 font-semibold text-sm ${count === 0 ? 'text-gray-500' : 'text-white'}`}>
+                {count}
+              </span>
             </div>
           </div>
         ))}
