@@ -1,41 +1,57 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useFilmContext } from '@/lib/context/FilmContext'
+import { useState, useEffect } from "react"
+import { useFilmContext } from "@/lib/context/FilmContext"
 
 export default function FilmFilters() {
-  const { selectedFilters, setSelectedFilters, resetFilters } = useFilmContext()
-  const [watched, setWatched] = useState<string>('all')
-  const [minRating, setMinRating] = useState<string>('')
-  const [maxRating, setMaxRating] = useState<string>('')
-  const [year, setYear] = useState<string>('')
-  const [genre, setGenre] = useState<string>('')
+  const { setSelectedFilters, resetFilters } = useFilmContext()
+  const [watched, setWatched] = useState<string>("all")
+  const [minRating, setMinRating] = useState<string>("")
+  const [maxRating, setMaxRating] = useState<string>("")
+  const [year, setYear] = useState<string>("")
+  const [genre, setGenre] = useState<string>("")
+  const [searchString, setSearchString] = useState<string>("")
 
   useEffect(() => {
     const filters: any = {}
 
-    if (watched === 'watched') filters.watched = true
-    if (watched === 'unwatched') filters.watched = false
+    if (watched === "watched") filters.watched = true
+    if (watched === "unwatched") filters.watched = false
     if (minRating) filters.minRating = parseInt(minRating)
     if (maxRating) filters.maxRating = parseInt(maxRating)
     if (year) filters.year = parseInt(year)
     if (genre) filters.genre = genre
+    if (searchString) filters.searchString = searchString
 
     setSelectedFilters(filters)
-  }, [watched, minRating, maxRating, year, genre])
+  }, [watched, minRating, maxRating, year, genre, searchString])
 
   const handleReset = () => {
-    setWatched('all')
-    setMinRating('')
-    setMaxRating('')
-    setYear('')
-    setGenre('')
+    setWatched("all")
+    setMinRating("")
+    setMaxRating("")
+    setYear("")
+    setGenre("")
+    setSearchString("")
     resetFilters()
   }
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            Search
+          </label>
+          <input
+            type="text"
+            value={searchString}
+            onChange={(e) => setSearchString(e.target.value)}
+            placeholder="Search films..."
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Status

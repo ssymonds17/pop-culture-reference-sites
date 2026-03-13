@@ -102,6 +102,7 @@ export interface FilmFilters {
   year?: number
   genre?: string
   directorId?: string
+  searchString?: string
 }
 
 export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'averageRating'

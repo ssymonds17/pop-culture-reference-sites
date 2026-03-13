@@ -23,30 +23,43 @@ export default function FilmsPage() {
       setLoading(true)
       const params = new URLSearchParams()
 
-      if (selectedFilters.watched !== undefined) {
-        params.append('watched', selectedFilters.watched.toString())
-      }
-      if (selectedFilters.minRating) {
-        params.append('minRating', selectedFilters.minRating.toString())
-      }
-      if (selectedFilters.maxRating) {
-        params.append('maxRating', selectedFilters.maxRating.toString())
-      }
-      if (selectedFilters.year) {
-        params.append('year', selectedFilters.year.toString())
-      }
-      if (selectedFilters.genre) {
-        params.append('genre', selectedFilters.genre)
-      }
-      if (selectedFilters.directorId) {
-        params.append('directorId', selectedFilters.directorId)
-      }
+      // If search string is provided, use the search endpoint
+      if (selectedFilters.searchString) {
+        params.append('searchString', selectedFilters.searchString)
+        params.append('itemType', 'film')
 
-      const url = `${API_ENDPOINTS.films}?${params.toString()}`
-      const response = await axios.get(url)
-      setFilms(response.data.data)
-      setError(null)
-      setDataRefreshRequired(false)
+        const url = `${API_ENDPOINTS.search}?${params.toString()}`
+        const response = await axios.get(url)
+        setFilms(response.data.data)
+        setError(null)
+        setDataRefreshRequired(false)
+      } else {
+        // Otherwise use the regular films endpoint with filters
+        if (selectedFilters.watched !== undefined) {
+          params.append('watched', selectedFilters.watched.toString())
+        }
+        if (selectedFilters.minRating) {
+          params.append('minRating', selectedFilters.minRating.toString())
+        }
+        if (selectedFilters.maxRating) {
+          params.append('maxRating', selectedFilters.maxRating.toString())
+        }
+        if (selectedFilters.year) {
+          params.append('year', selectedFilters.year.toString())
+        }
+        if (selectedFilters.genre) {
+          params.append('genre', selectedFilters.genre)
+        }
+        if (selectedFilters.directorId) {
+          params.append('directorId', selectedFilters.directorId)
+        }
+
+        const url = `${API_ENDPOINTS.films}?${params.toString()}`
+        const response = await axios.get(url)
+        setFilms(response.data.data)
+        setError(null)
+        setDataRefreshRequired(false)
+      }
     } catch (err) {
       console.error('Error fetching films:', err)
       setError('Failed to load films')
