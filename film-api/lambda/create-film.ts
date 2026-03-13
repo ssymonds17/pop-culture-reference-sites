@@ -43,23 +43,6 @@ const findOrCreateDirector = async (tmdbPersonId: string, name: string) => {
       tmdbPersonId,
       name: name.toLowerCase(),
       displayName: name,
-      films: [],
-      totalFilms: 0,
-      seenFilms: 0,
-      totalScore: 0,
-      ratingCounts: {
-        rating1: 0,
-        rating2: 0,
-        rating3: 0,
-        rating4: 0,
-        rating5: 0,
-        rating6: 0,
-        rating7: 0,
-        rating8: 0,
-        rating9: 0,
-        rating10: 0,
-      },
-      totalPoints: 0,
     })
     logger.info(`Created director: ${name} (${tmdbPersonId})`)
   }

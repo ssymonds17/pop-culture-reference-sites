@@ -24,8 +24,30 @@ export interface DirectorDocument extends mongoose.Document {
   totalPoints: number // Weighted score (6=1pt, 7=3pt, 8=6pt, 9=10pt, 10=15pt)
 }
 
-// Type for creating new directors (excludes mongoose Document fields)
-export type DirectorData = Omit<DirectorDocument, keyof mongoose.Document>
+// Type for creating new directors - only required fields, rest have defaults
+export type DirectorData = {
+  tmdbPersonId: string
+  name: string
+  displayName: string
+  films?: mongoose.Types.ObjectId[]
+  totalFilms?: number
+  seenFilms?: number
+  averageRating?: number
+  totalScore?: number
+  ratingCounts?: {
+    rating1?: number
+    rating2?: number
+    rating3?: number
+    rating4?: number
+    rating5?: number
+    rating6?: number
+    rating7?: number
+    rating8?: number
+    rating9?: number
+    rating10?: number
+  }
+  totalPoints?: number
+}
 
 const directorSchema = new mongoose.Schema({
   tmdbPersonId: { type: String, required: true, unique: true },

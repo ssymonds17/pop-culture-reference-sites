@@ -1,5 +1,4 @@
 import Director, { DirectorData } from "../models/director"
-import Film from "../models/film"
 
 export const createDirector = async (directorData: DirectorData) => {
   return Director.create(directorData)
@@ -24,10 +23,7 @@ export const getDirectors = async (sortBy?: string) => {
       break
   }
 
-  return Director.find({})
-    .sort(sortOptions)
-    .limit(200)
-    .exec()
+  return Director.find({}).sort(sortOptions).limit(200).exec()
 }
 
 export const getDirectorById = async (id: string) => {
@@ -43,17 +39,13 @@ export const getDirectorByTmdbPersonId = async (tmdbPersonId: string) => {
 }
 
 export const findDirectorsByName = async (name: string) => {
-  return Director.find(
-    { name: new RegExp(name, "i") },
-    null,
-    { sort: { totalPoints: -1 } }
-  ).exec()
+  return Director.find({ name: new RegExp(name, "i") }, null, {
+    sort: { totalPoints: -1 },
+  }).exec()
 }
 
 export const updateDirectorStats = async (directorId: string) => {
-  const director = await Director.findById(directorId)
-    .populate("films")
-    .exec()
+  const director = await Director.findById(directorId).populate("films").exec()
 
   if (!director) {
     throw new Error("Director not found")
@@ -68,7 +60,7 @@ export const updateDirectorStats = async (directorId: string) => {
 
   const totalScore = watchedFilms.reduce(
     (sum: number, f: any) => sum + (f.rating || 0),
-    0
+    0,
   )
 
   const averageRating = seenFilms > 0 ? totalScore / seenFilms : undefined
