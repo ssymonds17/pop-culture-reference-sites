@@ -7,6 +7,7 @@ import { Film } from '@/types'
 import { useFilmContext } from '@/lib/context/FilmContext'
 import FilmFilters from '@/components/Filters/FilmFilters'
 import FilmsTable from '@/components/Table/FilmsTable'
+import { AddFilmModal } from '@/components/Modal/AddFilmModal'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 
@@ -14,6 +15,7 @@ export default function FilmsPage() {
   const [films, setFilms] = useState<Film[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isAddFilmModalOpen, setIsAddFilmModalOpen] = useState(false)
   const { selectedFilters, dataRefreshRequired, setDataRefreshRequired } = useFilmContext()
 
   const fetchFilms = async () => {
@@ -59,9 +61,17 @@ export default function FilmsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold mb-2">Films</h1>
-        <p className="text-gray-400">Browse and manage your film collection</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Films</h1>
+          <p className="text-gray-400">Browse and manage your film collection</p>
+        </div>
+        <button
+          onClick={() => setIsAddFilmModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          Add Film
+        </button>
       </div>
 
       <FilmFilters />
@@ -86,6 +96,12 @@ export default function FilmsPage() {
           <FilmsTable films={films} onUpdate={fetchFilms} />
         </div>
       )}
+
+      <AddFilmModal
+        isOpen={isAddFilmModalOpen}
+        onClose={() => setIsAddFilmModalOpen(false)}
+        onFilmAdded={fetchFilms}
+      />
     </div>
   )
 }
