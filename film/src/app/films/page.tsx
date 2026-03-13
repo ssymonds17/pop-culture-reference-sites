@@ -13,14 +13,16 @@ import 'react-loading-skeleton/dist/skeleton.css'
 
 export default function FilmsPage() {
   const [films, setFilms] = useState<Film[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAddFilmModalOpen, setIsAddFilmModalOpen] = useState(false)
+  const [hasInitialFetch, setHasInitialFetch] = useState(false)
   const { selectedFilters, dataRefreshRequired, setDataRefreshRequired } = useFilmContext()
 
   const fetchFilms = async () => {
     try {
       setLoading(true)
+      setHasInitialFetch(true)
       const params = new URLSearchParams()
 
       // If search string is provided, use the search endpoint
@@ -94,7 +96,11 @@ export default function FilmsPage() {
   }
 
   useEffect(() => {
-    fetchFilms()
+    // Allow search/filters to work even before initial load
+    const hasActiveFilters = Object.keys(selectedFilters).length > 0
+    if (hasInitialFetch || hasActiveFilters || dataRefreshRequired) {
+      fetchFilms()
+    }
   }, [selectedFilters, dataRefreshRequired])
 
   return (
@@ -120,7 +126,17 @@ export default function FilmsPage() {
         </div>
       )}
 
-      {loading ? (
+      {!hasInitialFetch ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400 mb-4">Load all films or use search/filters above</p>
+          <button
+            onClick={fetchFilms}
+            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+          >
+            Load All Films
+          </button>
+        </div>
+      ) : loading ? (
         <div className="space-y-2">
           {[...Array(10)].map((_, i) => (
             <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />

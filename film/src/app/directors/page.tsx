@@ -12,52 +12,57 @@ import 'react-loading-skeleton/dist/skeleton.css'
 
 export default function DirectorsPage() {
   const [directors, setDirectors] = useState<Director[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasInitialFetch, setHasInitialFetch] = useState(false)
   const { selectedDirectorSort, directorSearchString } = useFilmContext()
 
-  useEffect(() => {
-    const fetchDirectors = async () => {
-      try {
-        setLoading(true)
+  const fetchDirectors = async () => {
+    try {
+      setLoading(true)
+      setHasInitialFetch(true)
 
-        // If search string is provided, use the search endpoint
-        if (directorSearchString) {
-          const params = new URLSearchParams()
-          params.append('searchString', directorSearchString)
-          params.append('itemType', 'director')
+      // If search string is provided, use the search endpoint
+      if (directorSearchString) {
+        const params = new URLSearchParams()
+        params.append('searchString', directorSearchString)
+        params.append('itemType', 'director')
 
-          const url = `${API_ENDPOINTS.search}?${params.toString()}`
-          const response = await axios.get(url)
+        const url = `${API_ENDPOINTS.search}?${params.toString()}`
+        const response = await axios.get(url)
 
-          // Sort results client-side
-          let sortedDirectors = response.data.data
-          if (selectedDirectorSort === 'totalPoints') {
-            sortedDirectors.sort((a: Director, b: Director) => b.totalPoints - a.totalPoints)
-          } else if (selectedDirectorSort === 'seenFilms') {
-            sortedDirectors.sort((a: Director, b: Director) => b.seenFilms - a.seenFilms)
-          } else if (selectedDirectorSort === 'averageRating') {
-            sortedDirectors.sort((a: Director, b: Director) => (b.averageRating || 0) - (a.averageRating || 0))
-          }
-
-          setDirectors(sortedDirectors)
-          setError(null)
-        } else {
-          // Otherwise use the regular directors endpoint with sort
-          const url = `${API_ENDPOINTS.directors}?sortBy=${selectedDirectorSort}`
-          const response = await axios.get(url)
-          setDirectors(response.data.data)
-          setError(null)
+        // Sort results client-side
+        let sortedDirectors = response.data.data
+        if (selectedDirectorSort === 'totalPoints') {
+          sortedDirectors.sort((a: Director, b: Director) => b.totalPoints - a.totalPoints)
+        } else if (selectedDirectorSort === 'seenFilms') {
+          sortedDirectors.sort((a: Director, b: Director) => b.seenFilms - a.seenFilms)
+        } else if (selectedDirectorSort === 'averageRating') {
+          sortedDirectors.sort((a: Director, b: Director) => (b.averageRating || 0) - (a.averageRating || 0))
         }
-      } catch (err) {
-        console.error('Error fetching directors:', err)
-        setError('Failed to load directors')
-      } finally {
-        setLoading(false)
-      }
-    }
 
-    fetchDirectors()
+        setDirectors(sortedDirectors)
+        setError(null)
+      } else {
+        // Otherwise use the regular directors endpoint with sort
+        const url = `${API_ENDPOINTS.directors}?sortBy=${selectedDirectorSort}`
+        const response = await axios.get(url)
+        setDirectors(response.data.data)
+        setError(null)
+      }
+    } catch (err) {
+      console.error('Error fetching directors:', err)
+      setError('Failed to load directors')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Allow search to work even before initial load
+    if (hasInitialFetch || directorSearchString) {
+      fetchDirectors()
+    }
   }, [selectedDirectorSort, directorSearchString])
 
   return (
@@ -75,7 +80,17 @@ export default function DirectorsPage() {
         </div>
       )}
 
-      {loading ? (
+      {!hasInitialFetch ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400 mb-4">Load all directors or use search above</p>
+          <button
+            onClick={fetchDirectors}
+            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+          >
+            Load All Directors
+          </button>
+        </div>
+      ) : loading ? (
         <div className="space-y-2">
           {[...Array(20)].map((_, i) => (
             <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
