@@ -54,22 +54,40 @@ export const getFilmByTmdbId = async (tmdbId: string) => {
   return Film.findOne({ tmdbId }).exec()
 }
 
-export const updateFilmRating = async (
+export const updateFilm = async (
   id: string,
-  rating?: number,
-  watched?: boolean,
-  owned?: boolean
+  rating?: number | null,
+  owned?: boolean,
 ) => {
   const updates: any = {}
-  if (rating !== undefined) updates.rating = rating
-  if (watched !== undefined) updates.watched = watched
-  if (owned !== undefined) updates.owned = owned
+  const unsets: any = {}
 
-  return Film.findByIdAndUpdate(
-    id,
-    updates,
-    { new: true }
-  ).exec()
+  // Handle rating and auto-update watched status
+  if (rating !== undefined) {
+    if (rating === null) {
+      // Clear rating and set watched to false
+      unsets.rating = ""
+      updates.watched = false
+    } else {
+      // Set rating and set watched to true
+      updates.rating = rating
+      updates.watched = true
+    }
+  }
+
+  if (owned !== undefined) {
+    updates.owned = owned
+  }
+
+  const updateQuery: any = {}
+  if (Object.keys(updates).length > 0) {
+    updateQuery.$set = updates
+  }
+  if (Object.keys(unsets).length > 0) {
+    updateQuery.$unset = unsets
+  }
+
+  return Film.findByIdAndUpdate(id, updateQuery, { new: true }).exec()
 }
 
 export const deleteFilm = async (id: string) => {
@@ -77,11 +95,9 @@ export const deleteFilm = async (id: string) => {
 }
 
 export const findFilmsByTitle = async (title: string) => {
-  return Film.find(
-    { title: new RegExp(title, "i") },
-    null,
-    { sort: { year: -1, title: 1 } }
-  )
+  return Film.find({ title: new RegExp(title, "i") }, null, {
+    sort: { year: -1, title: 1 },
+  })
     .populate("directors")
     .exec()
 }

@@ -5,11 +5,11 @@
     "film-api": "bin/film-api.js"
   },
   "scripts": {
-    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film-rating && npm run build:delete-film && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:import-films",
+    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film && npm run build:delete-film && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:import-films",
     "build:create-film": "esbuild lambda/create-film.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-film/index.js",
     "build:get-films": "esbuild lambda/get-films.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-films/index.js",
     "build:get-film-by-id": "esbuild lambda/get-film-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-film-by-id/index.js",
-    "build:update-film-rating": "esbuild lambda/update-film-rating.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-film-rating/index.js",
+    "build:update-film": "esbuild lambda/update-film.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-film/index.js",
     "build:delete-film": "esbuild lambda/delete-film.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/delete-film/index.js",
     "build:get-director-by-person-id": "esbuild lambda/get-director-by-person-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-director-by-person-id/index.js",
     "build:get-directors": "esbuild lambda/get-directors.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-directors/index.js",

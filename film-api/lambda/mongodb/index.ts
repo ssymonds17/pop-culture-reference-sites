@@ -6,7 +6,7 @@ export {
   getFilms,
   getFilmById,
   getFilmByTmdbId,
-  updateFilmRating,
+  updateFilm,
   deleteFilm,
   findFilmsByTitle,
 } from "./services/films"

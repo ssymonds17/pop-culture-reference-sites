@@ -42,12 +42,12 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
-    const updateFilmRatingLambda = new LambdaConstruct(
+    const updateFilmLambda = new LambdaConstruct(
       this,
-      "UpdateFilmRating",
+      "UpdateFilm",
       {
-        functionName: "film-update-film-rating-handler",
-        code: lambda.Code.fromAsset("build/apps/update-film-rating"),
+        functionName: "film-update-film-handler",
+        code: lambda.Code.fromAsset("build/apps/update-film"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
         environment: lambdaEnvironment,
@@ -181,22 +181,16 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(getFilmByIdLambda.function)
     )
     filmById.addMethod(
+      "PATCH",
+      new apigateway.LambdaIntegration(updateFilmLambda.function)
+    )
+    filmById.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deleteFilmLambda.function)
     )
     filmById.addCorsPreflight({
       allowOrigins: ["*"],
-      allowMethods: ["GET", "DELETE"],
-    })
-
-    const filmRating = filmById.addResource("rating")
-    filmRating.addMethod(
-      "PUT",
-      new apigateway.LambdaIntegration(updateFilmRatingLambda.function)
-    )
-    filmRating.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["PUT"],
+      allowMethods: ["GET", "PATCH", "DELETE"],
     })
 
     // RESOURCES - Directors

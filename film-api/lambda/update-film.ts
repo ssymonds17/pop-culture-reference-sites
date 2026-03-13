@@ -1,16 +1,16 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase, getFilmById, updateFilmRating, updateDirectorStats, updateYearStats } from "./mongodb"
+import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats } from "./mongodb"
 
 const handler = async (event: any) => {
   const filmId = event.pathParameters?.id
-  const { rating, watched, owned } = JSON.parse(event.body)
+  const { rating, owned } = JSON.parse(event.body)
 
   try {
     if (!filmId) {
       throw new Error("Film ID is missing")
     }
 
-    if (rating !== undefined && (rating < 1 || rating > 10)) {
+    if (rating !== undefined && rating !== null && (rating < 1 || rating > 10)) {
       throw new Error("Rating must be between 1 and 10")
     }
 
@@ -22,7 +22,7 @@ const handler = async (event: any) => {
       throw new Error("Film not found")
     }
 
-    const updatedFilm = await updateFilmRating(filmId, rating, watched, owned)
+    const updatedFilm = await updateFilm(filmId, rating, owned)
 
     if (!updatedFilm) {
       throw new Error("Failed to update film")
@@ -43,12 +43,12 @@ const handler = async (event: any) => {
       rating: updatedFilm.rating,
       watched: updatedFilm.watched,
       owned: updatedFilm.owned,
-      message: "Successfully updated film rating",
+      message: "Successfully updated film",
     })
   } catch (error) {
-    logger.error(`Error updating film rating: ${error}`)
+    logger.error(`Error updating film: ${error}`)
     return createApiResponse(502, {
-      message: "Could not update film rating",
+      message: "Could not update film",
     })
   }
 }
