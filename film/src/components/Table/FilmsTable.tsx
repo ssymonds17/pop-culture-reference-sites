@@ -3,9 +3,10 @@ import FilmRow from './FilmRow'
 
 interface FilmsTableProps {
   films: Film[]
+  onUpdate?: () => void
 }
 
-export default function FilmsTable({ films }: FilmsTableProps) {
+export default function FilmsTable({ films, onUpdate }: FilmsTableProps) {
   if (films.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400">
@@ -45,7 +46,7 @@ export default function FilmsTable({ films }: FilmsTableProps) {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {films.map((film) => (
-              <FilmRow key={film._id} film={film} />
+              <FilmRow key={film._id} film={film} onUpdate={onUpdate} />
             ))}
           </tbody>
         </table>

@@ -16,44 +16,44 @@ export default function FilmsPage() {
   const [error, setError] = useState<string | null>(null)
   const { selectedFilters, dataRefreshRequired, setDataRefreshRequired } = useFilmContext()
 
-  useEffect(() => {
-    const fetchFilms = async () => {
-      try {
-        setLoading(true)
-        const params = new URLSearchParams()
+  const fetchFilms = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
 
-        if (selectedFilters.watched !== undefined) {
-          params.append('watched', selectedFilters.watched.toString())
-        }
-        if (selectedFilters.minRating) {
-          params.append('minRating', selectedFilters.minRating.toString())
-        }
-        if (selectedFilters.maxRating) {
-          params.append('maxRating', selectedFilters.maxRating.toString())
-        }
-        if (selectedFilters.year) {
-          params.append('year', selectedFilters.year.toString())
-        }
-        if (selectedFilters.genre) {
-          params.append('genre', selectedFilters.genre)
-        }
-        if (selectedFilters.directorId) {
-          params.append('directorId', selectedFilters.directorId)
-        }
-
-        const url = `${API_ENDPOINTS.films}?${params.toString()}`
-        const response = await axios.get(url)
-        setFilms(response.data.data)
-        setError(null)
-        setDataRefreshRequired(false)
-      } catch (err) {
-        console.error('Error fetching films:', err)
-        setError('Failed to load films')
-      } finally {
-        setLoading(false)
+      if (selectedFilters.watched !== undefined) {
+        params.append('watched', selectedFilters.watched.toString())
       }
-    }
+      if (selectedFilters.minRating) {
+        params.append('minRating', selectedFilters.minRating.toString())
+      }
+      if (selectedFilters.maxRating) {
+        params.append('maxRating', selectedFilters.maxRating.toString())
+      }
+      if (selectedFilters.year) {
+        params.append('year', selectedFilters.year.toString())
+      }
+      if (selectedFilters.genre) {
+        params.append('genre', selectedFilters.genre)
+      }
+      if (selectedFilters.directorId) {
+        params.append('directorId', selectedFilters.directorId)
+      }
 
+      const url = `${API_ENDPOINTS.films}?${params.toString()}`
+      const response = await axios.get(url)
+      setFilms(response.data.data)
+      setError(null)
+      setDataRefreshRequired(false)
+    } catch (err) {
+      console.error('Error fetching films:', err)
+      setError('Failed to load films')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchFilms()
   }, [selectedFilters, dataRefreshRequired])
 
@@ -83,7 +83,7 @@ export default function FilmsPage() {
           <div className="mb-4 text-gray-400">
             Showing {films.length} film{films.length !== 1 ? 's' : ''}
           </div>
-          <FilmsTable films={films} />
+          <FilmsTable films={films} onUpdate={fetchFilms} />
         </div>
       )}
     </div>
