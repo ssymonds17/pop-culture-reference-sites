@@ -5,6 +5,7 @@ export interface Film {
   directors: Director[]
   watched: boolean
   rating?: number
+  owned?: boolean
   genres: string[]
   language?: string
   duration?: number

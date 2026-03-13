@@ -62,6 +62,15 @@ export default function FilmRow({ film }: FilmRowProps) {
           <span className="text-gray-500">-</span>
         )}
       </td>
+      <td className="px-6 py-4 text-center">
+        {film.owned ? (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400">
+            Owned
+          </span>
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </td>
     </tr>
   )
 }

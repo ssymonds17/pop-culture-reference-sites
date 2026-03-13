@@ -38,6 +38,9 @@ export default function FilmsTable({ films }: FilmsTableProps) {
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Rating
               </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Owned
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
