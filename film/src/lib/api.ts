@@ -9,4 +9,5 @@ export const API_ENDPOINTS = {
   years: `${API_URL}/years`,
   year: (year: number) => `${API_URL}/year/${year}`,
   search: `${API_URL}/search`,
+  searchTmdb: `${API_URL}/search/tmdb`,
 }
