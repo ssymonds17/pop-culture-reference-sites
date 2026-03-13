@@ -1,5 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats } from "./mongodb"
+import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director } from "./mongodb"
 
 const handler = async (event: any) => {
   const filmId = event.pathParameters?.id
@@ -22,11 +22,21 @@ const handler = async (event: any) => {
     const directorIds = film.directors as any[]
     const filmYear = film.year
 
+    // Remove film from all directors' films arrays
+    for (const director of directorIds) {
+      const directorId = typeof director === 'object' && director._id ? director._id.toString() : director.toString()
+      await Director.findByIdAndUpdate(directorId, {
+        $pull: { films: filmId },
+      })
+    }
+
+    // Delete the film
     await deleteFilm(filmId)
 
     // Cascade update to all associated directors
-    for (const directorId of directorIds) {
-      await updateDirectorStats(directorId.toString())
+    for (const director of directorIds) {
+      const directorId = typeof director === 'object' && director._id ? director._id.toString() : director.toString()
+      await updateDirectorStats(directorId)
     }
 
     // Cascade update to year statistics
