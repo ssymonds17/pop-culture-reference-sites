@@ -38,7 +38,7 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
                 Total Points
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                10s / 9s / 8s
+                10 / 9 / 8 / 7 / 6
               </th>
             </tr>
           </thead>
@@ -74,7 +74,9 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
                 <td className="px-6 py-4 text-center text-sm text-gray-300">
                   {director.ratingCounts.rating10} /{' '}
                   {director.ratingCounts.rating9} /{' '}
-                  {director.ratingCounts.rating8}
+                  {director.ratingCounts.rating8} /{' '}
+                  {director.ratingCounts.rating7} /{' '}
+                  {director.ratingCounts.rating6}
                 </td>
               </tr>
             ))}

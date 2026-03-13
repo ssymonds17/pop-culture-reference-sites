@@ -7,12 +7,14 @@ interface FilmState {
   dataRefreshRequired: boolean
   selectedFilters: FilmFilters
   selectedDirectorSort: DirectorSortOption
+  directorSearchString: string
 }
 
 interface FilmContextValue extends FilmState {
   setDataRefreshRequired: (required: boolean) => void
   setSelectedFilters: (filters: FilmFilters) => void
   setSelectedDirectorSort: (sort: DirectorSortOption) => void
+  setDirectorSearchString: (search: string) => void
   resetFilters: () => void
 }
 
@@ -20,6 +22,7 @@ const defaultState: FilmState = {
   dataRefreshRequired: false,
   selectedFilters: {},
   selectedDirectorSort: 'totalPoints',
+  directorSearchString: '',
 }
 
 const FilmContext = createContext<FilmContextValue | undefined>(undefined)
@@ -39,6 +42,10 @@ export const FilmProvider = ({ children }: { children: ReactNode }) => {
     setState((prev) => ({ ...prev, selectedDirectorSort: sort }))
   }
 
+  const setDirectorSearchString = (search: string) => {
+    setState((prev) => ({ ...prev, directorSearchString: search }))
+  }
+
   const resetFilters = () => {
     setState((prev) => ({ ...prev, selectedFilters: {} }))
   }
@@ -48,6 +55,7 @@ export const FilmProvider = ({ children }: { children: ReactNode }) => {
     setDataRefreshRequired,
     setSelectedFilters,
     setSelectedDirectorSort,
+    setDirectorSearchString,
     resetFilters,
   }
 

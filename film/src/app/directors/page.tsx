@@ -14,16 +14,41 @@ export default function DirectorsPage() {
   const [directors, setDirectors] = useState<Director[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { selectedDirectorSort } = useFilmContext()
+  const { selectedDirectorSort, directorSearchString } = useFilmContext()
 
   useEffect(() => {
     const fetchDirectors = async () => {
       try {
         setLoading(true)
-        const url = `${API_ENDPOINTS.directors}?sortBy=${selectedDirectorSort}`
-        const response = await axios.get(url)
-        setDirectors(response.data.data)
-        setError(null)
+
+        // If search string is provided, use the search endpoint
+        if (directorSearchString) {
+          const params = new URLSearchParams()
+          params.append('searchString', directorSearchString)
+          params.append('itemType', 'director')
+
+          const url = `${API_ENDPOINTS.search}?${params.toString()}`
+          const response = await axios.get(url)
+
+          // Sort results client-side
+          let sortedDirectors = response.data.data
+          if (selectedDirectorSort === 'totalPoints') {
+            sortedDirectors.sort((a: Director, b: Director) => b.totalPoints - a.totalPoints)
+          } else if (selectedDirectorSort === 'seenFilms') {
+            sortedDirectors.sort((a: Director, b: Director) => b.seenFilms - a.seenFilms)
+          } else if (selectedDirectorSort === 'averageRating') {
+            sortedDirectors.sort((a: Director, b: Director) => (b.averageRating || 0) - (a.averageRating || 0))
+          }
+
+          setDirectors(sortedDirectors)
+          setError(null)
+        } else {
+          // Otherwise use the regular directors endpoint with sort
+          const url = `${API_ENDPOINTS.directors}?sortBy=${selectedDirectorSort}`
+          const response = await axios.get(url)
+          setDirectors(response.data.data)
+          setError(null)
+        }
       } catch (err) {
         console.error('Error fetching directors:', err)
         setError('Failed to load directors')
@@ -33,7 +58,7 @@ export default function DirectorsPage() {
     }
 
     fetchDirectors()
-  }, [selectedDirectorSort])
+  }, [selectedDirectorSort, directorSearchString])
 
   return (
     <div className="space-y-6">
