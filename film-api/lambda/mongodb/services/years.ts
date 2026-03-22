@@ -16,13 +16,30 @@ export const updateYearStats = async (year: number) => {
   const watchedFilms = films.filter((f) => f.watched && f.rating)
   const watchedCount = watchedFilms.length
 
+  // Calculate weighted score: 6=1pt, 7=3pts, 8=6pts, 9=10pts, 10=15pts
+  const getPointsForRating = (rating: number): number => {
+    switch (rating) {
+      case 6: return 1
+      case 7: return 3
+      case 8: return 6
+      case 9: return 10
+      case 10: return 15
+      default: return 0
+    }
+  }
+
   const totalScore = watchedFilms.reduce(
+    (sum, f) => sum + getPointsForRating(f.rating || 0),
+    0
+  )
+
+  const sumOfRatings = watchedFilms.reduce(
     (sum, f) => sum + (f.rating || 0),
     0
   )
 
   const averageRating =
-    watchedCount > 0 ? totalScore / watchedCount : undefined
+    watchedCount > 0 ? sumOfRatings / watchedCount : undefined
 
   // Calculate rating distribution
   const ratingDistribution = {
