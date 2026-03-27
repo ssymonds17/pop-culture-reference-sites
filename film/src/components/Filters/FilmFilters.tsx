@@ -61,9 +61,32 @@ export default function FilmFilters() {
     resetFilters()
   }
 
+  const handleGenreToggle = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre)
+        ? prev.filter((g) => g !== genre)
+        : [...prev, genre]
+    )
+  }
+
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={handleSearchSubmit}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 border border-blue-600 rounded text-sm font-medium transition-colors"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-sm font-medium transition-colors"
+        >
+          Reset
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Search
@@ -138,28 +161,6 @@ export default function FilmFilters() {
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
-            Genres (AND)
-          </label>
-          <select
-            multiple
-            value={selectedGenres}
-            onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions, option => option.value)
-              setSelectedGenres(selected)
-            }}
-            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500 min-h-[80px]"
-          >
-            {availableGenres.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
             Review
           </label>
           <select
@@ -172,20 +173,26 @@ export default function FilmFilters() {
             <option value="noReview">No Review</option>
           </select>
         </div>
+      </div>
 
-        <div className="flex items-end gap-2">
-          <button
-            onClick={handleSearchSubmit}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 border border-blue-600 rounded px-3 py-2 text-sm font-medium transition-colors"
-          >
-            Search
-          </button>
-          <button
-            onClick={handleReset}
-            className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded px-3 py-2 text-sm font-medium transition-colors"
-          >
-            Reset
-          </button>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-400 mb-2">
+          Genres (click to select multiple - AND logic)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {availableGenres.map((genre) => (
+            <button
+              key={genre}
+              onClick={() => handleGenreToggle(genre)}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                selectedGenres.includes(genre)
+                  ? "bg-blue-600 text-white border border-blue-600"
+                  : "bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700"
+              }`}
+            >
+              {genre}
+            </button>
+          ))}
         </div>
       </div>
     </div>
