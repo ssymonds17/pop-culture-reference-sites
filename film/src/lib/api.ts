@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
   createFilm: `${API_URL}/film`,
   film: (id: string) => `${API_URL}/film/${id}`,
   genres: `${API_URL}/genres`,
+  randomFilms: `${API_URL}/random`,
   directors: `${API_URL}/directors`,
   director: (tmdbPersonId: string) => `${API_URL}/director/${tmdbPersonId}`,
   stats: `${API_URL}/stats`,
