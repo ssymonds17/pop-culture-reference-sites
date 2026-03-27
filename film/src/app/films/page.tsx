@@ -56,6 +56,13 @@ export default function FilmsPage() {
             f.directors.some((d: any) => d._id === selectedFilters.directorId)
           )
         }
+        if (selectedFilters.hasReview !== undefined) {
+          if (selectedFilters.hasReview) {
+            filteredFilms = filteredFilms.filter((f: Film) => f.review && f.review.trim() !== "")
+          } else {
+            filteredFilms = filteredFilms.filter((f: Film) => !f.review || f.review.trim() === "")
+          }
+        }
 
         setFilms(filteredFilms)
         setError(null)
@@ -79,6 +86,9 @@ export default function FilmsPage() {
         }
         if (selectedFilters.directorId) {
           params.append('directorId', selectedFilters.directorId)
+        }
+        if (selectedFilters.hasReview !== undefined) {
+          params.append('hasReview', selectedFilters.hasReview.toString())
         }
 
         const url = `${API_ENDPOINTS.films}?${params.toString()}`

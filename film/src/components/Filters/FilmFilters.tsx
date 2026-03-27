@@ -11,6 +11,7 @@ export default function FilmFilters() {
   const [year, setYear] = useState<string>("")
   const [genre, setGenre] = useState<string>("")
   const [searchString, setSearchString] = useState<string>("")
+  const [review, setReview] = useState<string>("all")
 
   const handleSearchSubmit = () => {
     const filters: any = {}
@@ -22,6 +23,8 @@ export default function FilmFilters() {
     if (year) filters.year = parseInt(year)
     if (genre) filters.genre = genre
     if (searchString) filters.searchString = searchString
+    if (review === "hasReview") filters.hasReview = true
+    if (review === "noReview") filters.hasReview = false
 
     setSelectedFilters(filters)
   }
@@ -39,12 +42,13 @@ export default function FilmFilters() {
     setYear("")
     setGenre("")
     setSearchString("")
+    setReview("all")
     resetFilters()
   }
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Search
@@ -128,6 +132,21 @@ export default function FilmFilters() {
             placeholder="e.g. Drama"
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            Review
+          </label>
+          <select
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
+          >
+            <option value="all">All</option>
+            <option value="hasReview">Has Review</option>
+            <option value="noReview">No Review</option>
+          </select>
         </div>
 
         <div className="flex items-end gap-2">
