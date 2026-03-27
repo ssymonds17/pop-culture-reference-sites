@@ -15,6 +15,7 @@ export interface Film {
   overview?: string
   voteAverage?: number
   originalTitle?: string
+  review?: string
 }
 
 export interface Director {

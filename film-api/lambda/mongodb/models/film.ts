@@ -16,6 +16,7 @@ export interface FilmDocument extends mongoose.Document {
   overview?: string // Description
   voteAverage?: number // TMDb rating
   originalTitle?: string // User's original title entry from CSV
+  review?: string // User's review/notes
 }
 
 // Type for creating new films (excludes mongoose Document fields)
@@ -43,6 +44,7 @@ const filmSchema = new mongoose.Schema({
   overview: { type: String },
   voteAverage: { type: Number },
   originalTitle: { type: String },
+  review: { type: String },
 })
 
 // Indexes for efficient querying

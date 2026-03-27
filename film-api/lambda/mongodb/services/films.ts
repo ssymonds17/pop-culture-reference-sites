@@ -58,6 +58,7 @@ export const updateFilm = async (
   id: string,
   rating?: number | null,
   owned?: boolean,
+  review?: string | null,
 ) => {
   const updates: any = {}
   const unsets: any = {}
@@ -77,6 +78,16 @@ export const updateFilm = async (
 
   if (owned !== undefined) {
     updates.owned = owned
+  }
+
+  // Handle review
+  if (review !== undefined) {
+    if (review === null || review === "") {
+      // Clear review if null or empty string
+      unsets.review = ""
+    } else {
+      updates.review = review
+    }
   }
 
   const updateQuery: any = {}
