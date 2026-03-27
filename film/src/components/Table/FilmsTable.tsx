@@ -46,6 +46,9 @@ export default function FilmsTable({ films, onUpdate }: FilmsTableProps) {
                 Owned
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Review
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Links
               </th>
             </tr>

@@ -4,6 +4,7 @@ import { formatDuration } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
 import UpdateRatingModal from "../Modal/UpdateRatingModal"
 import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
+import ReviewModal from "../Modal/ReviewModal"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
 
@@ -17,6 +18,7 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
   const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
 
   const handleDirectorClick = (director: Director, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -151,6 +153,18 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
           </button>
         </td>
+        <td className="px-6 py-4 text-center">
+          <button
+            onClick={() => setIsReviewModalOpen(true)}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              film.review
+                ? "bg-purple-900/30 text-purple-400 hover:bg-purple-900/50"
+                : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+            }`}
+          >
+            {film.review ? "Has Review" : "No Review"}
+          </button>
+        </td>
         <td className="px-6 py-4">
           <div className="flex items-center justify-center gap-2">
             <a
@@ -189,6 +203,13 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
         director={selectedDirector}
         isOpen={isDirectorModalOpen}
         onClose={handleCloseDirectorModal}
+      />
+
+      <ReviewModal
+        film={film}
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onUpdate={() => onUpdate?.()}
       />
     </>
   )
