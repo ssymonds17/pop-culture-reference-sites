@@ -9,6 +9,7 @@ export {
   updateFilm,
   deleteFilm,
   findFilmsByTitle,
+  getUniqueGenres,
 } from "./services/films"
 
 // Director services

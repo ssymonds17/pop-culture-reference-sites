@@ -1,0 +1,25 @@
+meta {
+  name: Get Genres
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{API_URL}}/genres
+  body: none
+  auth: none
+}
+
+docs {
+  Returns a sorted list of unique genre names from all films in the database.
+
+  Uses MongoDB aggregation to efficiently extract distinct genres.
+
+  Response format:
+  {
+    "data": ["Action", "Adventure", "Animation", "Comedy", "Crime", ...],
+    "count": 20
+  }
+
+  Genres are sorted alphabetically.
+}

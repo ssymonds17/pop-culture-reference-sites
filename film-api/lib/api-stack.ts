@@ -68,6 +68,14 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    const getGenresLambda = new LambdaConstruct(this, "GetGenres", {
+      functionName: "film-get-genres-handler",
+      code: lambda.Code.fromAsset("build/apps/get-genres"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
     // Lambda functions for Directors
     const getDirectorsLambda = new LambdaConstruct(this, "GetDirectors", {
       functionName: "film-get-directors-handler",
@@ -217,6 +225,17 @@ export class ApiStack extends core.Stack {
     filmById.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET", "PATCH", "DELETE"],
+    })
+
+    // RESOURCES - Genres
+    const genres = api.root.addResource("genres")
+    genres.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getGenresLambda.function)
+    )
+    genres.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
     })
 
     // RESOURCES - Directors

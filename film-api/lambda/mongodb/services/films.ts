@@ -9,7 +9,7 @@ export const getFilms = async (filters?: {
   minRating?: number
   maxRating?: number
   year?: number
-  genre?: string
+  genres?: string[]
   directorId?: string
   owned?: boolean
   hasReview?: boolean
@@ -29,8 +29,9 @@ export const getFilms = async (filters?: {
     if (filters.year !== undefined) {
       query.year = filters.year
     }
-    if (filters.genre) {
-      query.genres = filters.genre
+    if (filters.genres && filters.genres.length > 0) {
+      // AND logic: film must have ALL selected genres
+      query.genres = { $all: filters.genres }
     }
     if (filters.directorId) {
       query.directors = filters.directorId
@@ -125,4 +126,14 @@ export const findFilmsByTitle = async (title: string) => {
   })
     .populate("directors")
     .exec()
+}
+
+export const getUniqueGenres = async () => {
+  const result = await Film.aggregate([
+    { $unwind: "$genres" },
+    { $group: { _id: "$genres" } },
+    { $sort: { _id: 1 } }
+  ]).exec()
+
+  return result.map(item => item._id)
 }

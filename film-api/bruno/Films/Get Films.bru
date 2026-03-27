@@ -15,7 +15,7 @@ params:query {
   ~minRating: 7
   ~maxRating: 10
   ~year: 1994
-  ~genre: Drama
+  ~genres: Drama,Crime
   ~directorId:
   ~owned: true
   ~hasReview: false
@@ -27,7 +27,7 @@ docs {
   - minRating: Minimum rating (1-10)
   - maxRating: Maximum rating (1-10)
   - year: Filter by release year
-  - genre: Filter by genre
+  - genres: Filter by genres (comma-separated for AND logic - film must have ALL listed genres)
   - directorId: Filter by director ObjectId
   - owned: Filter by ownership status (true/false)
   - hasReview: Filter by review status (true/false) - true returns films with reviews, false returns films without reviews
