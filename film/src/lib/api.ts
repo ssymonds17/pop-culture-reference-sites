@@ -11,4 +11,5 @@ export const API_ENDPOINTS = {
   year: (year: number) => `${API_URL}/year/${year}`,
   search: `${API_URL}/search`,
   searchTmdb: `${API_URL}/search/tmdb`,
+  tmdbFilmDetails: (tmdbId: string) => `${API_URL}/tmdb/${tmdbId}`,
 }

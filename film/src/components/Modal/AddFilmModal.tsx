@@ -12,6 +12,17 @@ interface TmdbSearchResult {
   overview: string | null
 }
 
+interface TmdbFilmDetails {
+  tmdbId: string
+  title: string
+  year: number | null
+  duration: number | null
+  directors: Array<{
+    tmdbPersonId: string
+    name: string
+  }>
+}
+
 interface AddFilmModalProps {
   isOpen: boolean
   onClose: () => void
@@ -30,6 +41,9 @@ export const AddFilmModal = ({
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [expandedResultId, setExpandedResultId] = useState<string | null>(null)
+  const [filmDetails, setFilmDetails] = useState<Record<string, TmdbFilmDetails>>({})
+  const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({})
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,12 +112,40 @@ export const AddFilmModal = ({
     }
   }
 
+  const handleToggleExpand = async (tmdbId: string) => {
+    if (expandedResultId === tmdbId) {
+      setExpandedResultId(null)
+      return
+    }
+
+    setExpandedResultId(tmdbId)
+
+    // If we already have the details cached, don't fetch again
+    if (filmDetails[tmdbId]) {
+      return
+    }
+
+    try {
+      setLoadingDetails({ ...loadingDetails, [tmdbId]: true })
+      const response = await axios.get(API_ENDPOINTS.tmdbFilmDetails(tmdbId))
+      setFilmDetails({ ...filmDetails, [tmdbId]: response.data })
+    } catch (err) {
+      console.error("Error fetching film details:", err)
+      setError("Failed to fetch film details. Please try again.")
+    } finally {
+      setLoadingDetails({ ...loadingDetails, [tmdbId]: false })
+    }
+  }
+
   const handleClose = () => {
     setSearchQuery("")
     setYear("")
     setSearchResults([])
     setError(null)
     setSuccessMessage(null)
+    setExpandedResultId(null)
+    setFilmDetails({})
+    setLoadingDetails({})
     onClose()
   }
 
@@ -155,37 +197,82 @@ export const AddFilmModal = ({
             {searchResults.map((result) => (
               <div
                 key={result.tmdbId}
-                className="flex gap-4 p-3 bg-gray-800 rounded hover:bg-gray-750 transition-colors"
+                className="bg-gray-800 rounded overflow-hidden"
               >
-                {result.posterPath ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w92${result.posterPath}`}
-                    alt={result.title}
-                    className="w-16 h-24 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-16 h-24 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs">
-                    No poster
+                <div className="flex gap-4 p-3 hover:bg-gray-750 transition-colors">
+                  {result.posterPath ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w92${result.posterPath}`}
+                      alt={result.title}
+                      className="w-16 h-24 object-cover rounded flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-24 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
+                      No poster
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <button
+                      onClick={() => handleToggleExpand(result.tmdbId)}
+                      className="text-left w-full group"
+                    >
+                      <h3 className="font-medium text-lg group-hover:text-blue-400 transition-colors">
+                        {result.title}
+                        <span className="ml-2 text-gray-500 text-sm">
+                          {expandedResultId === result.tmdbId ? "▼" : "▶"}
+                        </span>
+                      </h3>
+                    </button>
+                    <p className="text-gray-400 text-sm">
+                      {result.year || "Unknown year"}
+                    </p>
+                    {result.overview && (
+                      <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                        {result.overview}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleCreateFilm(result.tmdbId, result.title)}
+                    disabled={creating}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-center flex-shrink-0"
+                  >
+                    {creating ? "Adding..." : "Add"}
+                  </button>
+                </div>
+
+                {expandedResultId === result.tmdbId && (
+                  <div className="px-3 pb-3 border-t border-gray-700 pt-3">
+                    {loadingDetails[result.tmdbId] ? (
+                      <p className="text-gray-400 text-sm">Loading details...</p>
+                    ) : filmDetails[result.tmdbId] ? (
+                      <div className="space-y-2">
+                        {filmDetails[result.tmdbId].directors.length > 0 ? (
+                          <div>
+                            <span className="text-gray-400 text-sm font-medium">
+                              Director{filmDetails[result.tmdbId].directors.length > 1 ? "s" : ""}:
+                            </span>
+                            <span className="text-gray-300 text-sm ml-2">
+                              {filmDetails[result.tmdbId].directors
+                                .map((d) => d.name)
+                                .join(", ")}
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No director information available</p>
+                        )}
+                        {filmDetails[result.tmdbId].duration && (
+                          <div>
+                            <span className="text-gray-400 text-sm font-medium">Duration:</span>
+                            <span className="text-gray-300 text-sm ml-2">
+                              {filmDetails[result.tmdbId].duration} min
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 )}
-                <div className="flex-1">
-                  <h3 className="font-medium text-lg">{result.title}</h3>
-                  <p className="text-gray-400 text-sm">
-                    {result.year || "Unknown year"}
-                  </p>
-                  {result.overview && (
-                    <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-                      {result.overview}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleCreateFilm(result.tmdbId, result.title)}
-                  disabled={creating}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-center"
-                >
-                  {creating ? "Adding..." : "Add"}
-                </button>
               </div>
             ))}
           </div>
