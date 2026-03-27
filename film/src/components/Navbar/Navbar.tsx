@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { SignInButton, SignOutButton, useUser } from '@clerk/nextjs'
 
 export default function Navbar() {
   const pathname = usePathname()
+  const { isSignedIn, user } = useUser()
 
   const links = [
     { href: '/', label: 'Dashboard' },
@@ -37,6 +39,26 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {isSignedIn ? (
+              <>
+                <span className="text-sm text-gray-400">
+                  {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                </span>
+                <SignOutButton>
+                  <button className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-sm font-medium transition-colors">
+                    Sign Out
+                  </button>
+                </SignOutButton>
+              </>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 border border-blue-600 rounded text-sm font-medium transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
           </div>
         </div>
       </div>

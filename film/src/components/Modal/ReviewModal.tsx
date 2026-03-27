@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Film } from "@/types"
-import axios from "axios"
+import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
+import { createAuthenticatedClient } from "@/lib/auth-api"
 
 interface ReviewModalProps {
   film: Film | null
@@ -18,6 +19,7 @@ export default function ReviewModal({
   onClose,
   onUpdate,
 }: ReviewModalProps) {
+  const { getToken } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [reviewText, setReviewText] = useState("")
   const [isSaving, setIsSaving] = useState(false)
@@ -55,7 +57,8 @@ export default function ReviewModal({
       setIsSaving(true)
       setError(null)
 
-      await axios.patch(API_ENDPOINTS.film(film._id), {
+      const client = await createAuthenticatedClient(getToken)
+      await client.patch(API_ENDPOINTS.film(film._id), {
         review: reviewText.trim() || null,
       })
 
@@ -81,7 +84,8 @@ export default function ReviewModal({
       setIsDeleting(true)
       setError(null)
 
-      await axios.patch(API_ENDPOINTS.film(film._id), {
+      const client = await createAuthenticatedClient(getToken)
+      await client.patch(API_ENDPOINTS.film(film._id), {
         review: null,
       })
 

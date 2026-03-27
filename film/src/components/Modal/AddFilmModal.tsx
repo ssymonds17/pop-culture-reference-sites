@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import axios from "axios"
+import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
+import { createAuthenticatedClient } from "@/lib/auth-api"
 import { formatDirectorNames } from "@/lib/utils"
 
 interface TmdbSearchResult {
@@ -35,6 +37,7 @@ export const AddFilmModal = ({
   onClose,
   onFilmAdded,
 }: AddFilmModalProps) => {
+  const { getToken } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [year, setYear] = useState("")
   const [searchResults, setSearchResults] = useState<TmdbSearchResult[]>([])
@@ -87,7 +90,8 @@ export const AddFilmModal = ({
       setError(null)
       setSuccessMessage(null)
 
-      await axios.post(API_ENDPOINTS.createFilm, { tmdbId })
+      const client = await createAuthenticatedClient(getToken)
+      await client.post(API_ENDPOINTS.createFilm, { tmdbId })
 
       setSuccessMessage(`"${title}" added successfully!`)
       setSearchQuery("")

@@ -5,6 +5,7 @@ import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { Director } from '@/types'
 import { useFilmContext } from '@/lib/context/FilmContext'
+import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import DirectorFilters from '@/components/Filters/DirectorFilters'
 import DirectorsTable from '@/components/Table/DirectorsTable'
 import Skeleton from 'react-loading-skeleton'
@@ -66,13 +67,14 @@ export default function DirectorsPage() {
   }, [selectedDirectorSort, directorSearchString])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold mb-2">Directors</h1>
-        <p className="text-gray-400">Explore director rankings and statistics</p>
-      </div>
+    <ProtectedRoute>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Directors</h1>
+          <p className="text-gray-400">Explore director rankings and statistics</p>
+        </div>
 
-      <DirectorFilters />
+        <DirectorFilters />
 
       {error && (
         <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
@@ -105,5 +107,6 @@ export default function DirectorsPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   )
 }

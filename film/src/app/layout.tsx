@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { ClerkProvider } from '@clerk/nextjs'
 import { FilmProvider } from '@/lib/context/FilmContext'
 import Navbar from '@/components/Navbar/Navbar'
 
@@ -24,17 +25,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <FilmProvider>
-          <div className="min-h-screen bg-gray-950 text-gray-100">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-              {children}
-            </main>
-          </div>
-        </FilmProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          <FilmProvider>
+            <div className="min-h-screen bg-gray-950 text-gray-100">
+              <Navbar />
+              <main className="container mx-auto px-4 py-8">
+                {children}
+              </main>
+            </div>
+          </FilmProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

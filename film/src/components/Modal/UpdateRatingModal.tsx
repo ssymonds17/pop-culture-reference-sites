@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Film } from '@/types'
-import axios from 'axios'
+import { useAuth } from '@clerk/nextjs'
 import { API_ENDPOINTS } from '@/lib/api'
+import { createAuthenticatedClient } from '@/lib/auth-api'
 
 interface UpdateRatingModalProps {
   film: Film
@@ -13,6 +14,7 @@ interface UpdateRatingModalProps {
 }
 
 export default function UpdateRatingModal({ film, isOpen, onClose, onUpdate }: UpdateRatingModalProps) {
+  const { getToken } = useAuth()
   const [rating, setRating] = useState<number | null>(film.rating || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +31,8 @@ export default function UpdateRatingModal({ film, isOpen, onClose, onUpdate }: U
       setLoading(true)
       setError(null)
 
-      await axios.patch(API_ENDPOINTS.film(film._id), {
+      const client = await createAuthenticatedClient(getToken)
+      await client.patch(API_ENDPOINTS.film(film._id), {
         rating: newRating
       })
 

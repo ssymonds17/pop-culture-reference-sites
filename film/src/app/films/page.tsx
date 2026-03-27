@@ -5,6 +5,7 @@ import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { Film } from '@/types'
 import { useFilmContext } from '@/lib/context/FilmContext'
+import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import FilmFilters from '@/components/Filters/FilmFilters'
 import FilmsTable from '@/components/Table/FilmsTable'
 import { AddFilmModal } from '@/components/Modal/AddFilmModal'
@@ -117,19 +118,20 @@ export default function FilmsPage() {
   }, [selectedFilters, dataRefreshRequired])
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Films</h1>
-          <p className="text-gray-400">Browse and manage your film collection</p>
+    <ProtectedRoute>
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Films</h1>
+            <p className="text-gray-400">Browse and manage your film collection</p>
+          </div>
+          <button
+            onClick={() => setIsAddFilmModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Add Film
+          </button>
         </div>
-        <button
-          onClick={() => setIsAddFilmModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
-          Add Film
-        </button>
-      </div>
 
       <FilmFilters />
 
@@ -170,5 +172,6 @@ export default function FilmsPage() {
         onFilmAdded={fetchFilms}
       />
     </div>
+    </ProtectedRoute>
   )
 }

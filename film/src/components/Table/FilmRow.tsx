@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { Film, Director } from "@/types"
 import { formatDuration } from "@/lib/utils"
+import { useAuth } from "@clerk/nextjs"
 import RatingBadge from "../Rating/RatingBadge"
 import UpdateRatingModal from "../Modal/UpdateRatingModal"
 import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
 import ReviewModal from "../Modal/ReviewModal"
-import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
+import { createAuthenticatedClient } from "@/lib/auth-api"
 
 interface FilmRowProps {
   film: Film
@@ -14,6 +15,7 @@ interface FilmRowProps {
 }
 
 export default function FilmRow({ film, onUpdate }: FilmRowProps) {
+  const { getToken } = useAuth()
   const [isUpdatingOwned, setIsUpdatingOwned] = useState(false)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
@@ -38,7 +40,8 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
 
     try {
       setIsUpdatingOwned(true)
-      await axios.patch(API_ENDPOINTS.film(film._id), {
+      const client = await createAuthenticatedClient(getToken)
+      await client.patch(API_ENDPOINTS.film(film._id), {
         owned: !film.owned,
       })
       onUpdate?.()
