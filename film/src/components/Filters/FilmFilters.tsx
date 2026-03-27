@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useFilmContext } from "@/lib/context/FilmContext"
+import axios from "axios"
+import { API_ENDPOINTS } from "@/lib/api"
 
 export default function FilmFilters() {
   const { setSelectedFilters, resetFilters } = useFilmContext()
@@ -9,9 +11,22 @@ export default function FilmFilters() {
   const [minRating, setMinRating] = useState<string>("")
   const [maxRating, setMaxRating] = useState<string>("")
   const [year, setYear] = useState<string>("")
-  const [genre, setGenre] = useState<string>("")
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [searchString, setSearchString] = useState<string>("")
   const [review, setReview] = useState<string>("all")
+  const [availableGenres, setAvailableGenres] = useState<string[]>([])
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await axios.get(API_ENDPOINTS.genres)
+        setAvailableGenres(response.data.data)
+      } catch (error) {
+        console.error("Error fetching genres:", error)
+      }
+    }
+    fetchGenres()
+  }, [])
 
   const handleSearchSubmit = () => {
     const filters: any = {}
@@ -21,7 +36,7 @@ export default function FilmFilters() {
     if (minRating) filters.minRating = parseInt(minRating)
     if (maxRating) filters.maxRating = parseInt(maxRating)
     if (year) filters.year = parseInt(year)
-    if (genre) filters.genre = genre
+    if (selectedGenres.length > 0) filters.genres = selectedGenres
     if (searchString) filters.searchString = searchString
     if (review === "hasReview") filters.hasReview = true
     if (review === "noReview") filters.hasReview = false
@@ -40,7 +55,7 @@ export default function FilmFilters() {
     setMinRating("")
     setMaxRating("")
     setYear("")
-    setGenre("")
+    setSelectedGenres([])
     setSearchString("")
     setReview("all")
     resetFilters()
@@ -123,15 +138,24 @@ export default function FilmFilters() {
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
-            Genre
+            Genres (AND)
           </label>
-          <input
-            type="text"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            placeholder="e.g. Drama"
-            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
-          />
+          <select
+            multiple
+            value={selectedGenres}
+            onChange={(e) => {
+              const selected = Array.from(e.target.selectedOptions, option => option.value)
+              setSelectedGenres(selected)
+            }}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500 min-h-[80px]"
+          >
+            {availableGenres.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
         </div>
 
         <div>

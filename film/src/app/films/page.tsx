@@ -48,8 +48,11 @@ export default function FilmsPage() {
         if (selectedFilters.year) {
           filteredFilms = filteredFilms.filter((f: Film) => f.year === selectedFilters.year)
         }
-        if (selectedFilters.genre) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.genres?.includes(selectedFilters.genre!))
+        if (selectedFilters.genres && selectedFilters.genres.length > 0) {
+          // AND logic: film must have ALL selected genres
+          filteredFilms = filteredFilms.filter((f: Film) =>
+            selectedFilters.genres!.every((genre: string) => f.genres?.includes(genre))
+          )
         }
         if (selectedFilters.directorId) {
           filteredFilms = filteredFilms.filter((f: Film) =>
@@ -81,8 +84,8 @@ export default function FilmsPage() {
         if (selectedFilters.year) {
           params.append('year', selectedFilters.year.toString())
         }
-        if (selectedFilters.genre) {
-          params.append('genre', selectedFilters.genre)
+        if (selectedFilters.genres && selectedFilters.genres.length > 0) {
+          params.append('genres', selectedFilters.genres.join(','))
         }
         if (selectedFilters.directorId) {
           params.append('directorId', selectedFilters.directorId)
