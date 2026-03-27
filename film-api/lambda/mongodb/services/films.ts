@@ -137,3 +137,44 @@ export const getUniqueGenres = async () => {
 
   return result.map(item => item._id)
 }
+
+export const getRandomFilms = async (filters?: {
+  watched?: boolean
+  yearStart?: number
+  yearEnd?: number
+  genres?: string[]
+}) => {
+  const query: any = { owned: true } // Always filter for owned films
+
+  if (filters) {
+    if (filters.watched !== undefined) {
+      query.watched = filters.watched
+    }
+    if (filters.yearStart !== undefined || filters.yearEnd !== undefined) {
+      query.year = {}
+      if (filters.yearStart !== undefined) {
+        query.year.$gte = filters.yearStart
+      }
+      if (filters.yearEnd !== undefined) {
+        query.year.$lte = filters.yearEnd
+      }
+    }
+    if (filters.genres && filters.genres.length > 0) {
+      // AND logic: film must have ALL selected genres
+      query.genres = { $all: filters.genres }
+    }
+  }
+
+  // Use MongoDB aggregation to get random sample
+  return Film.aggregate([
+    { $match: query },
+    { $sample: { size: 5 } }, // Maximum 5 random films
+    { $lookup: {
+        from: 'directors',
+        localField: 'directors',
+        foreignField: '_id',
+        as: 'directors'
+      }
+    }
+  ]).exec()
+}

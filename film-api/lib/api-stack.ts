@@ -76,6 +76,14 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    const getRandomFilmsLambda = new LambdaConstruct(this, "GetRandomFilms", {
+      functionName: "film-get-random-films-handler",
+      code: lambda.Code.fromAsset("build/apps/get-random-films"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
     // Lambda functions for Directors
     const getDirectorsLambda = new LambdaConstruct(this, "GetDirectors", {
       functionName: "film-get-directors-handler",
@@ -234,6 +242,17 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(getGenresLambda.function)
     )
     genres.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+
+    // RESOURCES - Random Films
+    const random = api.root.addResource("random")
+    random.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getRandomFilmsLambda.function)
+    )
+    random.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
     })

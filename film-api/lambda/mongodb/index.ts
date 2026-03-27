@@ -10,6 +10,7 @@ export {
   deleteFilm,
   findFilmsByTitle,
   getUniqueGenres,
+  getRandomFilms,
 } from "./services/films"
 
 // Director services
