@@ -124,8 +124,21 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
               <span className="text-gray-500 text-sm">No genres</span>
             )}
             {film.genres && film.genres.length > 3 && (
-              <span className="px-2 py-1 text-gray-500 text-xs">
+              <span className="relative group px-2 py-1 text-gray-500 text-xs cursor-help">
                 +{film.genres.length - 3}
+                <span className="invisible group-hover:visible absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded shadow-lg whitespace-nowrap z-10">
+                  <span className="flex flex-wrap gap-1 max-w-xs">
+                    {film.genres.slice(3).map((genre) => (
+                      <span
+                        key={genre}
+                        className="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-700"></span>
+                </span>
               </span>
             )}
           </div>
