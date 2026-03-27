@@ -21,6 +21,9 @@ export default function FilmsTable({ films, onUpdate }: FilmsTableProps) {
         <table className="w-full">
           <thead className="bg-gray-800 border-b border-gray-700">
             <tr>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Poster
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Title
               </th>

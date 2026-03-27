@@ -51,6 +51,21 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
   return (
     <>
       <tr className="hover:bg-gray-800/50 transition-colors">
+        <td className="p-2">
+          <div className="flex justify-center">
+            {film.posterPath ? (
+              <img
+                src={`https://image.tmdb.org/t/p/w92${film.posterPath}`}
+                alt={film.title}
+                className="max-h-32 object-contain rounded"
+              />
+            ) : (
+              <div className="w-20 h-32 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs">
+                No poster
+              </div>
+            )}
+          </div>
+        </td>
         <td className="px-6 py-4">
           <div className="font-medium">{film.title}</div>
           {film.originalTitle && film.originalTitle !== film.title && (
