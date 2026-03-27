@@ -12,6 +12,7 @@ export const getFilms = async (filters?: {
   genre?: string
   directorId?: string
   owned?: boolean
+  hasReview?: boolean
 }) => {
   const query: any = {}
 
@@ -36,6 +37,19 @@ export const getFilms = async (filters?: {
     }
     if (filters.owned !== undefined) {
       query.owned = filters.owned
+    }
+    if (filters.hasReview !== undefined) {
+      if (filters.hasReview) {
+        // Has review: not null and not empty string
+        query.review = { $nin: [null, ""] }
+      } else {
+        // No review: null or empty string or doesn't exist
+        query.$or = [
+          { review: { $exists: false } },
+          { review: null },
+          { review: "" }
+        ]
+      }
     }
   }
 

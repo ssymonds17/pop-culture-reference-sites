@@ -18,6 +18,7 @@ params:query {
   ~genre: Drama
   ~directorId:
   ~owned: true
+  ~hasReview: false
 }
 
 docs {
@@ -29,6 +30,7 @@ docs {
   - genre: Filter by genre
   - directorId: Filter by director ObjectId
   - owned: Filter by ownership status (true/false)
+  - hasReview: Filter by review status (true/false) - true returns films with reviews, false returns films without reviews
 
   Enable/disable query params by toggling the ~ prefix
 }

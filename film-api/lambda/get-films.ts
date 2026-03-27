@@ -31,6 +31,9 @@ const handler = async (event: any) => {
       if (params.owned !== undefined) {
         filters.owned = params.owned === "true"
       }
+      if (params.hasReview !== undefined) {
+        filters.hasReview = params.hasReview === "true"
+      }
     }
 
     const films = await getFilms(filters)
