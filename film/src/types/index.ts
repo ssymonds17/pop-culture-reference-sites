@@ -101,9 +101,10 @@ export interface FilmFilters {
   minRating?: number
   maxRating?: number
   year?: number
-  genre?: string
+  genres?: string[]
   directorId?: string
   searchString?: string
+  hasReview?: boolean
 }
 
 export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'averageRating'
