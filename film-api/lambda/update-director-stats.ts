@@ -1,7 +1,8 @@
 import { createApiResponse, logger } from "./utils"
+import { requireAuth } from "./auth"
 import { connectToDatabase, updateDirectorStats } from "./mongodb"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const directorId = event.pathParameters?.id
 
   try {
@@ -27,5 +28,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

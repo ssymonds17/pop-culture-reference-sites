@@ -1,11 +1,12 @@
 import { createApiResponse, logger } from "./utils"
+import { requireAuth } from "./auth"
 import { connectToDatabase } from "./mongodb"
 
 // This is a placeholder for the import endpoint
 // The actual import logic will be in the populate-film-db script
 // This endpoint can be used to trigger imports via API if needed
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, _userId: string) => {
   try {
     await connectToDatabase()
 
@@ -22,5 +23,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

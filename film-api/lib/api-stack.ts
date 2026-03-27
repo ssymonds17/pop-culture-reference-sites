@@ -18,9 +18,15 @@ export class ApiStack extends core.Stack {
       throw new Error("TMDB_API_KEY environment variable is required")
     }
 
+    const clerkSecretKey = process.env.CLERK_SECRET_KEY
+    if (!clerkSecretKey) {
+      throw new Error("CLERK_SECRET_KEY environment variable is required")
+    }
+
     const lambdaEnvironment = {
       MONGODB_URI: mongodbUri,
       TMDB_API_KEY: tmdbApiKey,
+      CLERK_SECRET_KEY: clerkSecretKey,
     }
 
     // Lambda functions for Films

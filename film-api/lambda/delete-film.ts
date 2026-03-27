@@ -1,7 +1,8 @@
 import { createApiResponse, logger } from "./utils"
+import { requireAuth } from "./auth"
 import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director } from "./mongodb"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
 
   try {
@@ -52,5 +53,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

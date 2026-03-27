@@ -1,4 +1,5 @@
 import { createApiResponse, logger } from "./utils"
+import { requireAuth } from "./auth"
 import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats } from "./mongodb"
 import { FilmData } from "./mongodb/models/film"
 import axios from "axios"
@@ -50,7 +51,7 @@ const findOrCreateDirector = async (tmdbPersonId: string, name: string) => {
   return director
 }
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, _userId: string) => {
   try {
     const body = JSON.parse(event.body)
 
@@ -159,5 +160,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }
