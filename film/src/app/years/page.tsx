@@ -6,11 +6,24 @@ import { API_ENDPOINTS } from "@/lib/api"
 import { YearStats } from "@/types"
 import Skeleton from "react-loading-skeleton"
 import "react-loading-skeleton/dist/skeleton.css"
+import YearFilmsModal from "@/components/Modal/YearFilmsModal"
 
 export default function YearsPage() {
   const [years, setYears] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleYearClick = (year: number) => {
+    setSelectedYear(year)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedYear(null)
+  }
 
   useEffect(() => {
     const fetchYears = async () => {
@@ -61,7 +74,8 @@ export default function YearsPage() {
           {years.map((yearStats) => (
             <div
               key={yearStats._id}
-              className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-film-700 transition-colors"
+              onClick={() => handleYearClick(yearStats.year)}
+              className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-film-700 transition-colors cursor-pointer"
             >
               <div className="mb-4">
                 <h3 className="text-2xl font-bold">{yearStats.year}</h3>
@@ -117,6 +131,12 @@ export default function YearsPage() {
           ))}
         </div>
       )}
+
+      <YearFilmsModal
+        year={selectedYear}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }
