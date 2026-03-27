@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Film } from "@/types"
-import { formatDirectorNames, formatDuration } from "@/lib/utils"
+import { Film, Director } from "@/types"
+import { formatDuration } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
 import UpdateRatingModal from "../Modal/UpdateRatingModal"
+import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
 
@@ -14,6 +15,19 @@ interface FilmRowProps {
 export default function FilmRow({ film, onUpdate }: FilmRowProps) {
   const [isUpdatingOwned, setIsUpdatingOwned] = useState(false)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
+  const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
+  const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false)
+
+  const handleDirectorClick = (director: Director, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedDirector(director)
+    setIsDirectorModalOpen(true)
+  }
+
+  const handleCloseDirectorModal = () => {
+    setIsDirectorModalOpen(false)
+    setSelectedDirector(null)
+  }
 
   const handleToggleOwned = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -45,9 +59,35 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
         </td>
         <td className="px-6 py-4 text-gray-300">{film.year}</td>
         <td className="px-6 py-4 text-gray-300">
-          {film.directors && film.directors.length > 0
-            ? formatDirectorNames(film.directors)
-            : "Unknown"}
+          {film.directors && film.directors.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {film.directors.map((director, index) => {
+                const isLast = index === film.directors.length - 1
+                const isSecondToLast = index === film.directors.length - 2
+                const hasTwoDirectors = film.directors.length === 2
+                const hasThreeOrMore = film.directors.length >= 3
+
+                return (
+                  <span key={director._id}>
+                    <button
+                      onClick={(e) => handleDirectorClick(director, e)}
+                      className="text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                    >
+                      {director.displayName}
+                    </button>
+                    {!isLast && (
+                      <span className="text-gray-500">
+                        {hasTwoDirectors ? ' & ' :
+                         hasThreeOrMore && isSecondToLast ? ' & ' : ', '}
+                      </span>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+          ) : (
+            "Unknown"
+          )}
         </td>
         <td className="px-6 py-4 text-gray-300">
           {film.duration ? formatDuration(film.duration) : "—"}
@@ -143,6 +183,12 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
         onUpdate={() => onUpdate?.()}
+      />
+
+      <DirectorFilmsModal
+        director={selectedDirector}
+        isOpen={isDirectorModalOpen}
+        onClose={handleCloseDirectorModal}
       />
     </>
   )

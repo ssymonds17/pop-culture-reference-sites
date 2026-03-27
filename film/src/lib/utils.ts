@@ -30,8 +30,17 @@ export const getRatingTextColor = (rating: number): string => {
   return colors[rating] || 'text-gray-400'
 }
 
-export const formatDirectorNames = (directors: Array<{ displayName: string }>): string => {
-  return directors.map((d) => d.displayName).join(' & ')
+export const formatDirectorNames = (
+  directors: Array<{ displayName?: string; name?: string }>
+): string => {
+  const names = directors.map((d) => d.displayName || d.name || 'Unknown')
+
+  if (names.length === 0) return ''
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} & ${names[1]}`
+
+  // 3 or more: "name1, name2 & name3"
+  return names.slice(0, -1).join(', ') + ' & ' + names[names.length - 1]
 }
 
 export const getTmdbPosterUrl = (posterPath: string, size: string = 'w500'): string => {

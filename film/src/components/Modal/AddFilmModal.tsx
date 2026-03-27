@@ -3,6 +3,7 @@
 import { useState } from "react"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
+import { formatDirectorNames } from "@/lib/utils"
 
 interface TmdbSearchResult {
   tmdbId: string
@@ -253,9 +254,7 @@ export const AddFilmModal = ({
                               Director{filmDetails[result.tmdbId].directors.length > 1 ? "s" : ""}:
                             </span>
                             <span className="text-gray-300 text-sm ml-2">
-                              {filmDetails[result.tmdbId].directors
-                                .map((d) => d.name)
-                                .join(", ")}
+                              {formatDirectorNames(filmDetails[result.tmdbId].directors)}
                             </span>
                           </div>
                         ) : (
