@@ -66,18 +66,18 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             )}
           </div>
         </td>
-        <td className="px-6 py-4">
-          <div className="font-medium">{film.title}</div>
+        <td className="px-3 py-3">
+          <div className="font-medium text-sm">{film.title}</div>
           {film.originalTitle && film.originalTitle !== film.title && (
             <div className="text-xs text-gray-500 mt-1">
               Original: {film.originalTitle}
             </div>
           )}
         </td>
-        <td className="px-6 py-4 text-gray-300">{film.year}</td>
-        <td className="px-6 py-4 text-gray-300">
+        <td className="px-3 py-3 text-gray-300 text-sm">{film.year}</td>
+        <td className="px-3 py-3 text-gray-300 text-sm text-left">
           {film.directors && film.directors.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 justify-start">
               {film.directors.map((director, index) => {
                 const isLast = index === film.directors.length - 1
                 const isSecondToLast = index === film.directors.length - 2
@@ -88,7 +88,7 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
                   <span key={director._id}>
                     <button
                       onClick={(e) => handleDirectorClick(director, e)}
-                      className="text-blue-400 hover:text-blue-300 hover:underline transition-colors"
+                      className="text-blue-400 hover:text-blue-300 hover:underline transition-colors text-left"
                     >
                       {director.displayName}
                     </button>
@@ -106,10 +106,10 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             "Unknown"
           )}
         </td>
-        <td className="px-6 py-4 text-gray-300">
+        <td className="px-3 py-3 text-gray-300 text-sm">
           {film.duration ? formatDuration(film.duration) : "—"}
         </td>
-        <td className="px-6 py-4">
+        <td className="px-3 py-3">
           <div className="flex flex-wrap gap-1">
             {film.genres && film.genres.length > 0 ? (
               film.genres.slice(0, 3).map((genre) => (
@@ -130,7 +130,7 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             )}
           </div>
         </td>
-        <td className="px-6 py-4 text-center">
+        <td className="px-3 py-3 text-center">
           {film.watched ? (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
               Watched
@@ -141,7 +141,7 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             </span>
           )}
         </td>
-        <td className="px-6 py-4 text-center">
+        <td className="px-3 py-3 text-center">
           <button
             onClick={() => setIsRatingModalOpen(true)}
             className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -149,17 +149,17 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             {film.rating ? (
               <RatingBadge rating={film.rating} />
             ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400">
                 Add Rating
               </span>
             )}
           </button>
         </td>
-        <td className="px-6 py-4 text-center">
+        <td className="px-3 py-3 text-center">
           <button
             onClick={handleToggleOwned}
             disabled={isUpdatingOwned}
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
               film.owned
                 ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
                 : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
@@ -168,10 +168,10 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
           </button>
         </td>
-        <td className="px-6 py-4 text-center">
+        <td className="px-3 py-3 text-center">
           <button
             onClick={() => setIsReviewModalOpen(true)}
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
               film.review
                 ? "bg-purple-900/30 text-purple-400 hover:bg-purple-900/50"
                 : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
@@ -180,7 +180,7 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             {film.review ? "Has Review" : "No Review"}
           </button>
         </td>
-        <td className="px-6 py-4">
+        <td className="px-3 py-3">
           <div className="flex items-center justify-center gap-2">
             <a
               href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
