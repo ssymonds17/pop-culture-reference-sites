@@ -155,6 +155,18 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    const getTmdbFilmDetailsLambda = new LambdaConstruct(
+      this,
+      "GetTmdbFilmDetails",
+      {
+        functionName: "film-get-tmdb-film-details-handler",
+        code: lambda.Code.fromAsset("build/apps/get-tmdb-film-details"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
+      }
+    )
+
     const importFilmsLambda = new LambdaConstruct(this, "ImportFilms", {
       functionName: "film-import-films-handler",
       code: lambda.Code.fromAsset("build/apps/import-films"),
@@ -299,6 +311,18 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(searchTmdbLambda.function)
     )
     searchTmdb.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+
+    // RESOURCES - TMDB Details
+    const tmdb = api.root.addResource("tmdb")
+    const tmdbFilmDetails = tmdb.addResource("{tmdbId}")
+    tmdbFilmDetails.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTmdbFilmDetailsLambda.function)
+    )
+    tmdbFilmDetails.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
     })

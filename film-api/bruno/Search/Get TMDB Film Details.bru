@@ -1,0 +1,45 @@
+meta {
+  name: Get TMDB Film Details
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_URL}}/tmdb/550
+  body: none
+  auth: none
+}
+
+docs {
+  Get detailed information about a film from TMDB without adding it to the database.
+
+  Path Parameters:
+  - tmdbId: TMDB movie ID - REQUIRED
+
+  Returns film details including:
+  - tmdbId: TMDB movie ID
+  - title: Film title
+  - year: Release year
+  - duration: Film runtime in minutes
+  - directors: Array of director objects with:
+    - tmdbPersonId: TMDB person ID
+    - name: Director's name
+
+  This endpoint is useful for previewing film details (especially directors)
+  before adding the film to your collection. It fetches data from TMDB
+  but does not save anything to the database.
+
+  Example Response:
+  {
+    "tmdbId": "550",
+    "title": "Fight Club",
+    "year": 1999,
+    "duration": 139,
+    "directors": [
+      {
+        "tmdbPersonId": "7467",
+        "name": "David Fincher"
+      }
+    ]
+  }
+}

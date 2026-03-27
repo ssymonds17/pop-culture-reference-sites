@@ -5,7 +5,7 @@
     "film-api": "bin/film-api.js"
   },
   "scripts": {
-    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film && npm run build:delete-film && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:search-tmdb && npm run build:import-films",
+    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film && npm run build:delete-film && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:search-tmdb && npm run build:get-tmdb-film-details && npm run build:import-films",
     "build:create-film": "esbuild lambda/create-film.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-film/index.js",
     "build:get-films": "esbuild lambda/get-films.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-films/index.js",
     "build:get-film-by-id": "esbuild lambda/get-film-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-film-by-id/index.js",
@@ -20,6 +20,7 @@
     "build:update-year-stats": "esbuild lambda/update-year-stats.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-year-stats/index.js",
     "build:search": "esbuild lambda/search.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/search/index.js",
     "build:search-tmdb": "esbuild lambda/search-tmdb.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/search-tmdb/index.js",
+    "build:get-tmdb-film-details": "esbuild lambda/get-tmdb-film-details.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-tmdb-film-details/index.js",
     "build:import-films": "esbuild lambda/import-films.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/import-films/index.js",
     "test": "jest",
     "cdk": "npx cdk",
