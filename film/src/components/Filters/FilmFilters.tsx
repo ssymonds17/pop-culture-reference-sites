@@ -12,20 +12,6 @@ export default function FilmFilters() {
   const [genre, setGenre] = useState<string>("")
   const [searchString, setSearchString] = useState<string>("")
 
-  useEffect(() => {
-    const filters: any = {}
-
-    if (watched === "watched") filters.watched = true
-    if (watched === "unwatched") filters.watched = false
-    if (minRating) filters.minRating = parseInt(minRating)
-    if (maxRating) filters.maxRating = parseInt(maxRating)
-    if (year) filters.year = parseInt(year)
-    if (genre) filters.genre = genre
-    // Note: searchString is NOT included here - it's submitted manually
-
-    setSelectedFilters(filters)
-  }, [watched, minRating, maxRating, year, genre])
-
   const handleSearchSubmit = () => {
     const filters: any = {}
 
@@ -53,7 +39,7 @@ export default function FilmFilters() {
     setYear("")
     setGenre("")
     setSearchString("")
-    setSelectedFilters({})
+    resetFilters()
   }
 
   return (
