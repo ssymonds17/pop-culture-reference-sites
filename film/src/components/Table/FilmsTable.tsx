@@ -31,6 +31,9 @@ export default function FilmsTable({ films, onUpdate }: FilmsTableProps) {
                 Director(s)
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Duration
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Genres
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">

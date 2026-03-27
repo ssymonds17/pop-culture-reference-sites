@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Film } from "@/types"
-import { formatDirectorNames } from "@/lib/utils"
+import { formatDirectorNames, formatDuration } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
 import UpdateRatingModal from "../Modal/UpdateRatingModal"
 import axios from "axios"
@@ -48,6 +48,9 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
           {film.directors && film.directors.length > 0
             ? formatDirectorNames(film.directors)
             : "Unknown"}
+        </td>
+        <td className="px-6 py-4 text-gray-300">
+          {film.duration ? formatDuration(film.duration) : "—"}
         </td>
         <td className="px-6 py-4">
           <div className="flex flex-wrap gap-1">
