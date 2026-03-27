@@ -111,6 +111,31 @@ export default function FilmRow({ film, onUpdate }: FilmRowProps) {
             {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
           </button>
         </td>
+        <td className="px-6 py-4">
+          <div className="flex items-center justify-center gap-2">
+            <a
+              href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+            >
+              TMDB
+            </a>
+            {film.imdbId && (
+              <>
+                <span className="text-gray-600">|</span>
+                <a
+                  href={`https://www.imdb.com/title/${film.imdbId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-yellow-400 hover:text-yellow-300 text-xs font-medium"
+                >
+                  IMDB
+                </a>
+              </>
+            )}
+          </div>
+        </td>
       </tr>
 
       <UpdateRatingModal
