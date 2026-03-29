@@ -5,7 +5,11 @@ import { useFilmContext } from "@/lib/context/FilmContext"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
 
-export default function FilmFilters() {
+interface FilmFiltersProps {
+  onSearch?: () => void
+}
+
+export default function FilmFilters({ onSearch }: FilmFiltersProps) {
   const { setSelectedFilters, resetFilters } = useFilmContext()
   const [watched, setWatched] = useState<string>("all")
   const [minRating, setMinRating] = useState<string>("")
@@ -42,6 +46,7 @@ export default function FilmFilters() {
     if (review === "noReview") filters.hasReview = false
 
     setSelectedFilters(filters)
+    onSearch?.()
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -59,6 +64,7 @@ export default function FilmFilters() {
     setSearchString("")
     setReview("all")
     resetFilters()
+    onSearch?.()
   }
 
   const handleGenreToggle = (genre: string) => {

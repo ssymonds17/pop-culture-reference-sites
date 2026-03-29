@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { Film } from '@/types'
@@ -19,6 +19,7 @@ export default function FilmsPage() {
   const [isAddFilmModalOpen, setIsAddFilmModalOpen] = useState(false)
   const [hasInitialFetch, setHasInitialFetch] = useState(false)
   const { selectedFilters, dataRefreshRequired, setDataRefreshRequired } = useFilmContext()
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   const fetchFilms = async () => {
     try {
@@ -109,6 +110,10 @@ export default function FilmsPage() {
     }
   }
 
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   useEffect(() => {
     // Allow search/filters to work even before initial load
     const hasActiveFilters = Object.keys(selectedFilters).length > 0
@@ -133,7 +138,7 @@ export default function FilmsPage() {
           </button>
         </div>
 
-      <FilmFilters />
+      <FilmFilters onSearch={scrollToResults} />
 
       {error && (
         <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
@@ -141,30 +146,32 @@ export default function FilmsPage() {
         </div>
       )}
 
-      {!hasInitialFetch ? (
-        <div className="text-center py-12">
-          <p className="text-gray-400 mb-4">Load all films or use search/filters above</p>
-          <button
-            onClick={fetchFilms}
-            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
-          >
-            Load All Films
-          </button>
-        </div>
-      ) : loading ? (
-        <div className="space-y-2">
-          {[...Array(10)].map((_, i) => (
-            <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
-          ))}
-        </div>
-      ) : (
-        <div>
-          <div className="mb-4 text-gray-400">
-            Showing {films.length} film{films.length !== 1 ? 's' : ''}
+      <div ref={resultsRef}>
+        {!hasInitialFetch ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">Load all films or use search/filters above</p>
+            <button
+              onClick={fetchFilms}
+              className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+            >
+              Load All Films
+            </button>
           </div>
-          <FilmsTable films={films} onUpdate={fetchFilms} />
-        </div>
-      )}
+        ) : loading ? (
+          <div className="space-y-2">
+            {[...Array(10)].map((_, i) => (
+              <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
+            ))}
+          </div>
+        ) : (
+          <div>
+            <div className="mb-4 text-gray-400">
+              Showing {films.length} film{films.length !== 1 ? 's' : ''}
+            </div>
+            <FilmsTable films={films} onUpdate={fetchFilms} />
+          </div>
+        )}
+      </div>
 
       <AddFilmModal
         isOpen={isAddFilmModalOpen}
