@@ -231,7 +231,7 @@ export const AddFilmModal = ({
                     <p className="text-gray-400 text-sm">
                       {result.year || "Unknown year"}
                     </p>
-                    {result.overview && (
+                    {result.overview && expandedResultId !== result.tmdbId && (
                       <p className="text-gray-500 text-sm mt-1 line-clamp-2">
                         {result.overview}
                       </p>
@@ -252,6 +252,14 @@ export const AddFilmModal = ({
                       <p className="text-gray-400 text-sm">Loading details...</p>
                     ) : filmDetails[result.tmdbId] ? (
                       <div className="space-y-2">
+                        {result.overview && (
+                          <div>
+                            <span className="text-gray-400 text-sm font-medium block mb-1">Description:</span>
+                            <p className="text-gray-300 text-sm leading-relaxed">
+                              {result.overview}
+                            </p>
+                          </div>
+                        )}
                         {filmDetails[result.tmdbId].directors.length > 0 ? (
                           <div>
                             <span className="text-gray-400 text-sm font-medium">
