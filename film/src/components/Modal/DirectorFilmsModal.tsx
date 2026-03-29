@@ -85,9 +85,6 @@ export default function DirectorFilmsModal({
                     Year
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">
                     Rating
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">
@@ -106,13 +103,6 @@ export default function DirectorFilmsModal({
                     </td>
                     <td className="px-4 py-3 text-center text-gray-300">
                       {film.year}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {film.watched ? (
-                        <span className="text-green-400 text-sm">Watched</span>
-                      ) : (
-                        <span className="text-gray-500 text-sm">Unwatched</span>
-                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {film.rating ? (

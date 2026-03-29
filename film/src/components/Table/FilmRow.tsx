@@ -140,16 +140,6 @@ export default function FilmRow({ film, onUpdate, viewMode = 'desktop', gridCols
 
           {/* Status badges */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {film.watched ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
-                Watched
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
-                Unwatched
-              </span>
-            )}
-
             <button
               onClick={() => setIsRatingModalOpen(true)}
               className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -348,16 +338,6 @@ export default function FilmRow({ film, onUpdate, viewMode = 'desktop', gridCols
 
         {/* Status badges */}
         <div className="p-4 relative z-10 flex flex-wrap gap-2 items-center">
-          {film.watched ? (
-            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 min-w-[80px]">
-              Watched
-            </span>
-          ) : (
-            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400 min-w-[80px]">
-              Unwatched
-            </span>
-          )}
-
           <button
             onClick={() => setIsRatingModalOpen(true)}
             className="cursor-pointer hover:opacity-80 transition-opacity"
