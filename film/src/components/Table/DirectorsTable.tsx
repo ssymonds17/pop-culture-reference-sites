@@ -28,84 +28,76 @@ export default function DirectorsTable({ directors }: DirectorsTableProps) {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-800 border-b border-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Rank
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Director
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Total Films
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Seen
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Avg Rating
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Total Points
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                10 / 9 / 8 / 7 / 6
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {directors.map((director, index) => (
-              <tr
-                key={director._id}
-                onClick={() => handleDirectorClick(director)}
-                className="hover:bg-gray-800/50 transition-colors cursor-pointer"
-              >
-                <td className="px-6 py-4 text-center">
-                  <span className="font-bold text-film-500">#{index + 1}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="font-medium">{director.displayName}</div>
-                </td>
-                <td className="px-6 py-4 text-center text-gray-300">
-                  {director.totalFilms}
-                </td>
-                <td className="px-6 py-4 text-center text-gray-300">
-                  {director.seenFilms}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {director.averageRating ? (
-                    <span className="font-semibold text-film-400">
-                      {director.averageRating.toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-gray-500">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="font-bold text-film-500">
-                    {director.totalPoints}
+    <>
+      <div className="grid gap-4">
+        {directors.map((director, index) => (
+          <div
+            key={director._id}
+            onClick={() => handleDirectorClick(director)}
+            className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-film-700 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <span className="text-2xl font-bold text-film-500">
+                  #{index + 1}
+                </span>
+                <h3 className="text-xl font-bold">{director.displayName}</h3>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-gray-400">Total Points</div>
+                <div className="text-2xl font-bold text-film-500">
+                  {director.totalPoints}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+              <div>
+                <div className="text-gray-400">Total Films</div>
+                <div className="text-lg font-semibold">{director.totalFilms}</div>
+              </div>
+              <div>
+                <div className="text-gray-400">Seen</div>
+                <div className="text-lg font-semibold">{director.seenFilms}</div>
+              </div>
+              <div>
+                <div className="text-gray-400">Avg Rating</div>
+                <div className="text-lg font-semibold text-film-400">
+                  {director.averageRating
+                    ? director.averageRating.toFixed(2)
+                    : "-"}
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-400 mb-1">Rating Breakdown</div>
+                <div className="flex flex-wrap gap-2 text-xs md:text-sm">
+                  <span className="text-gray-300">
+                    <span className="font-semibold text-film-400">10:</span> {director.ratingCounts.rating10}
                   </span>
-                </td>
-                <td className="px-6 py-4 text-center text-sm text-gray-300">
-                  {director.ratingCounts.rating10} /{" "}
-                  {director.ratingCounts.rating9} /{" "}
-                  {director.ratingCounts.rating8} /{" "}
-                  {director.ratingCounts.rating7} /{" "}
-                  {director.ratingCounts.rating6}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <span className="text-gray-300">
+                    <span className="font-semibold text-film-400">9:</span> {director.ratingCounts.rating9}
+                  </span>
+                  <span className="text-gray-300">
+                    <span className="font-semibold text-film-400">8:</span> {director.ratingCounts.rating8}
+                  </span>
+                  <span className="text-gray-300">
+                    <span className="font-semibold text-film-400">7:</span> {director.ratingCounts.rating7}
+                  </span>
+                  <span className="text-gray-300">
+                    <span className="font-semibold text-film-400">6:</span> {director.ratingCounts.rating6}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
+
       <DirectorFilmsModal
         director={selectedDirector}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
-    </div>
+    </>
   )
 }
