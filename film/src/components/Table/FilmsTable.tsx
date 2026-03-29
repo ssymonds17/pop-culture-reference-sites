@@ -15,54 +15,23 @@ export default function FilmsTable({ films, onUpdate }: FilmsTableProps) {
     )
   }
 
+  const gridCols = "80px minmax(150px,1fr) minmax(120px,180px) 90px minmax(100px,140px) auto 120px"
+
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-800 border-b border-gray-700">
-            <tr>
-              <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Poster
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Year
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Director(s)
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Duration
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Genres
-              </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Rating
-              </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Owned
-              </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Review
-              </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Links
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {films.map((film) => (
-              <FilmRow key={film._id} film={film} onUpdate={onUpdate} />
-            ))}
-          </tbody>
-        </table>
+    <>
+      {/* Mobile: Card layout */}
+      <div className="md:hidden grid gap-4 grid-cols-1">
+        {films.map((film) => (
+          <FilmRow key={film._id} film={film} onUpdate={onUpdate} viewMode="mobile" />
+        ))}
       </div>
-    </div>
+
+      {/* Desktop: Grid layout with aligned columns */}
+      <div className="hidden md:grid md:gap-4" style={{ gridTemplateColumns: gridCols }}>
+        {films.map((film) => (
+          <FilmRow key={film._id} film={film} onUpdate={onUpdate} viewMode="desktop" gridCols={gridCols} />
+        ))}
+      </div>
+    </>
   )
 }
