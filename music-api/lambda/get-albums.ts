@@ -25,8 +25,8 @@ const handler = async (event: any) => {
 
     // Handle year filter
     if (queryParams.year) {
-      const year = parseInt(queryParams.year, 10)
-      if (isNaN(year)) {
+      const year = Number.parseInt(queryParams.year, 10)
+      if (Number.isNaN(year)) {
         return createApiResponse(400, {
           message: "Invalid year parameter",
         })
@@ -34,7 +34,9 @@ const handler = async (event: any) => {
       options.year = year
     }
 
-    const albums = await getAlbums(Object.keys(options).length > 0 ? options : undefined)
+    const albums = await getAlbums(
+      Object.keys(options).length > 0 ? options : undefined,
+    )
 
     if (!albums) {
       return createApiResponse(404, {
