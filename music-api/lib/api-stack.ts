@@ -91,6 +91,17 @@ export class ApiStack extends core.Stack {
       timeout: core.Duration.seconds(30),
     })
 
+    const updateYearStatsLambda = new LambdaConstruct(
+      this,
+      "UpdateYearStats",
+      {
+        functionName: "update-year-stats-handler",
+        code: lambda.Code.fromAsset("build/apps/update-year-stats"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+      }
+    )
+
     const searchLambda = new LambdaConstruct(this, "SearchLambda", {
       functionName: "search-handler",
       code: lambda.Code.fromAsset("build/apps/search"),
@@ -211,6 +222,18 @@ export class ApiStack extends core.Stack {
     getYears.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
+    })
+
+    const year = api.root.addResource("year")
+    const yearById = year.addResource("{year}")
+    const yearStats = yearById.addResource("stats")
+    yearStats.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateYearStatsLambda.function)
+    )
+    yearStats.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["PUT"],
     })
 
     // Search
