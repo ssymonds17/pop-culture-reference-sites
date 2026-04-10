@@ -12,12 +12,29 @@ const AlbumsPage = () => {
   const [formValues, setFormValues] = useState<Partial<Album>>({});
   const [isFetchingAlbums, setIsFetchingAlbums] = useState(false);
   const [isSearchingAlbums, setIsSearchingAlbums] = useState(false);
+  const [ratingFilter, setRatingFilter] = useState<'ALL' | 'GOLD' | 'SILVER'>(
+    'ALL'
+  );
+  const [yearFilter, setYearFilter] = useState<string>('');
   useScrollToTop();
 
   const handleGetAlbums = async () => {
     try {
       setIsFetchingAlbums(true);
-      const getAlbumsResponse = await axios.get(`${API_URL}/albums`);
+
+      // Build query parameters based on filters
+      const params = new URLSearchParams();
+      if (ratingFilter !== 'ALL') {
+        params.append('rating', ratingFilter);
+      }
+      if (yearFilter) {
+        params.append('year', yearFilter);
+      }
+
+      const queryString = params.toString();
+      const url = `${API_URL}/albums${queryString ? `?${queryString}` : ''}`;
+
+      const getAlbumsResponse = await axios.get(url);
       setAlbums(getAlbumsResponse.data.albums);
     } catch (error) {
       setAlbums([]);
@@ -45,6 +62,26 @@ const AlbumsPage = () => {
     }
   };
 
+  const getButtonText = () => {
+    if (isFetchingAlbums) return 'Loading...';
+
+    const parts = [];
+
+    if (ratingFilter !== 'ALL') {
+      parts.push(ratingFilter.charAt(0) + ratingFilter.slice(1).toLowerCase());
+    } else {
+      parts.push('All');
+    }
+
+    parts.push('Albums');
+
+    if (yearFilter) {
+      parts.push(`(${yearFilter})`);
+    }
+
+    return parts.join(' ');
+  };
+
   return (
     <div className="layout-container">
       <section className="layout-section">
@@ -56,11 +93,33 @@ const AlbumsPage = () => {
           </p>
         </div>
 
-        <div className="layout-flex-between">
-          <button onClick={handleGetAlbums} className="btn-search-primary mx-4">
-            {isFetchingAlbums ? 'Loading...' : 'Get All Albums'}
-          </button>
-          <div className="flex">
+        <div className="flex items-center gap-4 mx-4 mb-4">
+          <select
+            value={ratingFilter}
+            onChange={(e) =>
+              setRatingFilter(e.target.value as 'ALL' | 'GOLD' | 'SILVER')
+            }
+            className="form-select-btn w-52"
+          >
+            <option value="ALL">All</option>
+            <option value="GOLD">Gold Only</option>
+            <option value="SILVER">Silver Only</option>
+          </select>
+
+          <input
+            type="number"
+            value={yearFilter}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length <= 4) {
+                setYearFilter(value);
+              }
+            }}
+            placeholder="Year"
+            className="form-control-btn w-32"
+          />
+
+          <div className="flex [&_.form-group]:mb-0">
             <InputField
               id="title"
               setFormValues={setFormValues}
@@ -70,14 +129,33 @@ const AlbumsPage = () => {
               placeholder="Search albums..."
               size="btn"
             />
-            <button
-              onClick={handleSearchAlbumsByName}
-              className="btn-search-secondary mx-4"
-              disabled={!formValues.title}
-            >
-              {isSearchingAlbums ? 'Searching...' : 'Search'}
-            </button>
           </div>
+
+          <button
+            onClick={handleSearchAlbumsByName}
+            className="btn-search-secondary"
+            disabled={!formValues.title}
+          >
+            {isSearchingAlbums ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+
+        <div className="layout-flex-between">
+          <button onClick={handleGetAlbums} className="btn-search-primary mx-4">
+            {getButtonText()}
+          </button>
+
+          {(ratingFilter !== 'ALL' || yearFilter) && (
+            <button
+              onClick={() => {
+                setRatingFilter('ALL');
+                setYearFilter('');
+              }}
+              className="btn-link-sm mx-4"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="layout-content">

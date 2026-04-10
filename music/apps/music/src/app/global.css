@@ -342,6 +342,7 @@
   /* Button-matching input size for perfect alignment */
   .form-control-btn {
     @apply form-control px-4 py-2 text-sm;
+    height: 42px; /* Match btn-search height exactly */
   }
 
   /* Form control variants */
@@ -371,6 +372,13 @@
     @apply form-select px-4 py-3 text-base pr-12;
     background-position: right 1rem center;
     background-size: 1.25rem 1.25rem;
+  }
+
+  .form-select-btn {
+    @apply form-select px-4 py-2 text-sm pr-10;
+    height: 42px; /* Match btn-search height exactly */
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
   }
 
   /* Label styling */
