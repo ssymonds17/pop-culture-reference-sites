@@ -7,6 +7,7 @@ interface LambdaConstructProps {
   code: aws_lambda.AssetCode;
   timeout?: Duration;
   functionName?: string;
+  environment?: { [key: string]: string };
 }
 
 export class LambdaConstruct extends Construct {
@@ -16,7 +17,7 @@ export class LambdaConstruct extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    { functionName, handler, code, timeout }: LambdaConstructProps
+    { functionName, handler, code, timeout, environment }: LambdaConstructProps
   ) {
     super(scope, id);
 
@@ -26,6 +27,7 @@ export class LambdaConstruct extends Construct {
       handler,
       code,
       timeout,
+      environment,
     });
   }
 }

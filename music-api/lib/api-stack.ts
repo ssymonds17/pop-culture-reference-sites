@@ -7,24 +7,37 @@ export class ApiStack extends core.Stack {
   constructor(scope: core.App, id: string, props: any) {
     super(scope, id, props)
 
+    // Get environment variables
+    const mongodbUri = process.env.MONGODB_URI
+    if (!mongodbUri) {
+      throw new Error("MONGODB_URI environment variable is required")
+    }
+
+    const lambdaEnvironment = {
+      MONGODB_URI: mongodbUri,
+    }
+
     // Lambda functions
     const createArtistLambda = new LambdaConstruct(this, "CreateArtist", {
       functionName: "create-artist-handler",
       code: lambda.Code.fromAsset("build/apps/create-artist"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
     const createAlbumLambda = new LambdaConstruct(this, "CreateAlbum", {
       functionName: "create-album-handler",
       code: lambda.Code.fromAsset("build/apps/create-album"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
     const createSongLambda = new LambdaConstruct(this, "CreateSong", {
       functionName: "create-song-handler",
       code: lambda.Code.fromAsset("build/apps/create-song"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const updateAlbumRatingLambda = new LambdaConstruct(
@@ -35,6 +48,7 @@ export class ApiStack extends core.Stack {
         code: lambda.Code.fromAsset("build/apps/update-album-rating"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
       }
     )
 
@@ -46,6 +60,7 @@ export class ApiStack extends core.Stack {
         code: lambda.Code.fromAsset("build/apps/update-album-total-songs"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
       }
     )
 
@@ -54,6 +69,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-artists"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const getAlbumsLambda = new LambdaConstruct(this, "GetAlbums", {
@@ -61,6 +77,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-albums"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const getArtistByIdLambda = new LambdaConstruct(this, "GetArtistById", {
@@ -68,6 +85,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-artist-by-id"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const getAlbumByIdLambda = new LambdaConstruct(this, "GetAlbumById", {
@@ -75,6 +93,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-album-by-id"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const getSongByIdLambda = new LambdaConstruct(this, "GetSongById", {
@@ -82,6 +101,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-song-by-id"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const getYearsLambda = new LambdaConstruct(this, "GetYears", {
@@ -89,6 +109,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/get-years"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     const updateYearStatsLambda = new LambdaConstruct(
@@ -99,6 +120,7 @@ export class ApiStack extends core.Stack {
         code: lambda.Code.fromAsset("build/apps/update-year-stats"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
       }
     )
 
@@ -107,6 +129,7 @@ export class ApiStack extends core.Stack {
       code: lambda.Code.fromAsset("build/apps/search"),
       handler: "index.handler",
       timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
     })
 
     // Define the API Gateway resource
