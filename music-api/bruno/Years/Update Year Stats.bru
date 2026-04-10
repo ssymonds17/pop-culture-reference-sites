@@ -12,17 +12,17 @@ put {
 
 docs {
   Manually recalculates statistics for a specific year.
-
+  
   Recalculates:
   - songs count (from Song collection)
   - goldAlbums count (from Album collection)
   - silverAlbums count (from Album collection)
   - totalScore (songs × 1 + goldAlbums × 15 + silverAlbums × 5)
-
+  
   The yearStats collection is updated via upsert.
-
+  
   Set the YEAR environment variable to test this endpoint.
-
+  
   **Use case:**
   Run this endpoint to populate the yearStats collection after
   migrating from the old dynamic calculation approach.
