@@ -1,0 +1,24 @@
+meta {
+  name: Get Albums
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/albums
+  body: none
+  auth: none
+}
+
+docs {
+  Returns all albums sorted by year (descending).
+
+  Each album includes:
+  - title, displayTitle
+  - year
+  - artistDisplayName
+  - artists[] (array of artist IDs)
+  - songs[] (array of song IDs)
+  - totalSongs
+  - rating (GOLD, SILVER, or NONE)
+}

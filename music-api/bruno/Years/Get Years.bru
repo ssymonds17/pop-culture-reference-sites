@@ -1,0 +1,25 @@
+meta {
+  name: Get Years
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/years
+  body: none
+  auth: none
+}
+
+docs {
+  Returns year statistics for all years, sorted by totalScore (descending).
+
+  Score formula:
+  totalScore = songs × 1 + goldAlbums × 15 + silverAlbums × 5
+
+  Each year includes:
+  - year
+  - songs (count)
+  - goldAlbums (count)
+  - silverAlbums (count)
+  - totalScore (weighted score)
+}

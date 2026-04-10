@@ -1,0 +1,17 @@
+meta {
+  name: Get Album By Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_URL}}/album/{{ALBUM_ID}}
+  body: none
+  auth: none
+}
+
+docs {
+  Returns a single album by ID with full details including populated songs.
+
+  Set the ALBUM_ID environment variable to test this endpoint.
+}

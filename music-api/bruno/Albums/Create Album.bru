@@ -1,0 +1,42 @@
+meta {
+  name: Create Album
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_URL}}/album
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Abbey Road",
+    "artistDisplayName": "The Beatles",
+    "year": 1969,
+    "artists": ["artist-id-here"],
+    "rating": "GOLD",
+    "totalSongs": 17
+  }
+}
+
+docs {
+  Creates a new album in the database.
+
+  Required fields:
+  - title: Album title
+  - artistDisplayName: Display name for the artist(s)
+  - year: Release year
+  - artists: Array of artist IDs (must exist in database)
+
+  Optional fields:
+  - rating: "GOLD", "SILVER", or "NONE" (default: "NONE")
+  - totalSongs: Total number of songs on the album
+
+  The API will:
+  - Validate that all artists exist
+  - Create the album with empty songs array
+  - Update artist statistics (goldAlbums, silverAlbums, totalScore)
+  - Update year statistics
+}

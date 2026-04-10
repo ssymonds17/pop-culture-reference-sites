@@ -1,0 +1,31 @@
+meta {
+  name: Search
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/search?searchString=beatles&itemType=artist
+  body: none
+  auth: none
+}
+
+params:query {
+  searchString: beatles
+  itemType: artist
+}
+
+docs {
+  Search for artists, albums, or songs.
+
+  Query parameters:
+  - searchString: Text to search for (required)
+  - itemType: Type of item to search ("artist", "album", or "song")
+
+  Search behavior:
+  - Artists: Searches the lowercase 'name' field
+  - Albums: Searches the lowercase 'title' field
+  - Songs: Searches the lowercase 'title' field
+
+  Returns an array of matching items with their full details.
+}

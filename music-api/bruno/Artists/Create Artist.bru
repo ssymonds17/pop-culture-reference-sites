@@ -1,0 +1,30 @@
+meta {
+  name: Create Artist
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{API_URL}}/artist
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "The Beatles"
+  }
+}
+
+docs {
+  Creates a new artist in the database.
+
+  Required fields:
+  - name: Artist name (will be lowercased for storage)
+
+  The API will automatically:
+  - Create lowercase version for searching (name)
+  - Store display version (displayName)
+  - Initialize empty songs and albums arrays
+  - Set totalSongs, totalScore, goldAlbums, silverAlbums to 0
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Update Album Total Songs
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{API_URL}}/album/{{ALBUM_ID}}/totalsongs
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "totalSongs": 17
+  }
+}
+
+docs {
+  Updates the totalSongs field for an album.
+
+  This is useful when you know the total track count but haven't added all songs yet.
+
+  Set the ALBUM_ID environment variable to test this endpoint.
+}

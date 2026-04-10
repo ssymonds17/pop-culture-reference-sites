@@ -1,0 +1,44 @@
+meta {
+  name: Create Song
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_URL}}/song
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Come Together",
+    "artistDisplayName": "The Beatles",
+    "year": 1969,
+    "artists": ["artist-id-here"],
+    "album": "album-id-here",
+    "albumDisplayTitle": "Abbey Road"
+  }
+}
+
+docs {
+  Creates a new song in the database.
+
+  Required fields:
+  - title: Song title
+  - artistDisplayName: Display name for the artist(s)
+  - year: Release year
+  - artists: Array of artist IDs (must exist in database)
+
+  Optional fields:
+  - album: Album ID (if part of an album)
+  - albumDisplayTitle: Display title of the album
+
+  The API will:
+  - Validate that all artists exist
+  - Validate that album exists (if provided)
+  - Create the song
+  - Add song to the album's songs array (if album provided)
+  - Update artist statistics (totalSongs, totalScore += 1)
+  - Update year statistics
+}

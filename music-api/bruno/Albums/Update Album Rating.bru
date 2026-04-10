@@ -1,0 +1,33 @@
+meta {
+  name: Update Album Rating
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{API_URL}}/album/{{ALBUM_ID}}/rating
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "rating": "GOLD"
+  }
+}
+
+docs {
+  Updates the rating of an existing album.
+
+  Valid ratings:
+  - "GOLD" (15 points to artist score)
+  - "SILVER" (5 points to artist score)
+  - "NONE" (no points)
+
+  The API will:
+  - Update the album rating
+  - Recalculate artist statistics
+  - Update year statistics
+
+  Set the ALBUM_ID environment variable to test this endpoint.
+}

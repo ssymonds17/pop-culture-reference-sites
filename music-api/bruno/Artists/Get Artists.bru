@@ -1,0 +1,22 @@
+meta {
+  name: Get Artists
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/artists
+  body: none
+  auth: none
+}
+
+docs {
+  Returns all artists sorted by total score (descending).
+
+  Each artist includes:
+  - name, displayName
+  - totalSongs, totalScore
+  - goldAlbums, silverAlbums
+  - songs[] (array of song IDs)
+  - albums[] (array of album IDs)
+}
