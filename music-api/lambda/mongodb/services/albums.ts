@@ -4,23 +4,38 @@ export const createAlbum = async (albumData: AlbumData) => {
   return Album.create(albumData)
 }
 
-export const getAlbums = async () => {
-  const gold = await Album.find({ rating: Rating.GOLD })
-    .sort({
-      year: 1,
-      displayTitle: 1,
-      artistDisplayName: 1,
-    })
-    .exec()
-  const silver = await Album.find({ rating: Rating.SILVER })
-    .sort({
-      year: 1,
-      displayTitle: 1,
-      artistDisplayName: 1,
-    })
-    .exec()
+export interface GetAlbumsOptions {
+  rating?: Rating | Rating[]
+  year?: number
+}
 
-  return [...gold, ...silver]
+export const getAlbums = async (options?: GetAlbumsOptions) => {
+  const query: any = {}
+
+  // Build rating filter
+  if (options?.rating) {
+    if (Array.isArray(options.rating)) {
+      query.rating = { $in: options.rating }
+    } else {
+      query.rating = options.rating
+    }
+  } else {
+    // Default: only GOLD and SILVER (exclude NONE)
+    query.rating = { $in: [Rating.GOLD, Rating.SILVER] }
+  }
+
+  // Build year filter
+  if (options?.year) {
+    query.year = options.year
+  }
+
+  return Album.find(query)
+    .sort({
+      year: 1,
+      displayTitle: 1,
+      artistDisplayName: 1,
+    })
+    .exec()
 }
 
 export const getAlbumById = async (id: string) => {

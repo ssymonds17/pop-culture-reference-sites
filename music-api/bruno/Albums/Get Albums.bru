@@ -10,9 +10,27 @@ get {
   auth: none
 }
 
-docs {
-  Returns all albums sorted by year (descending).
+params:query {
+  ~rating: GOLD
+  ~year: 2020
+}
 
+docs {
+  Returns albums sorted by year, displayTitle, and artistDisplayName.
+  
+  **Query Parameters (optional):**
+  - `rating`: Filter by rating ("GOLD" or "SILVER", case-insensitive)
+  - `year`: Filter by release year
+  
+  **Examples:**
+  - All gold and silver albums (default): `/albums`
+  - Only gold albums: `/albums?rating=GOLD`
+  - Only silver albums: `/albums?rating=SILVER`
+  - Albums from 2020: `/albums?year=2020`
+  - Gold albums from 2020: `/albums?rating=GOLD&year=2020`
+  
+  **Default behavior:** Returns all GOLD and SILVER albums (excludes NONE)
+  
   Each album includes:
   - title, displayTitle
   - year

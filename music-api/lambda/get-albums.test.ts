@@ -41,10 +41,12 @@ describe("get-albums handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockGetAlbums.mockResolvedValueOnce(mockAlbums)
 
-    await handler()
+    const event = {}
+
+    await handler(event)
 
     expect(mockConnectToDatabase).toHaveBeenCalled()
-    expect(mockGetAlbums).toHaveBeenCalled()
+    expect(mockGetAlbums).toHaveBeenCalledWith(undefined)
     expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
       albums: mockAlbums,
       message: "Successfully retrieved albums",
@@ -55,12 +57,152 @@ describe("get-albums handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockGetAlbums.mockResolvedValueOnce([])
 
-    await handler()
+    const event = {}
 
-    expect(mockGetAlbums).toHaveBeenCalled()
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith(undefined)
     expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
       albums: [],
       message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should filter by GOLD rating", async () => {
+    const mockGoldAlbums = [
+      { id: "album1", title: "Album 1", rating: "GOLD" },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mockGoldAlbums)
+
+    const event = {
+      queryStringParameters: {
+        rating: "GOLD",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "GOLD" })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mockGoldAlbums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should filter by SILVER rating", async () => {
+    const mockSilverAlbums = [
+      { id: "album2", title: "Album 2", rating: "SILVER" },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mockSilverAlbums)
+
+    const event = {
+      queryStringParameters: {
+        rating: "SILVER",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "SILVER" })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mockSilverAlbums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should filter by year", async () => {
+    const mock2020Albums = [
+      { id: "album1", title: "Album 1", year: 2020 },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mock2020Albums)
+
+    const event = {
+      queryStringParameters: {
+        year: "2020",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ year: 2020 })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mock2020Albums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should filter by both rating and year", async () => {
+    const mockFilteredAlbums = [
+      { id: "album1", title: "Album 1", rating: "GOLD", year: 2020 },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mockFilteredAlbums)
+
+    const event = {
+      queryStringParameters: {
+        rating: "GOLD",
+        year: "2020",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "GOLD", year: 2020 })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mockFilteredAlbums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should handle case-insensitive rating parameter", async () => {
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce([])
+
+    const event = {
+      queryStringParameters: {
+        rating: "gold",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "GOLD" })
+  })
+
+  it("should return 400 for invalid rating", async () => {
+    const event = {
+      queryStringParameters: {
+        rating: "INVALID",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockConnectToDatabase).not.toHaveBeenCalled()
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(400, {
+      message: 'Invalid rating. Must be "GOLD" or "SILVER"',
+    })
+  })
+
+  it("should return 400 for invalid year", async () => {
+    const event = {
+      queryStringParameters: {
+        year: "invalid",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockConnectToDatabase).not.toHaveBeenCalled()
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(400, {
+      message: "Invalid year parameter",
     })
   })
 
@@ -68,7 +210,9 @@ describe("get-albums handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockGetAlbums.mockResolvedValueOnce(null)
 
-    await handler()
+    const event = {}
+
+    await handler(event)
 
     expect(mockCreateApiResponse).toHaveBeenCalledWith(404, {
       message: "Could not find albums",
@@ -80,7 +224,9 @@ describe("get-albums handler", () => {
       new Error("Database connection failed"),
     )
 
-    await handler()
+    const event = {}
+
+    await handler(event)
 
     expect(mockLogger.error).toHaveBeenCalledWith("Error retrieving albums:", {
       error: expect.any(Error),
@@ -94,7 +240,9 @@ describe("get-albums handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockGetAlbums.mockRejectedValueOnce(new Error("Query failed"))
 
-    await handler()
+    const event = {}
+
+    await handler(event)
 
     expect(mockLogger.error).toHaveBeenCalledWith("Error retrieving albums:", {
       error: expect.any(Error),

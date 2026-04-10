@@ -1,11 +1,40 @@
 import { createApiResponse } from "./utils/api"
 import { logger } from "./utils"
 import { connectToDatabase, getAlbums } from "./mongodb"
+import { Rating } from "./mongodb/models/album"
 
-const handler = async () => {
+const handler = async (event: any) => {
   try {
     await connectToDatabase()
-    const albums = await getAlbums()
+
+    // Parse query parameters
+    const queryParams = event.queryStringParameters || {}
+    const options: any = {}
+
+    // Handle rating filter
+    if (queryParams.rating) {
+      const ratingParam = queryParams.rating.toUpperCase()
+      if (ratingParam === Rating.GOLD || ratingParam === Rating.SILVER) {
+        options.rating = ratingParam as Rating
+      } else {
+        return createApiResponse(400, {
+          message: `Invalid rating. Must be "GOLD" or "SILVER"`,
+        })
+      }
+    }
+
+    // Handle year filter
+    if (queryParams.year) {
+      const year = parseInt(queryParams.year, 10)
+      if (isNaN(year)) {
+        return createApiResponse(400, {
+          message: "Invalid year parameter",
+        })
+      }
+      options.year = year
+    }
+
+    const albums = await getAlbums(Object.keys(options).length > 0 ? options : undefined)
 
     if (!albums) {
       return createApiResponse(404, {
