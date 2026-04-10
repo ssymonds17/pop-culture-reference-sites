@@ -12,9 +12,9 @@ const AlbumsPage = () => {
   const [formValues, setFormValues] = useState<Partial<Album>>({});
   const [isFetchingAlbums, setIsFetchingAlbums] = useState(false);
   const [isSearchingAlbums, setIsSearchingAlbums] = useState(false);
-  const [ratingFilter, setRatingFilter] = useState<'ALL' | 'GOLD' | 'SILVER'>(
-    'ALL'
-  );
+  const [ratingFilter, setRatingFilter] = useState<
+    'RATED' | 'GOLD' | 'SILVER' | 'ALL'
+  >('RATED');
   const [yearFilter, setYearFilter] = useState<string>('');
   useScrollToTop();
 
@@ -24,7 +24,7 @@ const AlbumsPage = () => {
 
       // Build query parameters based on filters
       const params = new URLSearchParams();
-      if (ratingFilter !== 'ALL') {
+      if (ratingFilter !== 'RATED') {
         params.append('rating', ratingFilter);
       }
       if (yearFilter) {
@@ -67,10 +67,12 @@ const AlbumsPage = () => {
 
     const parts = [];
 
-    if (ratingFilter !== 'ALL') {
-      parts.push(ratingFilter.charAt(0) + ratingFilter.slice(1).toLowerCase());
-    } else {
+    if (ratingFilter === 'RATED') {
+      parts.push('Rated');
+    } else if (ratingFilter === 'ALL') {
       parts.push('All');
+    } else {
+      parts.push(ratingFilter.charAt(0) + ratingFilter.slice(1).toLowerCase());
     }
 
     parts.push('Albums');
@@ -97,13 +99,16 @@ const AlbumsPage = () => {
           <select
             value={ratingFilter}
             onChange={(e) =>
-              setRatingFilter(e.target.value as 'ALL' | 'GOLD' | 'SILVER')
+              setRatingFilter(
+                e.target.value as 'RATED' | 'GOLD' | 'SILVER' | 'ALL'
+              )
             }
             className="form-select-btn w-52"
           >
-            <option value="ALL">All</option>
+            <option value="RATED">Rated (Gold + Silver)</option>
             <option value="GOLD">Gold Only</option>
             <option value="SILVER">Silver Only</option>
+            <option value="ALL">All (Including Unrated)</option>
           </select>
 
           <input
@@ -145,10 +150,10 @@ const AlbumsPage = () => {
             {getButtonText()}
           </button>
 
-          {(ratingFilter !== 'ALL' || yearFilter) && (
+          {(ratingFilter !== 'RATED' || yearFilter) && (
             <button
               onClick={() => {
-                setRatingFilter('ALL');
+                setRatingFilter('RATED');
                 setYearFilter('');
               }}
               className="btn-link-sm mx-4"
