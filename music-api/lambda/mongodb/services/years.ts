@@ -10,15 +10,6 @@ export const countAlbumsByRating = async (rating: Rating, year: number) => {
   return Album.countDocuments({ rating, year })
 }
 
-export const getYearRanges = async () => {
-  const oldestYear = await Song.find({}, null).sort({ year: 1 }).limit(1)
-  const newestYear = await Song.find({}, null).sort({ year: -1 }).limit(1)
-  return {
-    oldestYear: oldestYear.length > 0 ? oldestYear[0].year : null,
-    newestYear: newestYear.length > 0 ? newestYear[0].year : null,
-  }
-}
-
 export const getYears = async () => {
   return YearStats.find({}).sort({ totalScore: -1 }).exec()
 }

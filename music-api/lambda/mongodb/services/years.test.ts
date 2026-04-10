@@ -1,17 +1,20 @@
 import {
   countSongsByYear,
   countAlbumsByRating,
-  getYearRanges,
   getYears,
+  updateYearStats,
 } from "./years"
 import Song from "../models/song"
 import Album, { Rating } from "../models/album"
+import YearStats from "../models/yearStats"
 
 jest.mock("../models/song")
 jest.mock("../models/album")
+jest.mock("../models/yearStats")
 
 const mockSong = Song as jest.Mocked<typeof Song>
 const mockAlbum = Album as jest.Mocked<typeof Album>
+const mockYearStats = YearStats as jest.Mocked<typeof YearStats>
 
 describe("years service", () => {
   beforeEach(() => {
@@ -72,149 +75,168 @@ describe("years service", () => {
     })
   })
 
-  describe("getYearRanges", () => {
-    it("should return oldest and newest year", async () => {
-      const oldestSong = [{ id: "1", title: "Old Song", year: 2000 }]
-      const newestSong = [{ id: "2", title: "New Song", year: 2023 }]
+  describe("getYears", () => {
+    it("should return year statistics sorted by totalScore descending", async () => {
+      const mockYearStatsData = [
+        {
+          year: 2022,
+          songs: 10,
+          goldAlbums: 2,
+          silverAlbums: 3,
+          totalScore: 55,
+        },
+        {
+          year: 2020,
+          songs: 5,
+          goldAlbums: 1,
+          silverAlbums: 1,
+          totalScore: 25,
+        },
+        {
+          year: 2021,
+          songs: 8,
+          goldAlbums: 0,
+          silverAlbums: 2,
+          totalScore: 18,
+        },
+      ]
 
-      mockSong.find = jest
-        .fn()
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(oldestSong),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(newestSong),
-            }),
-          }),
-        }) as any
-
-      const result = await getYearRanges()
-
-      expect(result).toEqual({ oldestYear: 2000, newestYear: 2023 })
-    })
-
-    it("should return null values when no songs exist", async () => {
-      mockSong.find = jest.fn().mockReturnValue({
+      mockYearStats.find = jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            then: (callback: any) => callback([]),
-          }),
+          exec: jest.fn().mockResolvedValue(mockYearStatsData),
         }),
       }) as any
 
-      const result = await getYearRanges()
+      const result = await getYears()
 
-      expect(result).toEqual({ oldestYear: null, newestYear: null })
+      expect(mockYearStats.find).toHaveBeenCalledWith({})
+      expect(result).toEqual(mockYearStatsData)
+      expect(result).toHaveLength(3)
+      expect(result[0].totalScore).toBe(55)
+      expect(result[1].totalScore).toBe(25)
+      expect(result[2].totalScore).toBe(18)
+    })
+
+    it("should return empty array when no year stats exist", async () => {
+      mockYearStats.find = jest.fn().mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }) as any
+
+      const result = await getYears()
+
+      expect(result).toEqual([])
     })
   })
 
-  describe("getYears", () => {
-    it("should return year statistics for all years in range", async () => {
-      const oldestSong = [{ id: "1", title: "Old Song", year: 2020 }]
-      const newestSong = [{ id: "2", title: "New Song", year: 2022 }]
+  describe("updateYearStats", () => {
+    it("should calculate and update year statistics", async () => {
+      const year = 2020
 
-      mockSong.find = jest
-        .fn()
-        // First two calls for getYearRanges
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(oldestSong),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(newestSong),
-            }),
-          }),
-        }) as any
+      // Mock song count
+      mockSong.countDocuments = jest.fn().mockResolvedValueOnce(10) as any
 
-      // Mock countSongsByYear - return consistent value
-      mockSong.countDocuments = jest.fn().mockResolvedValue(2) as any
-
-      // Mock countAlbumsByRating - return consistent value
-      mockAlbum.countDocuments = jest.fn().mockResolvedValue(1) as any
-
-      const result = await getYears()
-
-      // Verify structure and year range
-      expect(result).toHaveLength(3)
-      expect(result[0].year).toBe(2020)
-      expect(result[1].year).toBe(2021)
-      expect(result[2].year).toBe(2022)
-
-      // Verify each year has correct structure with expected values
-      // Each year should have: 2 songs, 1 gold, 1 silver
-      // totalScore = 2*1 + 1*15 + 1*5 = 2 + 15 + 5 = 22
-      result.forEach((yearData) => {
-        expect(yearData).toHaveProperty("year")
-        expect(yearData).toHaveProperty("songs", 2)
-        expect(yearData).toHaveProperty("goldAlbums", 1)
-        expect(yearData).toHaveProperty("silverAlbums", 1)
-        expect(yearData).toHaveProperty("totalScore", 22)
-      })
-    })
-
-    it("should throw error when no year range can be determined", async () => {
-      mockSong.find = jest.fn().mockReturnValue({
-        sort: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            then: (callback: any) => callback([]),
-          }),
-        }),
-      }) as any
-
-      await expect(getYears()).rejects.toThrow("Unable to determine year range")
-    })
-
-    it("should handle single year range", async () => {
-      const song = [{ id: "1", title: "Song", year: 2020 }]
-
-      mockSong.find = jest
-        .fn()
-        // Mock getYearRanges - both return same year
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(song),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: (callback: any) => callback(song),
-            }),
-          }),
-        }) as any
-
-      // Mock countSongsByYear
-      mockSong.countDocuments = jest.fn().mockResolvedValueOnce(1) as any
-
-      // Mock countAlbumsByRating
+      // Mock album counts
       mockAlbum.countDocuments = jest
         .fn()
-        .mockResolvedValueOnce(0) // gold
-        .mockResolvedValueOnce(0) as any // silver
+        .mockResolvedValueOnce(2) // gold albums
+        .mockResolvedValueOnce(3) as any // silver albums
 
-      const result = await getYears()
-
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
+      const mockUpdatedYearStats = {
         year: 2020,
-        songs: 1,
+        songs: 10,
+        goldAlbums: 2,
+        silverAlbums: 3,
+        totalScore: 55, // 10*1 + 2*15 + 3*5 = 10 + 30 + 15 = 55
+      }
+
+      mockYearStats.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUpdatedYearStats),
+      }) as any
+
+      const result = await updateYearStats(year)
+
+      expect(mockSong.countDocuments).toHaveBeenCalledWith({ year: 2020 })
+      expect(mockAlbum.countDocuments).toHaveBeenCalledWith({
+        rating: Rating.GOLD,
+        year: 2020,
+      })
+      expect(mockAlbum.countDocuments).toHaveBeenCalledWith({
+        rating: Rating.SILVER,
+        year: 2020,
+      })
+
+      expect(mockYearStats.findOneAndUpdate).toHaveBeenCalledWith(
+        { year: 2020 },
+        {
+          year: 2020,
+          songs: 10,
+          goldAlbums: 2,
+          silverAlbums: 3,
+          totalScore: 55,
+        },
+        {
+          upsert: true,
+          new: true,
+        }
+      )
+
+      expect(result).toEqual(mockUpdatedYearStats)
+    })
+
+    it("should handle year with no songs or albums", async () => {
+      const year = 1999
+
+      mockSong.countDocuments = jest.fn().mockResolvedValueOnce(0) as any
+      mockAlbum.countDocuments = jest
+        .fn()
+        .mockResolvedValueOnce(0)
+        .mockResolvedValueOnce(0) as any
+
+      const mockUpdatedYearStats = {
+        year: 1999,
+        songs: 0,
         goldAlbums: 0,
         silverAlbums: 0,
-        totalScore: 1,
-      })
+        totalScore: 0,
+      }
+
+      mockYearStats.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUpdatedYearStats),
+      }) as any
+
+      const result = await updateYearStats(year)
+
+      expect(result).toEqual(mockUpdatedYearStats)
+      expect(result.totalScore).toBe(0)
+    })
+
+    it("should correctly calculate totalScore", async () => {
+      const year = 2021
+
+      mockSong.countDocuments = jest.fn().mockResolvedValueOnce(7) as any
+      mockAlbum.countDocuments = jest
+        .fn()
+        .mockResolvedValueOnce(1) // gold
+        .mockResolvedValueOnce(2) as any // silver
+
+      // Expected: 7*1 + 1*15 + 2*5 = 7 + 15 + 10 = 32
+      const mockUpdatedYearStats = {
+        year: 2021,
+        songs: 7,
+        goldAlbums: 1,
+        silverAlbums: 2,
+        totalScore: 32,
+      }
+
+      mockYearStats.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUpdatedYearStats),
+      }) as any
+
+      const result = await updateYearStats(year)
+
+      expect(result.totalScore).toBe(32)
     })
   })
 })
