@@ -16,21 +16,31 @@ params:query {
 }
 
 docs {
-  Returns albums sorted by year, displayTitle, and artistDisplayName.
-  
+  Returns albums sorted by rating (GOLD, SILVER, NONE), then by year, displayTitle, and artistDisplayName.
+
   **Query Parameters (optional):**
-  - `rating`: Filter by rating ("GOLD" or "SILVER", case-insensitive)
+  - `rating`: Filter by rating ("GOLD", "SILVER", "RATED", or "ALL", case-insensitive)
   - `year`: Filter by release year
-  
+
+  **Rating Options:**
+  - `GOLD`: Only gold-rated albums
+  - `SILVER`: Only silver-rated albums
+  - `RATED`: Gold and silver albums (default if not specified)
+  - `ALL`: All albums including unrated (NONE)
+
   **Examples:**
-  - All gold and silver albums (default): `/albums`
+  - All gold and silver albums (default): `/albums` or `/albums?rating=RATED`
   - Only gold albums: `/albums?rating=GOLD`
   - Only silver albums: `/albums?rating=SILVER`
+  - All albums including unrated: `/albums?rating=ALL`
   - Albums from 2020: `/albums?year=2020`
   - Gold albums from 2020: `/albums?rating=GOLD&year=2020`
-  
-  **Default behavior:** Returns all GOLD and SILVER albums (excludes NONE)
-  
+  - All albums from 2020 including unrated: `/albums?rating=ALL&year=2020`
+
+  **Default behavior:** Returns GOLD and SILVER albums only (excludes NONE)
+
+  **Sort order:** GOLD albums first, then SILVER, then NONE (if ALL), within each rating sorted by year, displayTitle, artistDisplayName
+
   Each album includes:
   - title, displayTitle
   - year

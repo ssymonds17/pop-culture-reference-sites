@@ -42,27 +42,48 @@ describe("albums service", () => {
   })
 
   describe("getAlbums", () => {
-    it("should return gold and silver albums by default (no filter)", async () => {
+    it("should return gold and silver albums by default (no filter), sorted by rating", async () => {
       const mockAlbums = [
         { id: "1", title: "Gold Album", rating: Rating.GOLD, year: 2020 },
         { id: "2", title: "Silver Album", rating: Rating.SILVER, year: 2021 },
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockAlbums)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums()
 
       expect(result).toEqual(mockAlbums)
-      expect(mockAlbum.find).toHaveBeenCalledWith({
-        rating: { $in: [Rating.GOLD, Rating.SILVER] },
-      })
-      expect(mockSort).toHaveBeenCalledWith({
-        year: 1,
-        displayTitle: 1,
-        artistDisplayName: 1,
-      })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith([
+        { $match: { rating: { $in: [Rating.GOLD, Rating.SILVER] } } },
+        {
+          $addFields: {
+            ratingOrder: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$rating", Rating.GOLD] }, then: 1 },
+                  { case: { $eq: ["$rating", Rating.SILVER] }, then: 2 },
+                  { case: { $eq: ["$rating", Rating.NONE] }, then: 3 },
+                ],
+                default: 4,
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            ratingOrder: 1,
+            year: 1,
+            displayTitle: 1,
+            artistDisplayName: 1,
+          },
+        },
+        {
+          $project: {
+            ratingOrder: 0,
+          },
+        },
+      ])
     })
 
     it("should filter by GOLD rating only", async () => {
@@ -71,13 +92,17 @@ describe("albums service", () => {
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockGoldAlbums)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({ rating: Rating.GOLD })
 
       expect(result).toEqual(mockGoldAlbums)
-      expect(mockAlbum.find).toHaveBeenCalledWith({ rating: Rating.GOLD })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          { $match: { rating: Rating.GOLD } },
+          expect.any(Object),
+        ])
+      )
     })
 
     it("should filter by SILVER rating only", async () => {
@@ -86,13 +111,17 @@ describe("albums service", () => {
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockSilverAlbums)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({ rating: Rating.SILVER })
 
       expect(result).toEqual(mockSilverAlbums)
-      expect(mockAlbum.find).toHaveBeenCalledWith({ rating: Rating.SILVER })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          { $match: { rating: Rating.SILVER } },
+          expect.any(Object),
+        ])
+      )
     })
 
     it("should filter by year", async () => {
@@ -102,16 +131,22 @@ describe("albums service", () => {
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mock2020Albums)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({ year: 2020 })
 
       expect(result).toEqual(mock2020Albums)
-      expect(mockAlbum.find).toHaveBeenCalledWith({
-        rating: { $in: [Rating.GOLD, Rating.SILVER] },
-        year: 2020,
-      })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          {
+            $match: {
+              rating: { $in: [Rating.GOLD, Rating.SILVER] },
+              year: 2020,
+            },
+          },
+          expect.any(Object),
+        ])
+      )
     })
 
     it("should filter by both rating and year", async () => {
@@ -120,16 +155,22 @@ describe("albums service", () => {
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockFiltered)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({ rating: Rating.GOLD, year: 2020 })
 
       expect(result).toEqual(mockFiltered)
-      expect(mockAlbum.find).toHaveBeenCalledWith({
-        rating: Rating.GOLD,
-        year: 2020,
-      })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          {
+            $match: {
+              rating: Rating.GOLD,
+              year: 2020,
+            },
+          },
+          expect.any(Object),
+        ])
+      )
     })
 
     it("should filter by array of ratings", async () => {
@@ -139,23 +180,49 @@ describe("albums service", () => {
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockAlbums)
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({
         rating: [Rating.GOLD, Rating.SILVER],
       })
 
       expect(result).toEqual(mockAlbums)
-      expect(mockAlbum.find).toHaveBeenCalledWith({
-        rating: { $in: [Rating.GOLD, Rating.SILVER] },
-      })
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          {
+            $match: {
+              rating: { $in: [Rating.GOLD, Rating.SILVER] },
+            },
+          },
+          expect.any(Object),
+        ])
+      )
+    })
+
+    it("should return all albums including NONE when rating is ALL", async () => {
+      const mockAlbums = [
+        { id: "1", title: "Gold", rating: Rating.GOLD },
+        { id: "2", title: "Silver", rating: Rating.SILVER },
+        { id: "3", title: "None", rating: Rating.NONE },
+      ]
+
+      const mockExec = jest.fn().mockResolvedValueOnce(mockAlbums)
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
+
+      const result = await getAlbums({ rating: "ALL" })
+
+      expect(result).toEqual(mockAlbums)
+      expect(mockAlbum.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          { $match: {} },
+          expect.any(Object),
+        ])
+      )
     })
 
     it("should return empty array when no albums match filters", async () => {
       const mockExec = jest.fn().mockResolvedValue([])
-      const mockSort = jest.fn().mockReturnValue({ exec: mockExec })
-      mockAlbum.find = jest.fn().mockReturnValue({ sort: mockSort }) as any
+      mockAlbum.aggregate = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
       const result = await getAlbums({ rating: Rating.GOLD, year: 1999 })
 

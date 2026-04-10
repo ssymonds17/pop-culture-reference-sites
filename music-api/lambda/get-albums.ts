@@ -5,20 +5,23 @@ import { Rating } from "./mongodb/models/album"
 
 const handler = async (event: any) => {
   try {
-    await connectToDatabase()
-
-    // Parse query parameters
+    // Parse and validate query parameters BEFORE connecting to database
     const queryParams = event.queryStringParameters || {}
     const options: any = {}
 
     // Handle rating filter
     if (queryParams.rating) {
       const ratingParam = queryParams.rating.toUpperCase()
-      if (ratingParam === Rating.GOLD || ratingParam === Rating.SILVER) {
+      if (ratingParam === "ALL") {
+        options.rating = "ALL"
+      } else if (ratingParam === "RATED") {
+        // RATED means GOLD + SILVER (default behavior)
+        options.rating = [Rating.GOLD, Rating.SILVER]
+      } else if (ratingParam === Rating.GOLD || ratingParam === Rating.SILVER) {
         options.rating = ratingParam as Rating
       } else {
         return createApiResponse(400, {
-          message: `Invalid rating. Must be "GOLD" or "SILVER"`,
+          message: `Invalid rating. Must be "GOLD", "SILVER", "RATED", or "ALL"`,
         })
       }
     }
@@ -33,6 +36,8 @@ const handler = async (event: any) => {
       }
       options.year = year
     }
+
+    await connectToDatabase()
 
     const albums = await getAlbums(
       Object.keys(options).length > 0 ? options : undefined,

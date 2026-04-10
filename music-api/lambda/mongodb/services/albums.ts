@@ -5,7 +5,7 @@ export const createAlbum = async (albumData: AlbumData) => {
 }
 
 export interface GetAlbumsOptions {
-  rating?: Rating | Rating[]
+  rating?: Rating | Rating[] | "ALL"
   year?: number
 }
 
@@ -13,7 +13,9 @@ export const getAlbums = async (options?: GetAlbumsOptions) => {
   const query: any = {}
 
   // Build rating filter
-  if (options?.rating) {
+  if (options?.rating === "ALL") {
+    // No rating filter - return all albums including NONE
+  } else if (options?.rating) {
     if (Array.isArray(options.rating)) {
       query.rating = { $in: options.rating }
     } else {
@@ -29,13 +31,37 @@ export const getAlbums = async (options?: GetAlbumsOptions) => {
     query.year = options.year
   }
 
-  return Album.find(query)
-    .sort({
-      year: 1,
-      displayTitle: 1,
-      artistDisplayName: 1,
-    })
-    .exec()
+  // Use aggregation to sort by rating order (GOLD, SILVER, NONE), then by other fields
+  return Album.aggregate([
+    { $match: query },
+    {
+      $addFields: {
+        ratingOrder: {
+          $switch: {
+            branches: [
+              { case: { $eq: ["$rating", Rating.GOLD] }, then: 1 },
+              { case: { $eq: ["$rating", Rating.SILVER] }, then: 2 },
+              { case: { $eq: ["$rating", Rating.NONE] }, then: 3 },
+            ],
+            default: 4,
+          },
+        },
+      },
+    },
+    {
+      $sort: {
+        ratingOrder: 1,
+        year: 1,
+        displayTitle: 1,
+        artistDisplayName: 1,
+      },
+    },
+    {
+      $project: {
+        ratingOrder: 0, // Remove the temporary field from results
+      },
+    },
+  ]).exec()
 }
 
 export const getAlbumById = async (id: string) => {

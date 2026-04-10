@@ -176,6 +176,57 @@ describe("get-albums handler", () => {
     expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "GOLD" })
   })
 
+  it("should filter by RATED (GOLD + SILVER)", async () => {
+    const mockRatedAlbums = [
+      { id: "album1", title: "Album 1", rating: "GOLD" },
+      { id: "album2", title: "Album 2", rating: "SILVER" },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mockRatedAlbums)
+
+    const event = {
+      queryStringParameters: {
+        rating: "RATED",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({
+      rating: ["GOLD", "SILVER"],
+    })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mockRatedAlbums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
+  it("should filter by ALL (includes NONE rating)", async () => {
+    const mockAllAlbums = [
+      { id: "album1", title: "Album 1", rating: "GOLD" },
+      { id: "album2", title: "Album 2", rating: "SILVER" },
+      { id: "album3", title: "Album 3", rating: "NONE" },
+    ]
+
+    mockConnectToDatabase.mockResolvedValueOnce(undefined)
+    mockGetAlbums.mockResolvedValueOnce(mockAllAlbums)
+
+    const event = {
+      queryStringParameters: {
+        rating: "ALL",
+      },
+    }
+
+    await handler(event)
+
+    expect(mockGetAlbums).toHaveBeenCalledWith({ rating: "ALL" })
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
+      albums: mockAllAlbums,
+      message: "Successfully retrieved albums",
+    })
+  })
+
   it("should return 400 for invalid rating", async () => {
     const event = {
       queryStringParameters: {
@@ -187,7 +238,7 @@ describe("get-albums handler", () => {
 
     expect(mockConnectToDatabase).not.toHaveBeenCalled()
     expect(mockCreateApiResponse).toHaveBeenCalledWith(400, {
-      message: 'Invalid rating. Must be "GOLD" or "SILVER"',
+      message: 'Invalid rating. Must be "GOLD", "SILVER", "RATED", or "ALL"',
     })
   })
 
