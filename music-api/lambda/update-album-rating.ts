@@ -5,6 +5,7 @@ import {
   connectToDatabase,
   getAlbumById,
   updateAlbumRatingById,
+  updateYearStats,
 } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
 
@@ -49,6 +50,9 @@ const handler = async (event: any) => {
       currentAlbum.rating,
       updatedAlbum.rating
     )
+
+    // Cascade update to year statistics
+    await updateYearStats(updatedAlbum.year)
 
     return createApiResponse(201, {
       id: updatedAlbum.id,

@@ -3,7 +3,7 @@ import { createApiResponse, logger } from "./utils"
 import { updateAssociatedArtists } from "./utils/create-album"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import { AlbumData, Rating } from "./mongodb/models/album"
-import { connectToDatabase, createAlbum } from "./mongodb"
+import { connectToDatabase, createAlbum, updateYearStats } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
 
 const handler = async (event: any) => {
@@ -44,6 +44,9 @@ const handler = async (event: any) => {
 
     const album = await createAlbum(defaultAlbum)
     await updateAssociatedArtists(fullArtists, album.id, rating)
+
+    // Cascade update to year statistics
+    await updateYearStats(album.year)
 
     return createApiResponse(201, {
       id: album.id,

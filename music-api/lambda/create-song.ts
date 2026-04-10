@@ -8,7 +8,7 @@ import {
 import { SongData } from "./mongodb/models/song"
 import { ArtistDocument } from "./mongodb/models/artist"
 import { AlbumDocument } from "./mongodb/models/album"
-import { connectToDatabase, createSong } from "./mongodb"
+import { connectToDatabase, createSong, updateYearStats } from "./mongodb"
 
 const handler = async (event: any) => {
   const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
@@ -58,6 +58,9 @@ const handler = async (event: any) => {
     }
 
     await updateAssociatedArtists(validatedArtists, song.id)
+
+    // Cascade update to year statistics
+    await updateYearStats(song.year)
 
     return createApiResponse(201, {
       id: song.id,
