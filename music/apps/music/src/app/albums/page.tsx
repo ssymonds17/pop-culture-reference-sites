@@ -32,7 +32,9 @@ const AlbumsPage = () => {
       }
 
       const queryString = params.toString();
-      const url = `${API_URL}/albums${queryString ? `?${queryString}` : ''}`;
+      const url = queryString
+        ? `${API_URL}/albums?${queryString}`
+        : `${API_URL}/albums`;
 
       const getAlbumsResponse = await axios.get(url);
       setAlbums(getAlbumsResponse.data.albums);
@@ -105,10 +107,10 @@ const AlbumsPage = () => {
             }
             className="form-select-btn w-52"
           >
-            <option value="RATED">Rated (Gold + Silver)</option>
+            <option value="RATED">Rated</option>
             <option value="GOLD">Gold Only</option>
             <option value="SILVER">Silver Only</option>
-            <option value="ALL">All (Including Unrated)</option>
+            <option value="ALL">All</option>
           </select>
 
           <input
