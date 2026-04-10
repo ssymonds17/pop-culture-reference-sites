@@ -1,5 +1,6 @@
 import Song from "../models/song"
 import Album, { Rating } from "../models/album"
+import YearStats, { YearStatsData } from "../models/yearStats"
 
 export const countSongsByYear = async (year: number) => {
   return Song.countDocuments({ year })
@@ -19,29 +20,26 @@ export const getYearRanges = async () => {
 }
 
 export const getYears = async () => {
-  const { oldestYear, newestYear } = await getYearRanges()
+  return YearStats.find({}).sort({ totalScore: -1 }).exec()
+}
 
-  if (!oldestYear || !newestYear) {
-    throw new Error("Unable to determine year range")
+export const updateYearStats = async (year: number) => {
+  const songsCount = await countSongsByYear(year)
+  const goldAlbumsCount = await countAlbumsByRating(Rating.GOLD, year)
+  const silverAlbumsCount = await countAlbumsByRating(Rating.SILVER, year)
+  const totalScore =
+    songsCount * 1 + goldAlbumsCount * 15 + silverAlbumsCount * 5
+
+  const yearStatsData: YearStatsData = {
+    year,
+    songs: songsCount,
+    goldAlbums: goldAlbumsCount,
+    silverAlbums: silverAlbumsCount,
+    totalScore,
   }
 
-  return await Promise.all(
-    Array.from(
-      { length: newestYear - oldestYear + 1 },
-      (_, i) => oldestYear + i,
-    ).map(async (year) => {
-      const songsCount = await countSongsByYear(year)
-      const goldAlbumsCount = await countAlbumsByRating(Rating.GOLD, year)
-      const silverAlbumsCount = await countAlbumsByRating(Rating.SILVER, year)
-      const totalScore =
-        songsCount * 1 + goldAlbumsCount * 15 + silverAlbumsCount * 5
-      return {
-        year,
-        songs: songsCount,
-        goldAlbums: goldAlbumsCount,
-        silverAlbums: silverAlbumsCount,
-        totalScore,
-      }
-    }),
-  )
+  return YearStats.findOneAndUpdate({ year }, yearStatsData, {
+    upsert: true,
+    new: true,
+  }).exec()
 }
