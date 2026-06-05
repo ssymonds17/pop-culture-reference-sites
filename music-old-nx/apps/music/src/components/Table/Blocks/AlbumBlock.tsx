@@ -1,0 +1,53 @@
+'use client';
+
+import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { Album, ArtistFull, Rating, Variation } from '../../../types';
+import { AlbumsTable } from '../Albums';
+import { Modal } from '../../Modal';
+
+export const AlbumBlock = ({
+  artist,
+  albums,
+  isLoading,
+}: {
+  artist: ArtistFull | null;
+  albums: Album[];
+  isLoading: boolean;
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isSignedIn } = useUser();
+  return (
+    <>
+      <div className="flex">
+        <h2 className="text-2xl font-semibold mt-6">Albums</h2>
+        {!isLoading && isSignedIn && (
+          <div className="flex-col marginitems-center justify-center mt-6 ml-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn-icon-sm btn-primary ml-2"
+              type="button"
+            >
+              +
+            </button>
+            <Modal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              variation={Variation.ALBUM}
+              label="Add Album"
+              defaultValues={
+                {
+                  artists: [artist?._id],
+                  artistDisplayName: artist?.displayName,
+                  rating: Rating.NONE,
+                } as Partial<Album>
+              }
+              isQuickAdd={true}
+            />
+          </div>
+        )}
+      </div>
+      <AlbumsTable albums={albums} isLoading={isLoading} />
+    </>
+  );
+};
