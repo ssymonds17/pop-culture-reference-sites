@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useMusicContext } from '@music/shared-state';
@@ -14,6 +15,7 @@ import { useScrollToTop } from '../../utils';
 
 const AlbumPage = () => {
   const { state, dispatch } = useMusicContext();
+  const { isSignedIn } = useUser();
   const [album, setAlbum] = useState<AlbumFull | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMedalLoading, setIsMedalLoading] = useState(false);
@@ -134,7 +136,7 @@ const AlbumPage = () => {
                       updateAlbumRating(album?._id ?? '', newRating)
                     }
                     size="lg"
-                    disabled={isMedalLoading}
+                    disabled={isMedalLoading || !isSignedIn}
                     showLabels={true}
                   />
                 )}

@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { SignInButton, SignOutButton, useUser } from '@clerk/nextjs';
 import { Variation } from '../../types';
 import { NavItemWrapper } from '../NavItemWrapper/NavItemWrapper';
 
 export const Navbar = () => {
+  const { isSignedIn, user } = useUser();
   return (
     <nav className="bg-white border-b border-neutral-200 sticky top-0 z-50">
       <div className="layout-container">
@@ -52,20 +56,44 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons & Auth */}
           <div className="hidden md:flex items-center space-x-2">
-            <NavItemWrapper
-              label="Add Artist"
-              action={{ type: 'add element', actionType: Variation.ARTIST }}
-            />
-            <NavItemWrapper
-              label="Add Album"
-              action={{ type: 'add element', actionType: Variation.ALBUM }}
-            />
-            <NavItemWrapper
-              label="Add Song"
-              action={{ type: 'add element', actionType: Variation.SONG }}
-            />
+            {isSignedIn && (
+              <>
+                <NavItemWrapper
+                  label="Add Artist"
+                  action={{ type: 'add element', actionType: Variation.ARTIST }}
+                />
+                <NavItemWrapper
+                  label="Add Album"
+                  action={{ type: 'add element', actionType: Variation.ALBUM }}
+                />
+                <NavItemWrapper
+                  label="Add Song"
+                  action={{ type: 'add element', actionType: Variation.SONG }}
+                />
+              </>
+            )}
+
+            {/* Auth Buttons */}
+            {isSignedIn ? (
+              <div className="flex items-center gap-3 ml-2 pl-2 border-l border-neutral-200">
+                <span className="text-sm text-neutral-600">
+                  {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                </span>
+                <SignOutButton>
+                  <button className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded text-sm font-medium transition-colors">
+                    Sign Out
+                  </button>
+                </SignOutButton>
+              </div>
+            ) : (
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 bg-music-600 hover:bg-music-700 text-white rounded text-sm font-medium transition-colors ml-2">
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
           </div>
 
           {/* Mobile Menu Toggle (placeholder for future mobile menu) */}

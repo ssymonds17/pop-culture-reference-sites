@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Song, Variation } from '../../../types';
 import { SongsTable } from '../Songs';
 import { Modal } from '../../Modal';
@@ -15,11 +16,12 @@ export const SongBlock = ({
   isLoading: boolean;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isSignedIn } = useUser();
   return (
     <>
       <div className="flex">
         <h2 className="text-2xl font-semibold mt-6">Songs</h2>
-        {!isLoading && (
+        {!isLoading && isSignedIn && (
           <div className="flex-col marginitems-center justify-center mt-6 ml-2">
             <button
               onClick={() => setIsModalOpen(true)}

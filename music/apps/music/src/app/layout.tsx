@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/nextjs';
 import { MusicProvider } from '@music/shared-state';
 import { Navbar } from '../components';
 import './global.css';
@@ -20,13 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <MusicProvider>
-          <Navbar />
-          {children}
-        </MusicProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body>
+          <MusicProvider>
+            <Navbar />
+            {children}
+          </MusicProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
