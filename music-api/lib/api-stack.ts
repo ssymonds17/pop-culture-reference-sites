@@ -13,8 +13,14 @@ export class ApiStack extends core.Stack {
       throw new Error("MONGODB_URI environment variable is required")
     }
 
+    const clerkSecretKey = process.env.CLERK_SECRET_KEY
+    if (!clerkSecretKey) {
+      throw new Error("CLERK_SECRET_KEY environment variable is required")
+    }
+
     const lambdaEnvironment = {
       MONGODB_URI: mongodbUri,
+      CLERK_SECRET_KEY: clerkSecretKey,
     }
 
     // Lambda functions

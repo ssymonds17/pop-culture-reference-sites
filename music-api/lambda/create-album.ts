@@ -5,8 +5,9 @@ import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import { AlbumData, Rating } from "./mongodb/models/album"
 import { connectToDatabase, createAlbum, updateYearStats } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
+import { requireAuth } from "./auth"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, userId: string) => {
   const { title, artistDisplayName, year, artists, rating, totalSongs } =
     JSON.parse(event.body)
 
@@ -62,5 +63,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

@@ -9,8 +9,9 @@ import { SongData } from "./mongodb/models/song"
 import { ArtistDocument } from "./mongodb/models/artist"
 import { AlbumDocument } from "./mongodb/models/album"
 import { connectToDatabase, createSong, updateYearStats } from "./mongodb"
+import { requireAuth } from "./auth"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, userId: string) => {
   const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
     JSON.parse(event.body)
 
@@ -80,5 +81,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

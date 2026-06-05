@@ -2,8 +2,9 @@ import _ from "lodash"
 import { createApiResponse, logger } from "./utils"
 import { ArtistData } from "./mongodb/models/artist"
 import { connectToDatabase, createArtist } from "./mongodb"
+import { requireAuth } from "./auth"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, userId: string) => {
   const artistName = JSON.parse(event.body).name
   try {
     if (!artistName) {
@@ -36,5 +37,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }

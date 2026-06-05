@@ -8,8 +8,9 @@ import {
   updateYearStats,
 } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
+import { requireAuth } from "./auth"
 
-const handler = async (event: any) => {
+const handlerImpl = async (event: any, userId: string) => {
   const albumId = event.pathParameters?.id
   const { rating } = JSON.parse(event.body)
 
@@ -69,5 +70,7 @@ const handler = async (event: any) => {
     })
   }
 }
+
+const handler = requireAuth(handlerImpl)
 
 export { handler }
