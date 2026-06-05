@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useMusicContext } from '@music/shared-state';
@@ -12,10 +12,12 @@ import { RatingSelector, RatingBadge, SongProgress } from '../../components/Rati
 import { AlbumFull, Rating } from '../../types';
 import { ArtistLink } from '../../components/Table/ArtistsLink';
 import { useScrollToTop } from '../../utils';
+import { createAuthenticatedClient } from '../../lib/auth-api';
 
 const AlbumPage = () => {
   const { state, dispatch } = useMusicContext();
   const { isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const [album, setAlbum] = useState<AlbumFull | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMedalLoading, setIsMedalLoading] = useState(false);
@@ -51,7 +53,8 @@ const AlbumPage = () => {
   const updateAlbumRating = async (albumId: string, newRating: Rating) => {
     try {
       setIsMedalLoading(true);
-      await axios.put(`${API_URL}/album/${albumId}/rating`, {
+      const client = await createAuthenticatedClient(getToken);
+      await client.put(`${API_URL}/album/${albumId}/rating`, {
         rating: newRating,
       });
       fetchAlbum(albumId);

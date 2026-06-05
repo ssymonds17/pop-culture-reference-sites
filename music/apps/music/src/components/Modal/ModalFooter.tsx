@@ -1,10 +1,12 @@
 'use client';
 
 import axios from 'axios';
+import { useAuth } from '@clerk/nextjs';
 import { useMusicContext } from '@music/shared-state';
 import { API_URL } from '../../constants';
 import { Album, Artist, Song, Variation } from '../../types';
 import { Dispatch, SetStateAction, useState } from 'react';
+import { createAuthenticatedClient } from '../../lib/auth-api';
 
 export const ModalFooter = ({
   formValues,
@@ -20,6 +22,7 @@ export const ModalFooter = ({
   defaultValues?: Partial<Artist | Album | Song>;
 }) => {
   const { dispatch } = useMusicContext();
+  const { getToken } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -28,7 +31,8 @@ export const ModalFooter = ({
     try {
       setShowErrorMessage(false);
       setIsSubmitting(true);
-      await axios.post(`${API_URL}/${variation}`, formValues);
+      const client = await createAuthenticatedClient(getToken);
+      await client.post(`${API_URL}/${variation}`, formValues);
 
       setIsSubmitting(false);
       setFormValues(defaultValues || {});
