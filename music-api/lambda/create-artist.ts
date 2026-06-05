@@ -4,7 +4,7 @@ import { ArtistData } from "./mongodb/models/artist"
 import { connectToDatabase, createArtist } from "./mongodb"
 import { requireAuth } from "./auth"
 
-const handlerImpl = async (event: any, userId: string) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const artistName = JSON.parse(event.body).name
   try {
     if (!artistName) {

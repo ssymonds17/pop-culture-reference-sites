@@ -25,6 +25,8 @@ This Bruno collection contains API requests for testing the Music API endpoints.
 - **Create Album**: Add a new album
 - **Update Album Rating**: Change album rating (GOLD/SILVER/NONE)
 - **Update Album Total Songs**: Set the total track count
+- **Get Top Albums**: Retrieve ranked list of top gold albums
+- **Update Top Albums**: Update the ranking order (requires authentication)
 
 ### Songs
 - **Get Song By Id**: Get a specific song
@@ -67,6 +69,8 @@ When creating content, the API automatically cascades updates:
    - Album rating changed
    - Artist statistics recalculated
    - Year statistics updated
+   - If changed to GOLD: album automatically added to top albums list
+   - If changed from GOLD: album automatically removed from top albums list
 
 ## YearStats Collection
 
@@ -82,3 +86,19 @@ node updateYearStats.mjs
 ```
 
 This script iterates through all years (1950-present) and calls the Update Year Stats endpoint for each.
+
+## TopAlbums Collection
+
+The `/top-albums` endpoints manage a ranked list of gold-rated albums.
+
+### Features
+- **Automatic Sync**: Albums are automatically added/removed when their rating changes to/from GOLD
+- **Manual Ranking**: Use the PUT endpoint to reorder albums in your preferred ranking
+- **Validation**: The PUT endpoint ensures the list always contains exactly all gold albums
+
+### Usage
+1. **GET /top-albums**: Retrieve the current ranked list (public endpoint)
+2. **PUT /top-albums**: Update the ranking order (requires authentication)
+   - Must include ALL gold-rated albums
+   - Array order determines rank (index 0 = rank 1)
+   - Validates all albums exist and are gold-rated

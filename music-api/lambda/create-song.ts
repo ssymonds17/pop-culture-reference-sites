@@ -11,7 +11,7 @@ import { AlbumDocument } from "./mongodb/models/album"
 import { connectToDatabase, createSong, updateYearStats } from "./mongodb"
 import { requireAuth } from "./auth"
 
-const handlerImpl = async (event: any, userId: string) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
     JSON.parse(event.body)
 

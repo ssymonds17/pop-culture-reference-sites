@@ -1,0 +1,76 @@
+meta {
+  name: Update Top Albums
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{API_URL}}/top-albums
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "albumIds": [
+      "album-id-1",
+      "album-id-2",
+      "album-id-3"
+    ]
+  }
+}
+
+docs {
+  Updates the ranking order of top albums.
+
+  **Authentication:** This endpoint requires authentication via Clerk.
+  Add an Authorization header with a valid session token.
+
+  **Request Body:**
+  - `albumIds`: Array of album IDs in desired rank order
+    - First ID = Rank 1 (best)
+    - Second ID = Rank 2
+    - etc.
+
+  **Validation Rules:**
+  The API performs comprehensive validation:
+  1. Array must contain IDs for ALL gold-rated albums
+  2. All IDs must exist in the database
+  3. All albums must have GOLD rating
+  4. No duplicate IDs allowed
+  5. No gold albums can be missing from the list
+
+  **Example Request:**
+  ```json
+  {
+    "albumIds": [
+      "507f1f77bcf86cd799439011",
+      "507f191e810c19729de860ea",
+      "507f1f77bcf86cd799439012"
+    ]
+  }
+  ```
+
+  **Success Response (200):**
+  ```json
+  {
+    "albumIds": [...],
+    "total": 42,
+    "message": "Successfully updated top albums rankings"
+  }
+  ```
+
+  **Error Responses (400):**
+  - "albumIds array is required"
+  - "albumIds array cannot be empty"
+  - "Album count mismatch: expected X gold albums, got Y"
+  - "Album \"Album Title\" is not gold-rated (current rating: SILVER)"
+  - "Missing gold album \"Album Title\" in the submitted list"
+  - "Duplicate album IDs found in the submitted list"
+  - "Album {id} not found"
+
+  **Note:**
+  - This endpoint replaces the entire ranking order
+  - You must include ALL gold albums in the request
+  - The order in the array determines the ranking
+}

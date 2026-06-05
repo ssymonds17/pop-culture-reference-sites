@@ -138,6 +138,26 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    const getTopAlbumsLambda = new LambdaConstruct(this, "GetTopAlbums", {
+      functionName: "get-top-albums-handler",
+      code: lambda.Code.fromAsset("build/apps/get-top-albums"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
+    const updateTopAlbumsLambda = new LambdaConstruct(
+      this,
+      "UpdateTopAlbums",
+      {
+        functionName: "update-top-albums-handler",
+        code: lambda.Code.fromAsset("build/apps/update-top-albums"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
+      }
+    )
+
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "MusicApi", {
       restApiName: "music-api",
@@ -274,6 +294,21 @@ export class ApiStack extends core.Stack {
     search.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
+    })
+
+    // Top Albums
+    const topAlbums = api.root.addResource("top-albums")
+    topAlbums.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTopAlbumsLambda.function)
+    )
+    topAlbums.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateTopAlbumsLambda.function)
+    )
+    topAlbums.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET", "PUT"],
     })
   }
 }

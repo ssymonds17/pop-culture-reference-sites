@@ -7,7 +7,7 @@ import { connectToDatabase, createAlbum, updateYearStats } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
 import { requireAuth } from "./auth"
 
-const handlerImpl = async (event: any, userId: string) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const { title, artistDisplayName, year, artists, rating, totalSongs } =
     JSON.parse(event.body)
 

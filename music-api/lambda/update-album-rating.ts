@@ -6,11 +6,14 @@ import {
   getAlbumById,
   updateAlbumRatingById,
   updateYearStats,
+  addAlbumToTop,
+  removeAlbumFromTop,
 } from "./mongodb"
 import { ArtistDocument } from "./mongodb/models/artist"
+import { Rating } from "./mongodb/models/album"
 import { requireAuth } from "./auth"
 
-const handlerImpl = async (event: any, userId: string) => {
+const handlerImpl = async (event: any, _userId: string) => {
   const albumId = event.pathParameters?.id
   const { rating } = JSON.parse(event.body)
 
@@ -33,7 +36,7 @@ const handlerImpl = async (event: any, userId: string) => {
 
     const fullArtists = (await validateAssociatedEntities(
       currentAlbum.artists,
-      "artist"
+      "artist",
     )) as ArtistDocument[] | null
 
     if (!fullArtists) {
@@ -49,11 +52,27 @@ const handlerImpl = async (event: any, userId: string) => {
     await updateAssociatedArtists(
       fullArtists,
       currentAlbum.rating,
-      updatedAlbum.rating
+      updatedAlbum.rating,
     )
 
     // Cascade update to year statistics
     await updateYearStats(updatedAlbum.year)
+
+    // Sync top albums list when rating changes to/from GOLD
+    const wasGold = currentAlbum.rating === Rating.GOLD
+    const isNowGold = updatedAlbum.rating === Rating.GOLD
+
+    if (!wasGold && isNowGold) {
+      // Album was just promoted to gold - add to top albums list
+      await addAlbumToTop(albumId)
+      logger.info(`Added album ${albumId} to top albums (newly gold-rated)`)
+    } else if (wasGold && !isNowGold) {
+      // Album was demoted from gold - remove from top albums list
+      await removeAlbumFromTop(albumId)
+      logger.info(
+        `Removed album ${albumId} from top albums (no longer gold-rated)`,
+      )
+    }
 
     return createApiResponse(201, {
       id: updatedAlbum.id,

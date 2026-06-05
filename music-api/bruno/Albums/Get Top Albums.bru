@@ -1,0 +1,56 @@
+meta {
+  name: Get Top Albums
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{API_URL}}/top-albums
+  body: none
+  auth: none
+}
+
+docs {
+  Returns the list of top-ranked gold albums in order.
+
+  This endpoint is public and does not require authentication.
+
+  **Response:**
+  Returns an array of albums with their rank numbers (1-indexed).
+
+  Each album includes:
+  - rank: Position in the ranking (1 = best)
+  - title, displayTitle
+  - year
+  - artistDisplayName
+  - artists[] (array of artist IDs)
+  - songs[] (array of song IDs)
+  - totalSongs
+  - rating (always GOLD for top albums)
+  - _id: Album ID
+
+  **Note:**
+  - Only gold-rated albums appear in this list
+  - The order is determined by manual ranking via the PUT endpoint
+  - Empty array returned if no top albums exist
+
+  **Example Response:**
+  ```json
+  {
+    "albums": [
+      {
+        "_id": "123...",
+        "title": "Abbey Road",
+        "displayTitle": "Abbey Road",
+        "year": 1969,
+        "artistDisplayName": "The Beatles",
+        "rating": "GOLD",
+        "rank": 1
+      },
+      ...
+    ],
+    "total": 42,
+    "message": "Successfully retrieved top albums"
+  }
+  ```
+}
