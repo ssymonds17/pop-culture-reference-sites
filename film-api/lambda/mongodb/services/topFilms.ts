@@ -11,7 +11,9 @@ export const isEligibleRating = (
   rating === 8 || rating === 9 || rating === 10
 
 export const getTopFilms = async () => {
-  return TopFilms.findOne().populate("filmIds").exec()
+  return TopFilms.findOne()
+    .populate({ path: "filmIds", populate: { path: "directors" } })
+    .exec()
 }
 
 export const updateTopFilms = async (filmIds: string[]) => {
