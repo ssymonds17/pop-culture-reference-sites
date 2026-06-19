@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats } from "./mongodb"
+import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats } from "./mongodb"
 import { FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
@@ -128,6 +128,8 @@ const handlerImpl = async (event: any, _userId: string) => {
         await updateDirectorStats(directorId.toString())
       }
 
+      await updateYearStats(newFilm.year)
+
       return createApiResponse(201, {
         id: newFilm._id,
         title: newFilm.title,
@@ -144,6 +146,8 @@ const handlerImpl = async (event: any, _userId: string) => {
       }
 
       const newFilm = await createFilm(filmData)
+
+      await updateYearStats(newFilm.year)
 
       return createApiResponse(201, {
         id: newFilm._id,
