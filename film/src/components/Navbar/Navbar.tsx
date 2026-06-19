@@ -13,6 +13,7 @@ export default function Navbar() {
   const links = [
     { href: '/', label: 'Dashboard' },
     { href: '/films', label: 'Films' },
+    { href: '/top-films', label: 'Top Films' },
     { href: '/directors', label: 'Directors' },
     { href: '/years', label: 'Years' },
     { href: '/random', label: 'Random' },
