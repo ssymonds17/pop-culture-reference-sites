@@ -48,6 +48,9 @@ export const Navbar = () => {
             <Link href="/albums" className="nav-link">
               Albums
             </Link>
+            <Link href="/top-albums" className="nav-link">
+              Top Albums
+            </Link>
             <Link href="/songs" className="nav-link">
               Songs
             </Link>
