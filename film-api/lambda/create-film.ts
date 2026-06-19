@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats } from "./mongodb"
+import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating } from "./mongodb"
 import { FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
@@ -130,6 +130,10 @@ const handlerImpl = async (event: any, _userId: string) => {
 
       await updateYearStats(newFilm.year)
 
+      if (isEligibleRating(newFilm.rating)) {
+        await addFilmToTopAtTierBottom(newFilm._id.toString(), newFilm.rating)
+      }
+
       return createApiResponse(201, {
         id: newFilm._id,
         title: newFilm.title,
@@ -148,6 +152,10 @@ const handlerImpl = async (event: any, _userId: string) => {
       const newFilm = await createFilm(filmData)
 
       await updateYearStats(newFilm.year)
+
+      if (isEligibleRating(newFilm.rating)) {
+        await addFilmToTopAtTierBottom(newFilm._id.toString(), newFilm.rating)
+      }
 
       return createApiResponse(201, {
         id: newFilm._id,

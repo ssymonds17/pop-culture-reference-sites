@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director } from "./mongodb"
+import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director, removeFilmFromTop } from "./mongodb"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
@@ -42,6 +42,9 @@ const handlerImpl = async (event: any, _userId: string) => {
 
     // Cascade update to year statistics
     await updateYearStats(filmYear)
+
+    // Remove from top films list (no-op if not present)
+    await removeFilmFromTop(filmId)
 
     return createApiResponse(200, {
       message: "Successfully deleted film",

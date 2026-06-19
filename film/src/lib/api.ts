@@ -14,4 +14,5 @@ export const API_ENDPOINTS = {
   search: `${API_URL}/search`,
   searchTmdb: `${API_URL}/search/tmdb`,
   tmdbFilmDetails: (tmdbId: string) => `${API_URL}/tmdb/${tmdbId}`,
+  topFilms: `${API_URL}/top-films`,
 }

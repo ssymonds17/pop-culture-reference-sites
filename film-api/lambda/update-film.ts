@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats } from "./mongodb"
+import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, removeFilmFromTop, isEligibleRating } from "./mongodb"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
@@ -41,6 +41,21 @@ const handlerImpl = async (event: any, _userId: string) => {
 
       // Cascade update to year statistics
       await updateYearStats(currentFilm.year)
+
+      // Sync top-films list on tier transitions
+      const oldTier = isEligibleRating(currentFilm.rating) ? currentFilm.rating : null
+      const newTier = isEligibleRating(updatedFilm.rating) ? updatedFilm.rating : null
+
+      if (oldTier !== newTier) {
+        if (oldTier !== null) {
+          await removeFilmFromTop(filmId)
+          logger.info(`Removed film ${filmId} from top films (rating tier changed from ${oldTier})`)
+        }
+        if (newTier !== null) {
+          await addFilmToTopAtTierBottom(filmId, newTier)
+          logger.info(`Added film ${filmId} to top films at bottom of tier ${newTier}`)
+        }
+      }
     }
 
     return createApiResponse(200, {

@@ -35,3 +35,14 @@ export {
 
 // Stats services
 export { getOverallStats } from "./services/stats"
+
+// Top Films services
+export {
+  getTopFilms,
+  updateTopFilms,
+  addFilmToTopAtTierBottom,
+  removeFilmFromTop,
+  getEligibleFilmIdsByTier,
+  syncTopFilmsWithRatings,
+  isEligibleRating,
+} from "./services/topFilms"

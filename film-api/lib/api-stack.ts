@@ -197,6 +197,23 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    // Lambda functions for Top Films
+    const getTopFilmsLambda = new LambdaConstruct(this, "GetTopFilms", {
+      functionName: "film-get-top-films-handler",
+      code: lambda.Code.fromAsset("build/apps/get-top-films"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
+    const updateTopFilmsLambda = new LambdaConstruct(this, "UpdateTopFilms", {
+      functionName: "film-update-top-films-handler",
+      code: lambda.Code.fromAsset("build/apps/update-top-films"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "FilmApi", {
       restApiName: "film-api",
@@ -381,6 +398,21 @@ export class ApiStack extends core.Stack {
     importFilms.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["POST"],
+    })
+
+    // RESOURCES - Top Films
+    const topFilms = api.root.addResource("top-films")
+    topFilms.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTopFilmsLambda.function)
+    )
+    topFilms.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateTopFilmsLambda.function)
+    )
+    topFilms.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET", "PUT"],
     })
   }
 }
