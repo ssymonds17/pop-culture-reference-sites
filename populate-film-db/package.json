@@ -7,7 +7,8 @@
     "import": "node importFilms.mjs",
     "update-years": "node updateYearStats.mjs",
     "manual-import": "node manualImportByTmdbId.mjs",
-    "add-director": "node addDirectorToFilm.mjs"
+    "add-director": "node addDirectorToFilm.mjs",
+    "sync-top-films": "node syncTopFilms.mjs"
   },
   "dependencies": {
     "axios": "^1.7.2",
