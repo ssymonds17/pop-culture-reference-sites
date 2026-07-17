@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { Film } from '@/types'
-import { formatDuration } from '@/lib/utils'
-import RatingBadge from '@/components/Rating/RatingBadge'
+import FilmGrid from '@/components/Films/FilmGrid'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 
@@ -173,119 +172,7 @@ export default function RandomFilmsPage() {
           ))}
         </div>
       ) : films.length > 0 ? (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-800 border-b border-gray-700">
-                <tr>
-                  <th className="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Poster
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Year
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Director(s)
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Genres
-                  </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Rating
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Duration
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {films.map((film) => (
-                  <tr key={film._id} className="hover:bg-gray-800/50 transition-colors">
-                    <td className="p-2">
-                      <div className="flex justify-center">
-                        {film.posterPath ? (
-                          <img
-                            src={`https://image.tmdb.org/t/p/w92${film.posterPath}`}
-                            alt={film.title}
-                            className="max-h-32 object-contain rounded"
-                          />
-                        ) : (
-                          <div className="w-20 h-32 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs">
-                            No poster
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="font-medium text-sm">{film.title}</div>
-                      {film.originalTitle && film.originalTitle !== film.title && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Original: {film.originalTitle}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-gray-300 text-sm">{film.year}</td>
-                    <td className="px-3 py-3 text-gray-300 text-sm text-left">
-                      {film.directors && film.directors.length > 0 ? (
-                        <div className="flex flex-wrap gap-1 justify-start">
-                          {film.directors.map((director, index) => {
-                            const isLast = index === film.directors.length - 1
-                            const isSecondToLast = index === film.directors.length - 2
-                            const hasTwoDirectors = film.directors.length === 2
-                            const hasThreeOrMore = film.directors.length >= 3
-
-                            return (
-                              <span key={director._id} className="text-gray-300">
-                                {director.displayName}
-                                {!isLast && (
-                                  <span className="text-gray-500">
-                                    {hasTwoDirectors ? ' & ' :
-                                     hasThreeOrMore && isSecondToLast ? ' & ' : ', '}
-                                  </span>
-                                )}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        "Unknown"
-                      )}
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {film.genres && film.genres.length > 0 ? (
-                          film.genres.map((genre) => (
-                            <span
-                              key={genre}
-                              className="px-2 py-1 bg-gray-800 text-gray-300 rounded text-xs"
-                            >
-                              {genre}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-500 text-sm">No genres</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      {film.rating ? (
-                        <RatingBadge rating={film.rating} />
-                      ) : (
-                        <span className="text-gray-500 text-sm">—</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-gray-300 text-sm">
-                      {film.duration ? formatDuration(film.duration) : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <FilmGrid films={films} />
       ) : (
         <div className="text-center py-12 text-gray-400">
           {films.length === 0 && !loading ? 'No films found matching your criteria. Try adjusting your filters.' : 'Click "Get Random Films" to start'}
