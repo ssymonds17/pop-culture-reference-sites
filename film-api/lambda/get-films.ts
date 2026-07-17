@@ -22,6 +22,12 @@ const handler = async (event: any) => {
       if (params.year) {
         filters.year = parseInt(params.year)
       }
+      if (params.yearStart) {
+        filters.yearStart = parseInt(params.yearStart)
+      }
+      if (params.yearEnd) {
+        filters.yearEnd = parseInt(params.yearEnd)
+      }
       if (params.genres) {
         // Support comma-separated genres for AND filtering
         filters.genres = params.genres.split(',').map((g: string) => g.trim())

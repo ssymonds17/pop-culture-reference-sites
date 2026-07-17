@@ -9,6 +9,8 @@ export const getFilms = async (filters?: {
   minRating?: number
   maxRating?: number
   year?: number
+  yearStart?: number
+  yearEnd?: number
   genres?: string[]
   directorId?: string
   owned?: boolean
@@ -28,6 +30,16 @@ export const getFilms = async (filters?: {
     }
     if (filters.year !== undefined) {
       query.year = filters.year
+    }
+    if (filters.yearStart !== undefined || filters.yearEnd !== undefined) {
+      // Range filter (from the films page); takes precedence over single year
+      query.year = {}
+      if (filters.yearStart !== undefined) {
+        query.year.$gte = filters.yearStart
+      }
+      if (filters.yearEnd !== undefined) {
+        query.year.$lte = filters.yearEnd
+      }
     }
     if (filters.genres && filters.genres.length > 0) {
       // AND logic: film must have ALL selected genres
