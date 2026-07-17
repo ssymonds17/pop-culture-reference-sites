@@ -4,6 +4,7 @@ module.exports = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -21,18 +22,18 @@ module.exports = {
           800: '#075985',
           900: '#0c4a6e',
         },
-        // Rating colors
+        // Rating colors: red-to-green diverging scale (bad -> good)
         rating: {
-          1: '#ef4444',  // red
-          2: '#f97316',  // orange
-          3: '#f59e0b',  // amber
-          4: '#eab308',  // yellow
-          5: '#84cc16',  // lime
-          6: '#22c55e',  // green
-          7: '#10b981',  // emerald
-          8: '#14b8a6',  // teal
-          9: '#06b6d4',  // cyan
-          10: '#3b82f6', // blue
+          1: '#a50026',  // dark red (critical)
+          2: '#d73027',  // red
+          3: '#f46d43',  // red-orange
+          4: '#fc8d59',  // orange
+          5: '#fdae61',  // light orange
+          6: '#fee08b',  // pale yellow (neutral)
+          7: '#d9ef8b',  // light green
+          8: '#a6d96a',  // green
+          9: '#66bd63',  // medium green
+          10: '#1a9850', // dark green (perfect)
         },
       },
     },

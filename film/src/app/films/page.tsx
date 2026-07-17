@@ -7,7 +7,7 @@ import { Film } from '@/types'
 import { useFilmContext } from '@/lib/context/FilmContext'
 import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import FilmFilters from '@/components/Filters/FilmFilters'
-import FilmsTable from '@/components/Table/FilmsTable'
+import FilmGrid from '@/components/Films/FilmGrid'
 import { AddFilmModal } from '@/components/Modal/AddFilmModal'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
@@ -174,7 +174,7 @@ export default function FilmsPage() {
             <div className="mb-4 text-gray-400">
               Showing {films.length} film{films.length !== 1 ? 's' : ''}
             </div>
-            <FilmsTable films={films} onUpdate={fetchFilms} />
+            <FilmGrid films={films} onUpdate={fetchFilms} />
           </div>
         )}
       </div>
