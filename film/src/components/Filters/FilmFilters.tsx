@@ -240,7 +240,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
 
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-400 mb-2">
-          Genres (click to select multiple - AND logic)
+          Genres (click to select multiple - OR logic)
         </label>
         <div className="flex flex-wrap gap-2">
           {availableGenres.map((genre) => (

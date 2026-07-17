@@ -54,9 +54,9 @@ export default function FilmsPage() {
           filteredFilms = filteredFilms.filter((f: Film) => f.year <= selectedFilters.yearEnd!)
         }
         if (selectedFilters.genres && selectedFilters.genres.length > 0) {
-          // AND logic: film must have ALL selected genres
+          // OR logic: film must have ANY of the selected genres
           filteredFilms = filteredFilms.filter((f: Film) =>
-            selectedFilters.genres!.every((genre: string) => f.genres?.includes(genre))
+            selectedFilters.genres!.some((genre: string) => f.genres?.includes(genre))
           )
         }
         if (selectedFilters.directorId) {
