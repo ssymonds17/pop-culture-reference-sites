@@ -22,6 +22,9 @@ const handler = async (event: any) => {
       if (params.genres) {
         filters.genres = params.genres.split(',').map((g: string) => g.trim())
       }
+      if (params.count) {
+        filters.count = parseInt(params.count)
+      }
     }
 
     const films = await getRandomFilms(filters)

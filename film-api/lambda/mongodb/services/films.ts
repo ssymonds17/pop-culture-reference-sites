@@ -155,8 +155,15 @@ export const getRandomFilms = async (filters?: {
   yearStart?: number
   yearEnd?: number
   genres?: string[]
+  count?: number
 }) => {
   const query: any = { owned: true } // Always filter for owned films
+
+  // Clamp the requested count to a sensible range (default 5, max 100)
+  const sampleSize = Math.min(
+    Math.max(Number.isFinite(filters?.count) ? (filters!.count as number) : 5, 1),
+    100
+  )
 
   if (filters) {
     if (filters.watched !== undefined) {
@@ -180,7 +187,7 @@ export const getRandomFilms = async (filters?: {
   // Use MongoDB aggregation to get random sample
   return Film.aggregate([
     { $match: query },
-    { $sample: { size: 5 } }, // Maximum 5 random films
+    { $sample: { size: sampleSize } },
     { $lookup: {
         from: 'directors',
         localField: 'directors',
