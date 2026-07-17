@@ -61,6 +61,9 @@ export default function FilmsPage() {
             f.directors.some((d: any) => d._id === selectedFilters.directorId)
           )
         }
+        if (selectedFilters.owned !== undefined) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.owned === selectedFilters.owned)
+        }
         if (selectedFilters.hasReview !== undefined) {
           if (selectedFilters.hasReview) {
             filteredFilms = filteredFilms.filter((f: Film) => f.review && f.review.trim() !== "")
@@ -91,6 +94,9 @@ export default function FilmsPage() {
         }
         if (selectedFilters.directorId) {
           params.append('directorId', selectedFilters.directorId)
+        }
+        if (selectedFilters.owned !== undefined) {
+          params.append('owned', selectedFilters.owned.toString())
         }
         if (selectedFilters.hasReview !== undefined) {
           params.append('hasReview', selectedFilters.hasReview.toString())

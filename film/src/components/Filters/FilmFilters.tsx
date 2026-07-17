@@ -18,6 +18,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [searchString, setSearchString] = useState<string>("")
   const [review, setReview] = useState<string>("all")
+  const [owned, setOwned] = useState<string>("all")
   const [availableGenres, setAvailableGenres] = useState<string[]>([])
 
   useEffect(() => {
@@ -44,6 +45,8 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     if (searchString) filters.searchString = searchString
     if (review === "hasReview") filters.hasReview = true
     if (review === "noReview") filters.hasReview = false
+    if (owned === "owned") filters.owned = true
+    if (owned === "notOwned") filters.owned = false
 
     setSelectedFilters(filters)
     onSearch?.()
@@ -63,6 +66,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     setSelectedGenres([])
     setSearchString("")
     setReview("all")
+    setOwned("all")
     resetFilters()
     onSearch?.()
   }
@@ -92,7 +96,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Search
@@ -199,6 +203,21 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
             <option value="all">All</option>
             <option value="hasReview">Has Review</option>
             <option value="noReview">No Review</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            Owned
+          </label>
+          <select
+            value={owned}
+            onChange={(e) => setOwned(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
+          >
+            <option value="all">All</option>
+            <option value="owned">Owned</option>
+            <option value="notOwned">Not Owned</option>
           </select>
         </div>
       </div>

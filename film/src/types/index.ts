@@ -105,6 +105,7 @@ export interface FilmFilters {
   directorId?: string
   searchString?: string
   hasReview?: boolean
+  owned?: boolean
 }
 
 export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'averageRating'
