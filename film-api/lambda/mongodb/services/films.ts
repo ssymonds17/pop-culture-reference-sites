@@ -42,8 +42,8 @@ export const getFilms = async (filters?: {
       }
     }
     if (filters.genres && filters.genres.length > 0) {
-      // AND logic: film must have ALL selected genres
-      query.genres = { $all: filters.genres }
+      // OR logic: film must have ANY of the selected genres
+      query.genres = { $in: filters.genres }
     }
     if (filters.directorId) {
       query.directors = filters.directorId
@@ -172,8 +172,8 @@ export const getRandomFilms = async (filters?: {
       }
     }
     if (filters.genres && filters.genres.length > 0) {
-      // AND logic: film must have ALL selected genres
-      query.genres = { $all: filters.genres }
+      // OR logic: film must have ANY of the selected genres
+      query.genres = { $in: filters.genres }
     }
   }
 
