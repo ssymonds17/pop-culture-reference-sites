@@ -14,7 +14,8 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
   const [watched, setWatched] = useState<string>("all")
   const [minRating, setMinRating] = useState<string>("")
   const [maxRating, setMaxRating] = useState<string>("")
-  const [year, setYear] = useState<string>("")
+  const [yearStart, setYearStart] = useState<string>("")
+  const [yearEnd, setYearEnd] = useState<string>("")
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [searchString, setSearchString] = useState<string>("")
   const [review, setReview] = useState<string>("all")
@@ -40,7 +41,8 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     if (watched === "unwatched") filters.watched = false
     if (minRating) filters.minRating = parseInt(minRating)
     if (maxRating) filters.maxRating = parseInt(maxRating)
-    if (year) filters.year = parseInt(year)
+    if (yearStart) filters.yearStart = parseInt(yearStart)
+    if (yearEnd) filters.yearEnd = parseInt(yearEnd)
     if (selectedGenres.length > 0) filters.genres = selectedGenres
     if (searchString) filters.searchString = searchString
     if (review === "hasReview") filters.hasReview = true
@@ -62,7 +64,8 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     setWatched("all")
     setMinRating("")
     setMaxRating("")
-    setYear("")
+    setYearStart("")
+    setYearEnd("")
     setSelectedGenres([])
     setSearchString("")
     setReview("all")
@@ -96,7 +99,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Search
@@ -180,13 +183,26 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
 
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">
-            Year
+            Year From
           </label>
           <input
             type="number"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            placeholder="e.g. 2020"
+            value={yearStart}
+            onChange={(e) => setYearStart(e.target.value)}
+            placeholder="e.g. 1980"
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            Year To
+          </label>
+          <input
+            type="number"
+            value={yearEnd}
+            onChange={(e) => setYearEnd(e.target.value)}
+            placeholder="e.g. 2000"
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
           />
         </div>

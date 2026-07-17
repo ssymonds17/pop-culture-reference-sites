@@ -101,6 +101,8 @@ export interface FilmFilters {
   minRating?: number
   maxRating?: number
   year?: number
+  yearStart?: number
+  yearEnd?: number
   genres?: string[]
   directorId?: string
   searchString?: string

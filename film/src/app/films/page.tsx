@@ -47,8 +47,11 @@ export default function FilmsPage() {
         if (selectedFilters.maxRating) {
           filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating <= selectedFilters.maxRating!)
         }
-        if (selectedFilters.year) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.year === selectedFilters.year)
+        if (selectedFilters.yearStart) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.year >= selectedFilters.yearStart!)
+        }
+        if (selectedFilters.yearEnd) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.year <= selectedFilters.yearEnd!)
         }
         if (selectedFilters.genres && selectedFilters.genres.length > 0) {
           // AND logic: film must have ALL selected genres
@@ -86,8 +89,11 @@ export default function FilmsPage() {
         if (selectedFilters.maxRating) {
           params.append('maxRating', selectedFilters.maxRating.toString())
         }
-        if (selectedFilters.year) {
-          params.append('year', selectedFilters.year.toString())
+        if (selectedFilters.yearStart) {
+          params.append('yearStart', selectedFilters.yearStart.toString())
+        }
+        if (selectedFilters.yearEnd) {
+          params.append('yearEnd', selectedFilters.yearEnd.toString())
         }
         if (selectedFilters.genres && selectedFilters.genres.length > 0) {
           params.append('genres', selectedFilters.genres.join(','))
