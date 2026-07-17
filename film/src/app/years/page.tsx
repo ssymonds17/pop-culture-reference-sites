@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 import { API_ENDPOINTS } from "@/lib/api"
 import { YearStats } from "@/types"
 import Skeleton from "react-loading-skeleton"
@@ -12,19 +21,8 @@ export default function YearsPage() {
   const [years, setYears] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  const [selectedYear, setSelectedYear] = useState<YearStats | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [filterYear, setFilterYear] = useState<string>("all")
-
-  const handleYearClick = (year: number) => {
-    setSelectedYear(year)
-    setIsModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedYear(null)
-  }
 
   useEffect(() => {
     const fetchYears = async () => {
@@ -44,12 +42,25 @@ export default function YearsPage() {
     fetchYears()
   }, [])
 
-  const filteredYears =
-    filterYear === "all"
-      ? years
-      : years.filter(
-          (yearStats) => yearStats.year === Number.parseInt(filterYear),
-        )
+  // Chart runs left-to-right by year; the API returns them ordered by score
+  const chartData = [...years].sort((a, b) => a.year - b.year)
+
+  // Fire on a click anywhere in a year's column (via the chart's activeLabel) so
+  // years with a 0 score — which have no bar to click — can still be opened
+  const handleChartClick = (state: { activeLabel?: string | number }) => {
+    const year = state?.activeLabel
+    if (year == null) return
+    const stats = years.find((y) => String(y.year) === String(year))
+    if (stats) {
+      setSelectedYear(stats)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedYear(null)
+  }
 
   if (error) {
     return (
@@ -63,114 +74,58 @@ export default function YearsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold mb-2">Year Analysis</h1>
-        <p className="text-gray-400">Film statistics by year</p>
-      </div>
-
-      <div className="flex gap-4 items-center">
-        <label htmlFor="year-filter" className="text-sm font-medium">
-          Filter by year:
-        </label>
-        <select
-          id="year-filter"
-          value={filterYear}
-          onChange={(e) => setFilterYear(e.target.value)}
-          className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2 pr-12 focus:outline-none focus:border-film-700 transition-colors appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3d%22http%3a%2f%2fwww.w3.org%2f2000%2fsvg%22%20viewBox%3d%220%200%2020%2020%22%20fill%3d%22none%22%3e%3cpath%20d%3d%22M7%207l3-3%203%203m0%206l-3%203-3-3%22%20stroke%3d%22%239ca3af%22%20stroke-width%3d%221.5%22%20stroke-linecap%3d%22round%22%20stroke-linejoin%3d%22round%22%2f%3e%3c%2fsvg%3e')] bg-[length:1.5em_1.5em] bg-[right_0.5rem_center] bg-no-repeat"
-        >
-          <option value="all">All years</option>
-          {[...years]
-            .sort((a, b) => b.year - a.year)
-            .map((yearStats) => (
-              <option key={yearStats.year} value={yearStats.year.toString()}>
-                {yearStats.year}
-              </option>
-            ))}
-        </select>
-        {filterYear !== "all" && (
-          <button
-            onClick={() => setFilterYear("all")}
-            className="text-sm text-film-500 hover:text-film-400 transition-colors"
-          >
-            Clear filter
-          </button>
-        )}
+        <p className="text-gray-400">
+          Year score by year. Click a bar to see that year&apos;s stats and
+          films.
+        </p>
       </div>
 
       {loading ? (
-        <div className="space-y-2">
-          {new Array(10).fill(null).map((_, i) => (
-            <Skeleton
-              key={i}
-              height={80}
-              baseColor="#1f2937"
-              highlightColor="#374151"
-            />
-          ))}
+        <Skeleton height={420} baseColor="#1f2937" highlightColor="#374151" />
+      ) : years.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          No year data available.
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredYears.map((yearStats) => (
-            <div
-              key={yearStats._id}
-              onClick={() => handleYearClick(yearStats.year)}
-              className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-film-700 transition-colors cursor-pointer"
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <ResponsiveContainer width="100%" height={420}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
+              onClick={handleChartClick}
+              className="cursor-pointer"
             >
-              <div className="mb-4">
-                <h3 className="text-2xl font-bold">{yearStats.year}</h3>
-                <div className="mt-1">
-                  <span className="text-sm text-gray-400">Year Score: </span>
-                  <span className="text-xl font-bold text-film-500">
-                    {yearStats.yearScore.toFixed(1)}
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <div className="text-gray-400">Total Films</div>
-                  <div className="text-lg font-semibold">
-                    {yearStats.totalFilms}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-gray-400">Watched</div>
-                  <div className="text-lg font-semibold">
-                    {yearStats.watchedFilms}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-gray-400">Avg Rating</div>
-                  <div className="text-lg font-semibold">
-                    {yearStats.averageRating?.toFixed(2) || "N/A"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-gray-400">6+ Rated</div>
-                  <div className="text-lg font-semibold">
-                    {yearStats.percentRated6Plus.toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-              {yearStats.topGenres.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-xs text-gray-400 mb-2">Top Genres</div>
-                  <div className="flex flex-wrap gap-2">
-                    {yearStats.topGenres.slice(0, 5).map((genre) => (
-                      <span
-                        key={genre.genre}
-                        className="px-2 py-1 bg-gray-800 rounded text-xs"
-                      >
-                        {genre.genre} ({genre.count})
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#374151"
+                vertical={false}
+              />
+              <XAxis dataKey="year" stroke="#9ca3af" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#9ca3af" tick={{ fontSize: 12 }} />
+              <Tooltip
+                cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                contentStyle={{
+                  backgroundColor: "#111827",
+                  border: "1px solid #1f2937",
+                  borderRadius: "0.5rem",
+                }}
+                labelStyle={{ color: "#e5e7eb" }}
+                formatter={(value) => [Number(value).toFixed(1), "Year Score"]}
+              />
+              <Bar
+                dataKey="yearScore"
+                fill="#0ea5e9"
+                radius={[4, 4, 0, 0]}
+                minPointSize={2}
+                cursor="pointer"
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
 
       <YearFilmsModal
-        year={selectedYear}
+        yearStats={selectedYear}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />

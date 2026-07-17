@@ -1,18 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Film } from "@/types"
+import { Film, YearStats } from "@/types"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
+import OverviewCard from "@/components/Stats/OverviewCard"
+import RatingDistribution from "@/components/Stats/RatingDistribution"
+import GenreDistribution from "@/components/Stats/GenreDistribution"
 
 interface YearFilmsModalProps {
-  year: number | null
+  yearStats: YearStats | null
   isOpen: boolean
   onClose: () => void
 }
 
 export default function YearFilmsModal({
-  year,
+  yearStats,
   isOpen,
   onClose,
 }: YearFilmsModalProps) {
@@ -22,15 +25,15 @@ export default function YearFilmsModal({
 
   useEffect(() => {
     const fetchYearFilms = async () => {
-      if (!isOpen || !year) return
+      if (!isOpen || !yearStats) return
 
       try {
         setLoading(true)
         setError(null)
-        setFilms([]) // Reset films when fetching new year
+        setFilms([]) // Reset films when fetching a new year
 
         const response = await axios.get(API_ENDPOINTS.films, {
-          params: { year },
+          params: { year: yearStats.year },
         })
         setFilms(response.data.data || [])
       } catch (err) {
@@ -42,25 +45,58 @@ export default function YearFilmsModal({
     }
 
     fetchYearFilms()
-  }, [isOpen, year])
+  }, [isOpen, yearStats])
 
-  if (!isOpen || !year) return null
+  if (!isOpen || !yearStats) return null
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-2">{year}</h2>
-        {!loading && (
-          <p className="text-gray-400 text-sm mb-6">
-            {films.length} film{films.length !== 1 ? "s" : ""} from {year}
-          </p>
-        )}
+        <div className="flex items-baseline justify-between mb-6">
+          <h2 className="text-3xl font-bold">{yearStats.year}</h2>
+          <div className="text-right">
+            <span className="text-sm text-gray-400">Year Score </span>
+            <span className="text-xl font-bold text-film-500">
+              {yearStats.yearScore.toFixed(1)}
+            </span>
+          </div>
+        </div>
+
+        {/* Overview stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <OverviewCard title="Total Films" value={yearStats.totalFilms} />
+          <OverviewCard title="Watched" value={yearStats.watchedFilms} />
+          <OverviewCard
+            title="Avg Rating"
+            value={
+              yearStats.averageRating != null
+                ? yearStats.averageRating.toFixed(2)
+                : "N/A"
+            }
+          />
+          <OverviewCard
+            title="6+ Rated"
+            value={`${yearStats.percentRated6Plus.toFixed(1)}%`}
+            subtitle={`${yearStats.filmsRated6Plus} films`}
+          />
+        </div>
+
+        {/* Distributions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <RatingDistribution distribution={yearStats.ratingDistribution} />
+          <GenreDistribution genres={yearStats.topGenres} />
+        </div>
+
+        {/* Films from this year */}
+        <h3 className="text-xl font-bold mb-3">
+          Films{!loading && ` (${films.length})`}
+        </h3>
 
         {error && (
           <div className="mb-4 bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
@@ -69,11 +105,9 @@ export default function YearFilmsModal({
         )}
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">
-            Loading films...
-          </div>
+          <div className="text-center py-8 text-gray-400">Loading films...</div>
         ) : films.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">No films found</div>
+          <div className="text-center py-8 text-gray-400">No films found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
