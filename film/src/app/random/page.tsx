@@ -17,6 +17,7 @@ export default function RandomFilmsPage() {
   const [yearEnd, setYearEnd] = useState<string>("")
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
   const [availableGenres, setAvailableGenres] = useState<string[]>([])
+  const [count, setCount] = useState<string>("5")
 
   useEffect(() => {
     const fetchGenres = async () => {
@@ -51,6 +52,7 @@ export default function RandomFilmsPage() {
       if (selectedGenres.length > 0) {
         params.append('genres', selectedGenres.join(','))
       }
+      params.append('count', count)
 
       const url = `${API_ENDPOINTS.randomFilms}?${params.toString()}`
       const response = await axios.get(url)
@@ -68,6 +70,7 @@ export default function RandomFilmsPage() {
     setYearStart("")
     setYearEnd("")
     setSelectedGenres([])
+    setCount("5")
     setFilms([])
   }
 
@@ -75,7 +78,7 @@ export default function RandomFilmsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold mb-2">Random Films</h1>
-        <p className="text-gray-400">Get up to 5 random films from your owned collection</p>
+        <p className="text-gray-400">Get up to {count} random film{count === "1" ? "" : "s"} from your owned collection</p>
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
@@ -95,6 +98,23 @@ export default function RandomFilmsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Number of films
+            </label>
+            <select
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-film-500"
+            >
+              <option value="1">1</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
               Status
@@ -167,7 +187,7 @@ export default function RandomFilmsPage() {
 
       {loading ? (
         <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(Number(count))].map((_, i) => (
             <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
           ))}
         </div>
