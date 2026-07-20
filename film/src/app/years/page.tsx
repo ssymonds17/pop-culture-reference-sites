@@ -17,12 +17,38 @@ import Skeleton from "react-loading-skeleton"
 import "react-loading-skeleton/dist/skeleton.css"
 import YearFilmsModal from "@/components/Modal/YearFilmsModal"
 
+type MetricKey =
+  | "yearScore"
+  | "totalFilms"
+  | "watchedFilms"
+  | "averageRating"
+  | "percentRated6Plus"
+
+interface Metric {
+  key: MetricKey
+  label: string
+  color: string
+  format: (value: number) => string
+}
+
+const METRICS: Metric[] = [
+  { key: "yearScore", label: "Year Score", color: "#0ea5e9", format: (v) => v.toFixed(1) },
+  { key: "totalFilms", label: "Total Films", color: "#22c55e", format: (v) => String(v) },
+  { key: "watchedFilms", label: "Watched Films", color: "#a855f7", format: (v) => String(v) },
+  { key: "averageRating", label: "Avg Rating", color: "#f59e0b", format: (v) => v.toFixed(2) },
+  { key: "percentRated6Plus", label: "% Above 6", color: "#ec4899", format: (v) => `${v.toFixed(1)}%` },
+]
+
 export default function YearsPage() {
   const [years, setYears] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<YearStats | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("yearScore")
+
+  const activeMetric =
+    METRICS.find((m) => m.key === selectedMetric) ?? METRICS[0]
 
   useEffect(() => {
     const fetchYears = async () => {
@@ -75,8 +101,8 @@ export default function YearsPage() {
       <div>
         <h1 className="text-4xl font-bold mb-2">Year Analysis</h1>
         <p className="text-gray-400">
-          Year score by year. Click a bar to see that year&apos;s stats and
-          films.
+          {activeMetric.label} by year. Click a bar to see that year&apos;s
+          stats and films.
         </p>
       </div>
 
@@ -88,6 +114,26 @@ export default function YearsPage() {
         </div>
       ) : (
         <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Metric:
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {METRICS.map((metric) => (
+                <button
+                  key={metric.key}
+                  onClick={() => setSelectedMetric(metric.key)}
+                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    selectedMetric === metric.key
+                      ? "bg-film-700 text-white"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  {metric.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={420}>
             <BarChart
               data={chartData}
@@ -110,11 +156,14 @@ export default function YearsPage() {
                   borderRadius: "0.5rem",
                 }}
                 labelStyle={{ color: "#e5e7eb" }}
-                formatter={(value) => [Number(value).toFixed(1), "Year Score"]}
+                formatter={(value) => [
+                  value == null ? "-" : activeMetric.format(Number(value)),
+                  activeMetric.label,
+                ]}
               />
               <Bar
-                dataKey="yearScore"
-                fill="#0ea5e9"
+                dataKey={activeMetric.key}
+                fill={activeMetric.color}
                 radius={[4, 4, 0, 0]}
                 minPointSize={2}
                 cursor="pointer"
