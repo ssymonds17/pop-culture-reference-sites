@@ -84,6 +84,7 @@ export default function DirectorFilters() {
             {[
               { value: 'totalPoints', label: 'Total Points' },
               { value: 'seenFilms', label: 'Films Seen' },
+              { value: 'totalFilms', label: 'Total Films' },
               { value: 'averageRating', label: 'Average Rating' },
             ].map((option) => (
               <button

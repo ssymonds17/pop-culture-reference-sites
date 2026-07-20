@@ -110,4 +110,4 @@ export interface FilmFilters {
   owned?: boolean
 }
 
-export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'averageRating'
+export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'totalFilms' | 'averageRating'

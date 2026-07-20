@@ -38,6 +38,8 @@ export default function DirectorsPage() {
           sortedDirectors.sort((a: Director, b: Director) => b.totalPoints - a.totalPoints)
         } else if (selectedDirectorSort === 'seenFilms') {
           sortedDirectors.sort((a: Director, b: Director) => b.seenFilms - a.seenFilms)
+        } else if (selectedDirectorSort === 'totalFilms') {
+          sortedDirectors.sort((a: Director, b: Director) => b.totalFilms - a.totalFilms)
         } else if (selectedDirectorSort === 'averageRating') {
           sortedDirectors.sort((a: Director, b: Director) => (b.averageRating || 0) - (a.averageRating || 0))
         }
