@@ -12,6 +12,10 @@ export const getDirectors = async (sortBy?: string) => {
       sortOptions.seenFilms = -1
       sortOptions.totalPoints = -1
       break
+    case "totalFilms":
+      sortOptions.totalFilms = -1
+      sortOptions.totalPoints = -1
+      break
     case "averageRating":
       sortOptions.averageRating = -1
       sortOptions.seenFilms = -1
