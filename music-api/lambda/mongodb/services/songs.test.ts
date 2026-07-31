@@ -73,16 +73,16 @@ describe("songs service", () => {
   })
 
   describe("findSongsByTitle", () => {
-    it("should find songs by title with case-insensitive search", async () => {
+    it("should query songs with a case-insensitive regex on the title field", async () => {
       const mockSongs = [
-        { id: "1", title: "Hey Jude" },
+        { id: "1", title: "hey jude" },
         { id: "2", title: "hey jude live" },
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockSongs)
       mockSong.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
-      const result = await findSongsByTitle("hey jude")
+      const result = await findSongsByTitle("Hey Jude")
 
       expect(result).toEqual(mockSongs)
       expect(mockSong.find).toHaveBeenCalledWith(
@@ -91,6 +91,31 @@ describe("songs service", () => {
         { sort: { title: 1 } }
       )
       expect(mockExec).toHaveBeenCalled()
+    })
+
+    it("should fold accents and lowercase when building the query regex", async () => {
+      const mockExec = jest.fn().mockResolvedValueOnce([])
+      mockSong.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
+
+      // Stored title is folded at write time, so the query folds to match it:
+      // "Voilà" -> "voila".
+      await findSongsByTitle("Voilà")
+
+      const [filter] = (mockSong.find as jest.Mock).mock.calls[0]
+      expect(filter.title.source).toBe("voila")
+      expect(filter.title.flags).toContain("i")
+    })
+
+    it("should escape regex metacharacters in the query", async () => {
+      const mockExec = jest.fn().mockResolvedValueOnce([])
+      mockSong.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
+
+      // Parentheses must be escaped so they are matched literally, not treated
+      // as a regex group (and so an unbalanced bracket cannot throw).
+      await findSongsByTitle("Intro (Live)")
+
+      const [filter] = (mockSong.find as jest.Mock).mock.calls[0]
+      expect(filter.title.source).toBe("intro \\(live\\)")
     })
 
     it("should return empty array when no songs match", async () => {
@@ -103,16 +128,13 @@ describe("songs service", () => {
       expect(mockExec).toHaveBeenCalled()
     })
 
-    it("should handle special characters in search", async () => {
-      const mockSongs = [{ id: "1", title: "Don't Stop Me Now" }]
+    it("should return empty array for a blank query without hitting the database", async () => {
+      mockSong.find = jest.fn() as any
 
-      const mockExec = jest.fn().mockResolvedValueOnce(mockSongs)
-      mockSong.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
+      const result = await findSongsByTitle("   ")
 
-      const result = await findSongsByTitle("don't")
-
-      expect(result).toEqual(mockSongs)
-      expect(mockExec).toHaveBeenCalled()
+      expect(result).toEqual([])
+      expect(mockSong.find).not.toHaveBeenCalled()
     })
   })
 })

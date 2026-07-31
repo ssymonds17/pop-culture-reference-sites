@@ -1,5 +1,4 @@
-import _ from "lodash"
-import { createApiResponse, logger, escapeRegex } from "./utils"
+import { createApiResponse, logger } from "./utils"
 import {
   connectToDatabase,
   findArtistsByName,
@@ -23,17 +22,14 @@ const handler = async (event: any) => {
       throw new Error("Missing an itemType parameter")
     }
 
-    const safeSearch = escapeRegex(searchString)
-    const searchStringAsLower = _.toLower(safeSearch)
-
     let resultItems
     connectToDatabase()
     if (itemType === "artist") {
-      resultItems = await findArtistsByName(searchStringAsLower)
+      resultItems = await findArtistsByName(searchString)
     } else if (itemType === "album") {
-      resultItems = await findAlbumsByTitle(searchStringAsLower)
+      resultItems = await findAlbumsByTitle(searchString)
     } else if (itemType === "song") {
-      resultItems = await findSongsByTitle(searchStringAsLower)
+      resultItems = await findSongsByTitle(searchString)
     }
 
     if (!resultItems || resultItems.length === 0) {

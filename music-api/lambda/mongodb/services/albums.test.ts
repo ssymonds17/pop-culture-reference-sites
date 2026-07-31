@@ -279,16 +279,16 @@ describe("albums service", () => {
   })
 
   describe("findAlbumsByTitle", () => {
-    it("should find albums by title with case-insensitive search", async () => {
+    it("should query albums with a case-insensitive regex on the title field", async () => {
       const mockAlbums = [
-        { id: "1", title: "Abbey Road" },
+        { id: "1", title: "abbey road" },
         { id: "2", title: "abbey road deluxe" },
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockAlbums)
       mockAlbum.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
-      const result = await findAlbumsByTitle("abbey road")
+      const result = await findAlbumsByTitle("Abbey Road")
 
       expect(result).toEqual(mockAlbums)
       expect(mockAlbum.find).toHaveBeenCalledWith(
@@ -299,6 +299,19 @@ describe("albums service", () => {
       expect(mockExec).toHaveBeenCalled()
     })
 
+    it("should fold accents and lowercase when building the query regex", async () => {
+      const mockExec = jest.fn().mockResolvedValueOnce([])
+      mockAlbum.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
+
+      // Stored title is folded at write time, so the query folds to match it:
+      // "Café Bleu" -> "cafe bleu".
+      await findAlbumsByTitle("Café Bleu")
+
+      const [filter] = (mockAlbum.find as jest.Mock).mock.calls[0]
+      expect(filter.title.source).toBe("cafe bleu")
+      expect(filter.title.flags).toContain("i")
+    })
+
     it("should return empty array when no albums match", async () => {
       const mockExec = jest.fn().mockResolvedValueOnce([])
       mockAlbum.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
@@ -307,6 +320,15 @@ describe("albums service", () => {
 
       expect(result).toEqual([])
       expect(mockExec).toHaveBeenCalled()
+    })
+
+    it("should return empty array for a blank query without hitting the database", async () => {
+      mockAlbum.find = jest.fn() as any
+
+      const result = await findAlbumsByTitle("   ")
+
+      expect(result).toEqual([])
+      expect(mockAlbum.find).not.toHaveBeenCalled()
     })
   })
 

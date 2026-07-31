@@ -1,4 +1,5 @@
 import Artist, { ArtistData } from "../models/artist"
+import { escapeRegex, normalizeForSearch } from "../../utils"
 
 export const createArtist = async (artistData: ArtistData) => {
   return Artist.create(artistData)
@@ -26,8 +27,16 @@ export const getArtistByIdFull = async (id: string) => {
 }
 
 export const findArtistsByName = async (name: string) => {
+  const needle = normalizeForSearch(name)
+  if (!needle) {
+    return []
+  }
+
+  // The stored `name` is normalised at write time (lowercased and
+  // accent-folded), so we can match it directly in the database: fold the query
+  // the same way, escape any regex metacharacters, and match it as a substring.
   return Artist.find(
-    { name: new RegExp(name, "i") }, // case-insensitive search
+    { name: new RegExp(escapeRegex(needle), "i") },
     null,
     { sort: { name: 1 } }
   ).exec()

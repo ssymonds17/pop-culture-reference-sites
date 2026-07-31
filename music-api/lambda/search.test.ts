@@ -11,7 +11,6 @@ const mockFindAlbumsByTitle = mongodb.findAlbumsByTitle as jest.Mock
 const mockFindSongsByTitle = mongodb.findSongsByTitle as jest.Mock
 const mockCreateApiResponse = utils.createApiResponse as jest.Mock
 const mockLogger = utils.logger as any
-const mockEscapeRegex = utils.escapeRegex as jest.Mock
 
 describe("search handler", () => {
   beforeEach(() => {
@@ -21,7 +20,6 @@ describe("search handler", () => {
       statusCode: status,
       body: JSON.stringify(body),
     }))
-    mockEscapeRegex.mockImplementation((str) => str)
   })
 
   it("should search for artists successfully", async () => {
@@ -43,8 +41,7 @@ describe("search handler", () => {
     await handler(event)
 
     expect(mockConnectToDatabase).toHaveBeenCalled()
-    expect(mockEscapeRegex).toHaveBeenCalledWith("Test Artist")
-    expect(mockFindArtistsByName).toHaveBeenCalledWith("test artist")
+    expect(mockFindArtistsByName).toHaveBeenCalledWith("Test Artist")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
       result: mockArtists,
       message: "Successfully retrieved matches",
@@ -79,8 +76,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockEscapeRegex).toHaveBeenCalledWith("Test Album")
-    expect(mockFindAlbumsByTitle).toHaveBeenCalledWith("test album")
+    expect(mockFindAlbumsByTitle).toHaveBeenCalledWith("Test Album")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
       result: mockAlbums,
       message: "Successfully retrieved matches",
@@ -115,8 +111,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockEscapeRegex).toHaveBeenCalledWith("Test Song")
-    expect(mockFindSongsByTitle).toHaveBeenCalledWith("test song")
+    expect(mockFindSongsByTitle).toHaveBeenCalledWith("Test Song")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(200, {
       result: mockSongs,
       message: "Successfully retrieved matches",
@@ -166,7 +161,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockFindArtistsByName).toHaveBeenCalledWith("nonexistent")
+    expect(mockFindArtistsByName).toHaveBeenCalledWith("Nonexistent")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(404, {
       error: "No items found",
     })
@@ -185,7 +180,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockFindAlbumsByTitle).toHaveBeenCalledWith("nonexistent")
+    expect(mockFindAlbumsByTitle).toHaveBeenCalledWith("Nonexistent")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(404, {
       error: "No items found",
     })
@@ -204,7 +199,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockFindSongsByTitle).toHaveBeenCalledWith("nonexistent")
+    expect(mockFindSongsByTitle).toHaveBeenCalledWith("Nonexistent")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(404, {
       error: "No items found",
     })
@@ -268,7 +263,7 @@ describe("search handler", () => {
     })
   })
 
-  it("should lowercase the search string", async () => {
+  it("should pass the raw search string to the service (normalisation happens there)", async () => {
     const event = {
       queryStringParameters: {
         searchString: "UPPERCASE SEARCH",
@@ -283,27 +278,7 @@ describe("search handler", () => {
 
     await handler(event)
 
-    expect(mockFindArtistsByName).toHaveBeenCalledWith("uppercase search")
-  })
-
-  it("should escape regex characters in search string", async () => {
-    const event = {
-      queryStringParameters: {
-        searchString: "Test.*",
-        itemType: "artist",
-      },
-    }
-
-    mockEscapeRegex.mockReturnValueOnce("Test\\.\\*")
-    mockConnectToDatabase.mockResolvedValueOnce(undefined)
-    mockFindArtistsByName.mockResolvedValueOnce([
-      { id: "artist1", name: "test.*" },
-    ])
-
-    await handler(event)
-
-    expect(mockEscapeRegex).toHaveBeenCalledWith("Test.*")
-    expect(mockFindArtistsByName).toHaveBeenCalledWith("test\\.\\*")
+    expect(mockFindArtistsByName).toHaveBeenCalledWith("UPPERCASE SEARCH")
   })
 
   it("should return 502 for non-Error exceptions", async () => {

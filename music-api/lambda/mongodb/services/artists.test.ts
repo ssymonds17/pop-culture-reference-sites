@@ -119,16 +119,16 @@ describe("artists service", () => {
   })
 
   describe("findArtistsByName", () => {
-    it("should find artists by name with case-insensitive search", async () => {
+    it("should query artists with a case-insensitive regex on the name field", async () => {
       const mockArtists = [
-        { id: "1", name: "Beatles" },
-        { id: "2", name: "The Beatles" },
+        { id: "1", name: "beatles" },
+        { id: "2", name: "the beatles" },
       ]
 
       const mockExec = jest.fn().mockResolvedValueOnce(mockArtists)
       mockArtist.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
 
-      const result = await findArtistsByName("beatles")
+      const result = await findArtistsByName("Beatles")
 
       expect(result).toEqual(mockArtists)
       expect(mockArtist.find).toHaveBeenCalledWith(
@@ -139,6 +139,19 @@ describe("artists service", () => {
       expect(mockExec).toHaveBeenCalled()
     })
 
+    it("should fold accents and lowercase when building the query regex", async () => {
+      const mockExec = jest.fn().mockResolvedValueOnce([])
+      mockArtist.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
+
+      // The stored name is folded at write time, so the query is folded to
+      // match it: "Sigur Rós" -> "sigur ros".
+      await findArtistsByName("Sigur Rós")
+
+      const [filter] = (mockArtist.find as jest.Mock).mock.calls[0]
+      expect(filter.name.source).toBe("sigur ros")
+      expect(filter.name.flags).toContain("i")
+    })
+
     it("should return empty array when no artists match", async () => {
       const mockExec = jest.fn().mockResolvedValueOnce([])
       mockArtist.find = jest.fn().mockReturnValue({ exec: mockExec }) as any
@@ -147,6 +160,15 @@ describe("artists service", () => {
 
       expect(result).toEqual([])
       expect(mockExec).toHaveBeenCalled()
+    })
+
+    it("should return empty array for a blank query without hitting the database", async () => {
+      mockArtist.find = jest.fn() as any
+
+      const result = await findArtistsByName("   ")
+
+      expect(result).toEqual([])
+      expect(mockArtist.find).not.toHaveBeenCalled()
     })
   })
 })

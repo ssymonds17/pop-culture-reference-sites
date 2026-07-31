@@ -1,4 +1,5 @@
 import Album, { AlbumData, Rating } from "../models/album"
+import { escapeRegex, normalizeForSearch } from "../../utils"
 
 export const createAlbum = async (albumData: AlbumData) => {
   return Album.create(albumData)
@@ -78,8 +79,15 @@ export const getAlbumByIdFull = async (id: string) => {
 }
 
 export const findAlbumsByTitle = async (title: string) => {
+  const needle = normalizeForSearch(title)
+  if (!needle) {
+    return []
+  }
+
+  // The stored `title` is normalised at write time (see findArtistsByName), so
+  // we match the folded, escaped query directly against it in the database.
   return Album.find(
-    { title: new RegExp(title, "i") }, // case-insensitive search
+    { title: new RegExp(escapeRegex(needle), "i") },
     null,
     { sort: { title: 1 } }
   ).exec()
