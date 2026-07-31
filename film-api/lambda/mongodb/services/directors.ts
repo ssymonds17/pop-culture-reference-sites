@@ -1,4 +1,5 @@
 import Director, { DirectorData } from "../models/director"
+import { normalizeForSearch } from "../../utils"
 
 export const createDirector = async (directorData: DirectorData) => {
   return Director.create(directorData)
@@ -44,9 +45,22 @@ export const getDirectorByTmdbPersonId = async (tmdbPersonId: string) => {
 }
 
 export const findDirectorsByName = async (name: string) => {
-  return Director.find({ name: new RegExp(name, "i") }, null, {
+  const needle = normalizeForSearch(name)
+  if (!needle) {
+    return []
+  }
+
+  // Accent-insensitive substring match against the stored (already lowercased)
+  // name. We fold both sides to a diacritic-free form so "Bunuel" matches a
+  // stored "Buñuel". Filtering in app code because a MongoDB regex cannot fold
+  // accents on the stored value; the directors collection is small.
+  const directors = await Director.find({}, null, {
     sort: { totalPoints: -1 },
   }).exec()
+
+  return directors.filter((director) =>
+    normalizeForSearch(director.name).includes(needle),
+  )
 }
 
 export const updateDirectorStats = async (directorId: string) => {
