@@ -1,5 +1,4 @@
-import _ from "lodash"
-import { createApiResponse, logger } from "./utils"
+import { createApiResponse, logger, normalizeForSearch } from "./utils"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import {
   updateAssociatedAlbum,
@@ -16,7 +15,7 @@ const handlerImpl = async (event: any, _userId: string) => {
     JSON.parse(event.body)
 
   const defaultSong: SongData = {
-    title: _.toLower(title),
+    title: normalizeForSearch(title),
     displayTitle: title,
     artists,
     artistDisplayName: artistDisplayName,

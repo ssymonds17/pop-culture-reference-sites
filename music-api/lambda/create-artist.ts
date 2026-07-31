@@ -1,5 +1,4 @@
-import _ from "lodash"
-import { createApiResponse, logger } from "./utils"
+import { createApiResponse, logger, normalizeForSearch } from "./utils"
 import { ArtistData } from "./mongodb/models/artist"
 import { connectToDatabase, createArtist } from "./mongodb"
 import { requireAuth } from "./auth"
@@ -12,7 +11,7 @@ const handlerImpl = async (event: any, _userId: string) => {
     }
 
     const defaultArtist: ArtistData = {
-      name: _.toLower(artistName),
+      name: normalizeForSearch(artistName),
       displayName: artistName,
       albums: [],
       songs: [],
