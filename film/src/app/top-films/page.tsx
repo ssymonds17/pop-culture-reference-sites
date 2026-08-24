@@ -287,31 +287,31 @@ export default function TopFilmsPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Top Films</h1>
-            <p className="text-gray-400">
-              Rank your 8, 9, and 10-rated films by choosing a position within
-              each tier. Films can only be moved within their own tier.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {isDirty && !isSaving && (
-              <button
-                onClick={handleReset}
-                className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
-              >
-                Reset
-              </button>
-            )}
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Top Films</h1>
+          <p className="text-gray-400">
+            Rank your 8, 9, and 10-rated films by choosing a position within
+            each tier. Films can only be moved within their own tier.
+          </p>
+        </div>
+
+        {/* Action bar - pins to the top of the viewport while scrolling the list */}
+        <div className="sticky top-0 z-30 -mx-4 px-4 py-3 flex items-center justify-end gap-3 bg-gray-950/95 backdrop-blur border-b border-gray-800">
+          {isDirty && !isSaving && (
             <button
-              onClick={handleSave}
-              disabled={!isDirty || isSaving || isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
+              onClick={handleReset}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
             >
-              {isSaving ? "Saving..." : "Save order"}
+              Reset
             </button>
-          </div>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={!isDirty || isSaving || isLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
+          >
+            {isSaving ? "Saving..." : "Save order"}
+          </button>
         </div>
 
         {error && (
