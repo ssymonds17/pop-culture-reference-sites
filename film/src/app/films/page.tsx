@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
-import { Film } from '@/types'
-import { useFilmContext } from '@/lib/context/FilmContext'
+import { Film, FilmFilters as FilmFilterValues } from '@/types'
 import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import FilmFilters from '@/components/Filters/FilmFilters'
 import FilmGrid from '@/components/Films/FilmGrid'
@@ -17,19 +16,20 @@ export default function FilmsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAddFilmModalOpen, setIsAddFilmModalOpen] = useState(false)
-  const [hasInitialFetch, setHasInitialFetch] = useState(false)
-  const { selectedFilters, dataRefreshRequired, setDataRefreshRequired } = useFilmContext()
+  // The filters behind the results currently on screen, so refreshes after an
+  // edit or an add re-run the same query.
+  const [activeFilters, setActiveFilters] = useState<FilmFilterValues>({})
   const resultsRef = useRef<HTMLDivElement>(null)
 
-  const fetchFilms = async () => {
+  const fetchFilms = async (filters: FilmFilterValues) => {
     try {
       setLoading(true)
-      setHasInitialFetch(true)
+      setActiveFilters(filters)
       const params = new URLSearchParams()
 
       // If search string is provided, use the search endpoint
-      if (selectedFilters.searchString) {
-        params.append('searchString', selectedFilters.searchString)
+      if (filters.searchString) {
+        params.append('searchString', filters.searchString)
         params.append('itemType', 'film')
 
         const url = `${API_ENDPOINTS.search}?${params.toString()}`
@@ -38,37 +38,37 @@ export default function FilmsPage() {
         // Apply other filters client-side to search results
         let filteredFilms = response.data.data
 
-        if (selectedFilters.watched !== undefined) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.watched === selectedFilters.watched)
+        if (filters.watched !== undefined) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.watched === filters.watched)
         }
-        if (selectedFilters.minRating) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating >= selectedFilters.minRating!)
+        if (filters.minRating) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating >= filters.minRating!)
         }
-        if (selectedFilters.maxRating) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating <= selectedFilters.maxRating!)
+        if (filters.maxRating) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.rating && f.rating <= filters.maxRating!)
         }
-        if (selectedFilters.yearStart) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.year >= selectedFilters.yearStart!)
+        if (filters.yearStart) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.year >= filters.yearStart!)
         }
-        if (selectedFilters.yearEnd) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.year <= selectedFilters.yearEnd!)
+        if (filters.yearEnd) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.year <= filters.yearEnd!)
         }
-        if (selectedFilters.genres && selectedFilters.genres.length > 0) {
+        if (filters.genres && filters.genres.length > 0) {
           // OR logic: film must have ANY of the selected genres
           filteredFilms = filteredFilms.filter((f: Film) =>
-            selectedFilters.genres!.some((genre: string) => f.genres?.includes(genre))
+            filters.genres!.some((genre: string) => f.genres?.includes(genre))
           )
         }
-        if (selectedFilters.directorId) {
+        if (filters.directorId) {
           filteredFilms = filteredFilms.filter((f: Film) =>
-            f.directors.some((d: any) => d._id === selectedFilters.directorId)
+            f.directors.some((d: any) => d._id === filters.directorId)
           )
         }
-        if (selectedFilters.owned !== undefined) {
-          filteredFilms = filteredFilms.filter((f: Film) => f.owned === selectedFilters.owned)
+        if (filters.owned !== undefined) {
+          filteredFilms = filteredFilms.filter((f: Film) => f.owned === filters.owned)
         }
-        if (selectedFilters.hasReview !== undefined) {
-          if (selectedFilters.hasReview) {
+        if (filters.hasReview !== undefined) {
+          if (filters.hasReview) {
             filteredFilms = filteredFilms.filter((f: Film) => f.review && f.review.trim() !== "")
           } else {
             filteredFilms = filteredFilms.filter((f: Film) => !f.review || f.review.trim() === "")
@@ -77,42 +77,40 @@ export default function FilmsPage() {
 
         setFilms(filteredFilms)
         setError(null)
-        setDataRefreshRequired(false)
       } else {
         // Otherwise use the regular films endpoint with filters
-        if (selectedFilters.watched !== undefined) {
-          params.append('watched', selectedFilters.watched.toString())
+        if (filters.watched !== undefined) {
+          params.append('watched', filters.watched.toString())
         }
-        if (selectedFilters.minRating) {
-          params.append('minRating', selectedFilters.minRating.toString())
+        if (filters.minRating) {
+          params.append('minRating', filters.minRating.toString())
         }
-        if (selectedFilters.maxRating) {
-          params.append('maxRating', selectedFilters.maxRating.toString())
+        if (filters.maxRating) {
+          params.append('maxRating', filters.maxRating.toString())
         }
-        if (selectedFilters.yearStart) {
-          params.append('yearStart', selectedFilters.yearStart.toString())
+        if (filters.yearStart) {
+          params.append('yearStart', filters.yearStart.toString())
         }
-        if (selectedFilters.yearEnd) {
-          params.append('yearEnd', selectedFilters.yearEnd.toString())
+        if (filters.yearEnd) {
+          params.append('yearEnd', filters.yearEnd.toString())
         }
-        if (selectedFilters.genres && selectedFilters.genres.length > 0) {
-          params.append('genres', selectedFilters.genres.join(','))
+        if (filters.genres && filters.genres.length > 0) {
+          params.append('genres', filters.genres.join(','))
         }
-        if (selectedFilters.directorId) {
-          params.append('directorId', selectedFilters.directorId)
+        if (filters.directorId) {
+          params.append('directorId', filters.directorId)
         }
-        if (selectedFilters.owned !== undefined) {
-          params.append('owned', selectedFilters.owned.toString())
+        if (filters.owned !== undefined) {
+          params.append('owned', filters.owned.toString())
         }
-        if (selectedFilters.hasReview !== undefined) {
-          params.append('hasReview', selectedFilters.hasReview.toString())
+        if (filters.hasReview !== undefined) {
+          params.append('hasReview', filters.hasReview.toString())
         }
 
         const url = `${API_ENDPOINTS.films}?${params.toString()}`
         const response = await axios.get(url)
         setFilms(response.data.data)
         setError(null)
-        setDataRefreshRequired(false)
       }
     } catch (err) {
       console.error('Error fetching films:', err)
@@ -126,13 +124,16 @@ export default function FilmsPage() {
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  useEffect(() => {
-    // Allow search/filters to work even before initial load
-    const hasActiveFilters = Object.keys(selectedFilters).length > 0
-    if (hasInitialFetch || hasActiveFilters || dataRefreshRequired) {
-      fetchFilms()
-    }
-  }, [selectedFilters, dataRefreshRequired])
+  const handleSearch = (filters: FilmFilterValues) => {
+    fetchFilms(filters)
+    scrollToResults()
+  }
+
+  const handleReset = () => {
+    setActiveFilters({})
+    setFilms([])
+    setError(null)
+  }
 
   return (
     <ProtectedRoute>
@@ -150,7 +151,7 @@ export default function FilmsPage() {
           </button>
         </div>
 
-      <FilmFilters onSearch={scrollToResults} />
+      <FilmFilters onSearch={handleSearch} onReset={handleReset} />
 
       {error && (
         <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
@@ -159,28 +160,30 @@ export default function FilmsPage() {
       )}
 
       <div ref={resultsRef}>
-        {!hasInitialFetch ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">Load all films or use search/filters above</p>
-            <button
-              onClick={fetchFilms}
-              className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
-            >
-              Load All Films
-            </button>
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="space-y-2">
             {[...Array(10)].map((_, i) => (
               <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
             ))}
+          </div>
+        ) : films.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">
+              No films to show. Search or filter above, or load them all.
+            </p>
+            <button
+              onClick={() => fetchFilms({})}
+              className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+            >
+              Load All Films
+            </button>
           </div>
         ) : (
           <div>
             <div className="mb-4 text-gray-400">
               Showing {films.length} film{films.length !== 1 ? 's' : ''}
             </div>
-            <FilmGrid films={films} onUpdate={fetchFilms} />
+            <FilmGrid films={films} onUpdate={() => fetchFilms(activeFilters)} />
           </div>
         )}
       </div>
@@ -188,7 +191,7 @@ export default function FilmsPage() {
       <AddFilmModal
         isOpen={isAddFilmModalOpen}
         onClose={() => setIsAddFilmModalOpen(false)}
-        onFilmAdded={fetchFilms}
+        onFilmAdded={() => fetchFilms(activeFilters)}
       />
     </div>
     </ProtectedRoute>

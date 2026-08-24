@@ -1,15 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { useFilmContext } from '@/lib/context/FilmContext'
 import { DirectorSortOption } from '@/types'
 
-export default function DirectorFilters() {
-  const { selectedDirectorSort, setSelectedDirectorSort, setDirectorSearchString } = useFilmContext()
+interface DirectorFiltersProps {
+  /** Currently selected sort, owned by the page */
+  sortBy: DirectorSortOption
+  /** Called when the user presses Search, Enter or a sort option - the only fetch triggers */
+  onSearch: (searchString: string, sortBy: DirectorSortOption) => void
+  /** Called when the user presses Reset - clears inputs and results, no fetch */
+  onReset: () => void
+}
+
+export default function DirectorFilters({ sortBy, onSearch, onReset }: DirectorFiltersProps) {
   const [searchInput, setSearchInput] = useState('')
 
   const handleSearchSubmit = () => {
-    setDirectorSearchString(searchInput)
+    onSearch(searchInput, sortBy)
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -20,7 +27,7 @@ export default function DirectorFilters() {
 
   const handleReset = () => {
     setSearchInput('')
-    setDirectorSearchString('')
+    onReset()
   }
 
   return (
@@ -89,9 +96,9 @@ export default function DirectorFilters() {
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => setSelectedDirectorSort(option.value as DirectorSortOption)}
+                onClick={() => onSearch(searchInput, option.value as DirectorSortOption)}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  selectedDirectorSort === option.value
+                  sortBy === option.value
                     ? 'bg-film-700 text-white'
                     : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}

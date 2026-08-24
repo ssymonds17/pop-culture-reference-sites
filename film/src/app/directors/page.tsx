@@ -1,54 +1,56 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
-import { Director } from '@/types'
-import { useFilmContext } from '@/lib/context/FilmContext'
+import { Director, DirectorSortOption } from '@/types'
 import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import DirectorFilters from '@/components/Filters/DirectorFilters'
 import DirectorsTable from '@/components/Table/DirectorsTable'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 
+const DEFAULT_SORT: DirectorSortOption = 'totalPoints'
+
 export default function DirectorsPage() {
   const [directors, setDirectors] = useState<Director[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasInitialFetch, setHasInitialFetch] = useState(false)
-  const { selectedDirectorSort, directorSearchString } = useFilmContext()
+  const [sortBy, setSortBy] = useState<DirectorSortOption>(DEFAULT_SORT)
 
-  const fetchDirectors = async () => {
+  const fetchDirectors = async (
+    searchString: string,
+    sort: DirectorSortOption
+  ) => {
     try {
       setLoading(true)
-      setHasInitialFetch(true)
 
       // If search string is provided, use the search endpoint
-      if (directorSearchString) {
+      if (searchString) {
         const params = new URLSearchParams()
-        params.append('searchString', directorSearchString)
+        params.append('searchString', searchString)
         params.append('itemType', 'director')
 
         const url = `${API_ENDPOINTS.search}?${params.toString()}`
         const response = await axios.get(url)
 
         // Sort results client-side
-        let sortedDirectors = response.data.data
-        if (selectedDirectorSort === 'totalPoints') {
-          sortedDirectors.sort((a: Director, b: Director) => b.totalPoints - a.totalPoints)
-        } else if (selectedDirectorSort === 'seenFilms') {
-          sortedDirectors.sort((a: Director, b: Director) => b.seenFilms - a.seenFilms)
-        } else if (selectedDirectorSort === 'totalFilms') {
-          sortedDirectors.sort((a: Director, b: Director) => b.totalFilms - a.totalFilms)
-        } else if (selectedDirectorSort === 'averageRating') {
-          sortedDirectors.sort((a: Director, b: Director) => (b.averageRating || 0) - (a.averageRating || 0))
+        const sortedDirectors: Director[] = [...response.data.data]
+        if (sort === 'totalPoints') {
+          sortedDirectors.sort((a, b) => b.totalPoints - a.totalPoints)
+        } else if (sort === 'seenFilms') {
+          sortedDirectors.sort((a, b) => b.seenFilms - a.seenFilms)
+        } else if (sort === 'totalFilms') {
+          sortedDirectors.sort((a, b) => b.totalFilms - a.totalFilms)
+        } else if (sort === 'averageRating') {
+          sortedDirectors.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
         }
 
         setDirectors(sortedDirectors)
         setError(null)
       } else {
         // Otherwise use the regular directors endpoint with sort
-        const url = `${API_ENDPOINTS.directors}?sortBy=${selectedDirectorSort}`
+        const url = `${API_ENDPOINTS.directors}?sortBy=${sort}`
         const response = await axios.get(url)
         setDirectors(response.data.data)
         setError(null)
@@ -61,12 +63,16 @@ export default function DirectorsPage() {
     }
   }
 
-  useEffect(() => {
-    // Allow search to work even before initial load
-    if (hasInitialFetch || directorSearchString) {
-      fetchDirectors()
-    }
-  }, [selectedDirectorSort, directorSearchString])
+  const handleSearch = (searchString: string, sort: DirectorSortOption) => {
+    setSortBy(sort)
+    fetchDirectors(searchString, sort)
+  }
+
+  const handleReset = () => {
+    setSortBy(DEFAULT_SORT)
+    setDirectors([])
+    setError(null)
+  }
 
   return (
     <ProtectedRoute>
@@ -76,7 +82,11 @@ export default function DirectorsPage() {
           <p className="text-gray-400">Explore director rankings and statistics</p>
         </div>
 
-        <DirectorFilters />
+        <DirectorFilters
+          sortBy={sortBy}
+          onSearch={handleSearch}
+          onReset={handleReset}
+        />
 
       {error && (
         <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
@@ -84,21 +94,23 @@ export default function DirectorsPage() {
         </div>
       )}
 
-      {!hasInitialFetch ? (
-        <div className="text-center py-12">
-          <p className="text-gray-400 mb-4">Load all directors or use search above</p>
-          <button
-            onClick={fetchDirectors}
-            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
-          >
-            Load All Directors
-          </button>
-        </div>
-      ) : loading ? (
+      {loading ? (
         <div className="space-y-2">
           {[...Array(20)].map((_, i) => (
             <Skeleton key={i} height={60} baseColor="#1f2937" highlightColor="#374151" />
           ))}
+        </div>
+      ) : directors.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400 mb-4">
+            No directors to show. Search or sort above, or load them all.
+          </p>
+          <button
+            onClick={() => fetchDirectors('', sortBy)}
+            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium"
+          >
+            Load All Directors
+          </button>
         </div>
       ) : (
         <div>

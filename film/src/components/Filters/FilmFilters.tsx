@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useFilmContext } from "@/lib/context/FilmContext"
 import axios from "axios"
 import { API_ENDPOINTS } from "@/lib/api"
+import { FilmFilters as FilmFilterValues } from "@/types"
 
 interface FilmFiltersProps {
-  onSearch?: () => void
+  /** Called when the user presses Search (or Enter) - this is the only fetch trigger */
+  onSearch?: (filters: FilmFilterValues) => void
+  /** Called when the user presses Reset - clears inputs and results, no fetch */
+  onReset?: () => void
 }
 
-export default function FilmFilters({ onSearch }: FilmFiltersProps) {
-  const { setSelectedFilters, resetFilters } = useFilmContext()
+export default function FilmFilters({ onSearch, onReset }: FilmFiltersProps) {
   const [watched, setWatched] = useState<string>("all")
   const [minRating, setMinRating] = useState<string>("")
   const [maxRating, setMaxRating] = useState<string>("")
@@ -35,7 +37,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
   }, [])
 
   const handleSearchSubmit = () => {
-    const filters: any = {}
+    const filters: FilmFilterValues = {}
 
     if (watched === "watched") filters.watched = true
     if (watched === "unwatched") filters.watched = false
@@ -50,8 +52,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     if (owned === "owned") filters.owned = true
     if (owned === "notOwned") filters.owned = false
 
-    setSelectedFilters(filters)
-    onSearch?.()
+    onSearch?.(filters)
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -70,8 +71,7 @@ export default function FilmFilters({ onSearch }: FilmFiltersProps) {
     setSearchString("")
     setReview("all")
     setOwned("all")
-    resetFilters()
-    onSearch?.()
+    onReset?.()
   }
 
   const handleGenreToggle = (genre: string) => {
