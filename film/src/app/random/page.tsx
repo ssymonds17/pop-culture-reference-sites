@@ -192,7 +192,7 @@ export default function RandomFilmsPage() {
           ))}
         </div>
       ) : films.length > 0 ? (
-        <FilmGrid films={films} />
+        <FilmGrid films={films} readOnly />
       ) : (
         <div className="text-center py-12 text-gray-400">
           {films.length === 0 && !loading ? 'No films found matching your criteria. Try adjusting your filters.' : 'Click "Get Random Films" to start'}

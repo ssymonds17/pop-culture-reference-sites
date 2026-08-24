@@ -13,6 +13,8 @@ interface FilmDetailModalProps {
   isOpen: boolean
   onClose: () => void
   onUpdate: () => void
+  /** Hides all update controls (rating, owned, review) - used on public pages */
+  readOnly?: boolean
 }
 
 export default function FilmDetailModal({
@@ -20,6 +22,7 @@ export default function FilmDetailModal({
   isOpen,
   onClose,
   onUpdate,
+  readOnly = false,
 }: FilmDetailModalProps) {
   const { getToken } = useAuth()
   const [isEditingReview, setIsEditingReview] = useState(false)
@@ -175,32 +178,42 @@ export default function FilmDetailModal({
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-3">
             <label className="text-sm font-medium text-gray-400">Rating</label>
-            {film.rating ? <RatingBadge rating={film.rating} /> : null}
+            {film.rating ? (
+              <RatingBadge rating={film.rating} />
+            ) : readOnly ? (
+              <span className="text-sm text-gray-500">Not rated</span>
+            ) : null}
           </div>
-          <div className="grid grid-cols-5 gap-2 mb-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-              <button
-                key={num}
-                onClick={() => handleSetRating(num)}
-                disabled={isUpdatingRating}
-                className={`py-2 rounded font-medium transition-colors disabled:opacity-50 ${
-                  film.rating === num
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                {num}
-              </button>
-            ))}
-          </div>
-          {film.rating && (
-            <button
-              onClick={() => handleSetRating(null)}
-              disabled={isUpdatingRating}
-              className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
-            >
-              {isUpdatingRating ? "Clearing..." : "Clear rating (set to unwatched)"}
-            </button>
+          {!readOnly && (
+            <>
+              <div className="grid grid-cols-5 gap-2 mb-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => handleSetRating(num)}
+                    disabled={isUpdatingRating}
+                    className={`py-2 rounded font-medium transition-colors disabled:opacity-50 ${
+                      film.rating === num
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+              {film.rating && (
+                <button
+                  onClick={() => handleSetRating(null)}
+                  disabled={isUpdatingRating}
+                  className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                >
+                  {isUpdatingRating
+                    ? "Clearing..."
+                    : "Clear rating (set to unwatched)"}
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -209,17 +222,29 @@ export default function FilmDetailModal({
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Owned
           </label>
-          <button
-            onClick={handleToggleOwned}
-            disabled={isUpdatingOwned}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-              film.owned
-                ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
-                : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
-            }`}
-          >
-            {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
-          </button>
+          {readOnly ? (
+            <span
+              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+                film.owned
+                  ? "bg-blue-900/30 text-blue-400"
+                  : "bg-gray-800 text-gray-500"
+              }`}
+            >
+              {film.owned ? "Owned" : "Not Owned"}
+            </span>
+          ) : (
+            <button
+              onClick={handleToggleOwned}
+              disabled={isUpdatingOwned}
+              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                film.owned
+                  ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+                  : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+              }`}
+            >
+              {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
+            </button>
+          )}
         </div>
 
         {/* Genres */}
@@ -259,7 +284,7 @@ export default function FilmDetailModal({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-gray-400">Review</label>
-            {!isEditingReview && (
+            {!readOnly && !isEditingReview && (
               <div className="flex gap-3">
                 {film.review && (
                   <button
@@ -280,7 +305,7 @@ export default function FilmDetailModal({
             )}
           </div>
 
-          {isEditingReview ? (
+          {!readOnly && isEditingReview ? (
             <div className="space-y-3">
               <textarea
                 value={reviewText}

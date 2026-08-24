@@ -10,9 +10,11 @@ import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
 interface FilmCardProps {
   film: Film
   onUpdate?: () => void
+  /** Hides all update controls in the detail modal - used on public pages */
+  readOnly?: boolean
 }
 
-export default function FilmCard({ film, onUpdate }: FilmCardProps) {
+export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
   const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false)
@@ -105,6 +107,7 @@ export default function FilmCard({ film, onUpdate }: FilmCardProps) {
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onUpdate={() => onUpdate?.()}
+        readOnly={readOnly}
       />
 
       <DirectorFilmsModal
