@@ -1,12 +1,35 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Film } from "@/types"
 import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
 import { createAuthenticatedClient } from "@/lib/auth-api"
 import { formatDirectorNames, formatDuration, getTmdbPosterUrl } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
+
+const Spinner = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg
+    className={`animate-spin ${className}`}
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+    />
+  </svg>
+)
 
 interface FilmDetailModalProps {
   film: Film | null
@@ -31,7 +54,14 @@ export default function FilmDetailModal({
   const [isDeletingReview, setIsDeletingReview] = useState(false)
   const [isUpdatingOwned, setIsUpdatingOwned] = useState(false)
   const [isUpdatingRating, setIsUpdatingRating] = useState(false)
+  // The rating the user just clicked, shown optimistically until the refetched
+  // film catches up. `undefined` means nothing is pending.
+  const [pendingRating, setPendingRating] = useState<number | null | undefined>(
+    undefined
+  )
+  const [ratingSaved, setRatingSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (isOpen && film) {
@@ -40,6 +70,25 @@ export default function FilmDetailModal({
       setError(null)
     }
   }, [isOpen, film])
+
+  // Reset the rating feedback whenever the modal opens or switches film
+  useEffect(() => {
+    setPendingRating(undefined)
+    setRatingSaved(false)
+  }, [isOpen, film?._id])
+
+  // Drop the optimistic value once the refetched film reports the new rating
+  useEffect(() => {
+    if (pendingRating !== undefined && (film?.rating ?? null) === pendingRating) {
+      setPendingRating(undefined)
+    }
+  }, [film?.rating, pendingRating])
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+    }
+  }, [])
 
   const patchFilm = async (updates: Record<string, unknown>) => {
     if (!film) return
@@ -64,12 +113,19 @@ export default function FilmDetailModal({
 
   const handleSetRating = async (newRating: number | null) => {
     if (!film || isUpdatingRating) return
+    if ((film.rating ?? null) === newRating) return
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     try {
       setIsUpdatingRating(true)
+      setRatingSaved(false)
+      setPendingRating(newRating)
       setError(null)
       await patchFilm({ rating: newRating })
+      setRatingSaved(true)
+      savedTimerRef.current = setTimeout(() => setRatingSaved(false), 2500)
     } catch (err) {
       console.error("Error updating rating:", err)
+      setPendingRating(undefined)
       setError("Failed to update rating. Please try again.")
     } finally {
       setIsUpdatingRating(false)
@@ -118,6 +174,11 @@ export default function FilmDetailModal({
   }
 
   if (!isOpen || !film) return null
+
+  // Show the pending value straight away so the click registers visually before
+  // the PATCH and the refetch complete
+  const displayRating =
+    pendingRating !== undefined ? pendingRating : film.rating
 
   return (
     <div
@@ -178,37 +239,75 @@ export default function FilmDetailModal({
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-3">
             <label className="text-sm font-medium text-gray-400">Rating</label>
-            {film.rating ? (
-              <RatingBadge rating={film.rating} />
+            {displayRating ? (
+              <RatingBadge rating={displayRating} />
             ) : readOnly ? (
               <span className="text-sm text-gray-500">Not rated</span>
             ) : null}
+            <span role="status" aria-live="polite" className="text-sm">
+              {isUpdatingRating ? (
+                <span className="flex items-center gap-1.5 text-blue-400">
+                  <Spinner />
+                  {pendingRating === null ? "Clearing rating..." : "Saving rating..."}
+                </span>
+              ) : ratingSaved ? (
+                <span className="flex items-center gap-1.5 text-green-400">
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Saved
+                </span>
+              ) : null}
+            </span>
           </div>
           {!readOnly && (
             <>
-              <div className="grid grid-cols-5 gap-2 mb-3">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => handleSetRating(num)}
-                    disabled={isUpdatingRating}
-                    className={`py-2 rounded font-medium transition-colors disabled:opacity-50 ${
-                      film.rating === num
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
+              <div
+                className="grid grid-cols-5 gap-2 mb-3"
+                aria-busy={isUpdatingRating}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+                  const isSelected = displayRating === num
+                  const isPending = isUpdatingRating && pendingRating === num
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => handleSetRating(num)}
+                      disabled={isUpdatingRating}
+                      aria-pressed={isSelected}
+                      className={`flex items-center justify-center py-2 h-10 rounded font-medium transition-all disabled:cursor-not-allowed ${
+                        isSelected
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                      } ${
+                        isPending
+                          ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900 scale-105"
+                          : isUpdatingRating
+                            ? "opacity-40"
+                            : ""
+                      }`}
+                    >
+                      {isPending ? <Spinner /> : num}
+                    </button>
+                  )
+                })}
               </div>
-              {film.rating && (
+              {(displayRating || (isUpdatingRating && pendingRating === null)) && (
                 <button
                   onClick={() => handleSetRating(null)}
                   disabled={isUpdatingRating}
-                  className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                  className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUpdatingRating
+                  {isUpdatingRating && pendingRating === null
                     ? "Clearing..."
                     : "Clear rating (set to unwatched)"}
                 </button>
