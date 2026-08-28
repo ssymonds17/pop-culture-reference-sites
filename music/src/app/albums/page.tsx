@@ -97,36 +97,39 @@ const AlbumsPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 mx-4 mb-4">
-          <select
-            value={ratingFilter}
-            onChange={(e) =>
-              setRatingFilter(
-                e.target.value as 'RATED' | 'GOLD' | 'SILVER' | 'ALL'
-              )
-            }
-            className="form-select-btn w-52"
-          >
-            <option value="RATED">Rated</option>
-            <option value="GOLD">Gold Only</option>
-            <option value="SILVER">Silver Only</option>
-            <option value="ALL">All</option>
-          </select>
-
-          <input
-            type="number"
-            value={yearFilter}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value.length <= 4) {
-                setYearFilter(value);
+        <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:mx-4">
+          <div className="flex gap-3">
+            <select
+              value={ratingFilter}
+              onChange={(e) =>
+                setRatingFilter(
+                  e.target.value as 'RATED' | 'GOLD' | 'SILVER' | 'ALL'
+                )
               }
-            }}
-            placeholder="Year"
-            className="form-control-btn w-32"
-          />
+              className="form-select-btn flex-1 min-w-0 sm:flex-none sm:w-52"
+            >
+              <option value="RATED">Rated</option>
+              <option value="GOLD">Gold Only</option>
+              <option value="SILVER">Silver Only</option>
+              <option value="ALL">All</option>
+            </select>
 
-          <div className="flex [&_.form-group]:mb-0">
+            <input
+              type="number"
+              inputMode="numeric"
+              value={yearFilter}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 4) {
+                  setYearFilter(value);
+                }
+              }}
+              placeholder="Year"
+              className="form-control-btn w-24 shrink-0 sm:w-32"
+            />
+          </div>
+
+          <div className="flex gap-2 sm:flex-1 sm:min-w-[16rem] [&_.form-group]:mb-0 [&_.form-group]:flex-1 [&_.form-group]:min-w-0">
             <InputField
               id="title"
               setFormValues={setFormValues}
@@ -136,19 +139,22 @@ const AlbumsPage = () => {
               placeholder="Search albums..."
               size="btn"
             />
-          </div>
 
-          <button
-            onClick={handleSearchAlbumsByName}
-            className="btn-search-secondary"
-            disabled={!formValues.title}
-          >
-            {isSearchingAlbums ? 'Searching...' : 'Search'}
-          </button>
+            <button
+              onClick={handleSearchAlbumsByName}
+              className="btn-search-secondary shrink-0"
+              disabled={!formValues.title}
+            >
+              {isSearchingAlbums ? 'Searching...' : 'Search'}
+            </button>
+          </div>
         </div>
 
-        <div className="layout-flex-between">
-          <button onClick={handleGetAlbums} className="btn-search-primary mx-4">
+        <div className="flex items-center justify-between gap-3 sm:mx-4">
+          <button
+            onClick={handleGetAlbums}
+            className="btn-search-primary flex-1 sm:flex-none"
+          >
             {getButtonText()}
           </button>
 
@@ -158,7 +164,7 @@ const AlbumsPage = () => {
                 setRatingFilter('RATED');
                 setYearFilter('');
               }}
-              className="btn-link-sm mx-4"
+              className="btn-link-sm shrink-0"
             >
               Clear
             </button>

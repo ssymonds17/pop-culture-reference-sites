@@ -66,14 +66,14 @@ const ArtistsPage = () => {
           </p>
         </div>
 
-        <div className="layout-flex-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-4">
           <button
             onClick={handleGetArtists}
-            className="btn-search-primary mx-4 min-w-[100px]"
+            className="btn-search-primary w-full sm:w-auto sm:min-w-[100px]"
           >
             {isFetchingArtists ? 'Loading...' : 'Get All Artists'}
           </button>
-          <div className="flex">
+          <div className="flex gap-2 w-full sm:w-auto [&_.form-group]:mb-0 [&_.form-group]:flex-1 [&_.form-group]:min-w-0">
             <InputField
               id="name"
               setFormValues={setFormValues}
@@ -85,7 +85,7 @@ const ArtistsPage = () => {
             />
             <button
               onClick={handleSearchArtistByName}
-              className="btn-search-secondary mx-4"
+              className="btn-search-secondary shrink-0"
               disabled={!formValues.name}
             >
               {isSearchingArtists ? 'Searching...' : 'Search'}

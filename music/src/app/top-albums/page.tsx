@@ -129,7 +129,7 @@ const TopAlbumsPage = () => {
           </p>
         </div>
 
-        <div className="layout-flex-between mx-4 mb-4">
+        <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between sm:mx-4">
           <div className="flex items-center gap-3">
             <button
               onClick={handleSave}
@@ -152,12 +152,12 @@ const TopAlbumsPage = () => {
         </div>
 
         {error && (
-          <div className="mx-4 mb-4 px-4 py-2 rounded border border-red-200 bg-red-50 text-sm text-red-700">
+          <div className="mb-4 px-4 py-2 rounded border border-red-200 sm:mx-4 bg-red-50 text-sm text-red-700">
             {error}
           </div>
         )}
         {successMessage && (
-          <div className="mx-4 mb-4 px-4 py-2 rounded border border-green-200 bg-green-50 text-sm text-green-700">
+          <div className="mb-4 px-4 py-2 rounded border border-green-200 sm:mx-4 bg-green-50 text-sm text-green-700">
             {successMessage}
           </div>
         )}

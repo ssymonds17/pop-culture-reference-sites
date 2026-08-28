@@ -41,8 +41,8 @@ const SongsPage = () => {
           </p>
         </div>
 
-        <div className="layout-flex-center">
-          <div className="flex">
+        <div className="flex justify-center">
+          <div className="flex gap-2 w-full sm:w-auto [&_.form-group]:mb-0 [&_.form-group]:flex-1 [&_.form-group]:min-w-0 sm:[&_.form-group]:w-72 sm:[&_.form-group]:flex-none">
             <InputField
               id="title"
               setFormValues={setFormValues}
@@ -54,7 +54,7 @@ const SongsPage = () => {
             />
             <button
               onClick={handleSearchSongsByName}
-              className="btn-search-primary mx-4"
+              className="btn-search-primary shrink-0"
               disabled={!formValues.title}
             >
               {isSearchingSongs ? 'Searching...' : 'Search'}

@@ -53,7 +53,7 @@ export const Search = ({
       )}
       <div className="flex gap-2">
         <input
-          className="form-control flex-1"
+          className="form-control flex-1 min-w-0"
           onChange={handleOnChange}
           value={searchTerm ?? ''}
           type="search"
@@ -63,7 +63,7 @@ export const Search = ({
         />
         <button
           type="button"
-          className="btn-search-primary"
+          className="btn-search-primary shrink-0"
           disabled={searchTerm === ''}
           onClick={handleOnSearch}
         >
