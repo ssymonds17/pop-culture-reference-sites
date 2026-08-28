@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,7 +16,7 @@ import { API_ENDPOINTS } from "@/lib/api"
 import { YearStats } from "@/types"
 import Skeleton from "react-loading-skeleton"
 import "react-loading-skeleton/dist/skeleton.css"
-import YearFilmsModal from "@/components/Modal/YearFilmsModal"
+import YearDetails from "@/components/Years/YearDetails"
 
 type MetricKey =
   | "yearScore"
@@ -44,8 +45,8 @@ export default function YearsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<YearStats | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("yearScore")
+  const detailsRef = useRef<HTMLDivElement>(null)
 
   const activeMetric =
     METRICS.find((m) => m.key === selectedMetric) ?? METRICS[0]
@@ -77,16 +78,15 @@ export default function YearsPage() {
     const year = state?.activeLabel
     if (year == null) return
     const stats = years.find((y) => String(y.year) === String(year))
-    if (stats) {
-      setSelectedYear(stats)
-      setIsModalOpen(true)
-    }
+    if (stats) setSelectedYear(stats)
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedYear(null)
-  }
+  // Bring the panel into view when a different year is picked
+  useEffect(() => {
+    if (selectedYear) {
+      detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [selectedYear])
 
   if (error) {
     return (
@@ -101,8 +101,8 @@ export default function YearsPage() {
       <div>
         <h1 className="text-4xl font-bold mb-2">Year Analysis</h1>
         <p className="text-gray-400">
-          {activeMetric.label} by year. Click a bar to see that year&apos;s
-          stats and films.
+          {activeMetric.label} by year. Click a year to see its stats and films
+          below the chart.
         </p>
       </div>
 
@@ -167,17 +167,31 @@ export default function YearsPage() {
                 radius={[4, 4, 0, 0]}
                 minPointSize={2}
                 cursor="pointer"
-              />
+              >
+                {chartData.map((entry) => (
+                  <Cell
+                    key={entry.year}
+                    fill={activeMetric.color}
+                    fillOpacity={
+                      selectedYear && selectedYear.year !== entry.year ? 0.35 : 1
+                    }
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      <YearFilmsModal
-        yearStats={selectedYear}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <div ref={detailsRef}>
+        {selectedYear && (
+          <YearDetails
+            key={selectedYear.year}
+            yearStats={selectedYear}
+            onClose={() => setSelectedYear(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }
