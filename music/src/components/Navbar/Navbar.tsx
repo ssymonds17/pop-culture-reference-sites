@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SignInButton, SignOutButton, useUser } from '@clerk/nextjs';
 import { Variation } from '../../types';
 import { NavItemWrapper } from '../NavItemWrapper/NavItemWrapper';
@@ -18,12 +18,31 @@ const NAV_LINKS = [
 export const Navbar = () => {
   const { isSignedIn, user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  // Publish the navbar's height so sticky table headers can sit below it.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const publishHeight = () => {
+      document.documentElement.style.setProperty(
+        '--app-nav-height',
+        `${nav.offsetHeight}px`
+      );
+    };
+
+    publishHeight();
+    const observer = new ResizeObserver(publishHeight);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
 
   // Close the mobile menu if the viewport grows to desktop width.
   useEffect(() => {
@@ -36,7 +55,10 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+    <nav
+      ref={navRef}
+      className="bg-white border-b border-neutral-200 sticky top-0 z-50"
+    >
       <div className="layout-container">
         <div className="flex items-center justify-between py-4">
           {/* Logo/Brand */}

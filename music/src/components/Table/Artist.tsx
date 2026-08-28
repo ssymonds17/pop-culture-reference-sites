@@ -17,7 +17,7 @@ export const ArtistsTable = ({
   }
 
   return (
-    <div className="table-modern mt-6">
+    <div className="table-modern table-sticky-header mt-6">
       <table>
         <thead>
           <tr>

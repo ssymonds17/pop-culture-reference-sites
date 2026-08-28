@@ -499,6 +499,31 @@
     min-width: 34rem; /* Below this, columns get crushed unreadably */
   }
 
+  /* From 640px up the table always fits, so swap the scroll container for
+     `clip`. It still hides the thead background behind the rounded corners,
+     but unlike `auto`/`hidden` it does not create a scroll container, which is
+     what lets the sticky header below stick to the viewport rather than to
+     this wrapper. */
+  @media (min-width: 640px) {
+    .table-modern {
+      overflow: clip;
+    }
+
+    /* Sticky column headers, offset by the sticky navbar's measured height so
+       the two don't overlap (see --app-nav-height, set in Navbar.tsx).
+       Deliberately not applied below 640px: there the wrapper is a horizontal
+       scroll container, so the header would stick to the middle of the table
+       instead of to the top of the screen. */
+    .table-sticky-header thead th {
+      @apply bg-neutral-50;
+      position: sticky;
+      top: var(--app-nav-height, 0px);
+      z-index: 10;
+      /* border-collapse drops real borders on sticky cells, so draw it inset */
+      box-shadow: inset 0 -1px 0 theme('colors.neutral.200');
+    }
+  }
+
   /* Table header styling */
   .table-modern thead {
     @apply bg-neutral-50 border-b border-neutral-200;
