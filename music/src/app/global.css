@@ -70,7 +70,7 @@
 @layer components {
   /* Layout System - 8px Base Unit */
   .layout-container {
-    @apply container mx-auto px-layout-sm py-layout-md max-w-container-lg;
+    @apply container mx-auto px-layout-xs sm:px-layout-sm py-layout-sm sm:py-layout-md max-w-container-lg;
   }
 
   .layout-section {
@@ -303,8 +303,15 @@
   /* Search-specific button to match input field height exactly */
   .btn-search {
     @apply btn-base px-4 py-2 text-sm;
-    height: 42px; /* Exact height to match form-control-btn */
+    min-height: 44px; /* Comfortable touch target on mobile */
     border: 1px solid transparent;
+  }
+
+  @media (min-width: 768px) {
+    .btn-search {
+      height: 42px; /* Exact height to match form-control-btn */
+      min-height: 0;
+    }
   }
 
   .btn-search-primary {
@@ -318,21 +325,24 @@
   /* Form Control System - Comprehensive input and form styling */
 
   /* Base form control styles */
+  /* Note: font-size stays at 16px below the md breakpoint. Anything smaller
+     makes iOS Safari zoom the viewport when the field is focused, which is
+     what makes fields look squished and unreadable while typing. */
   .form-control {
-    @apply block w-full px-3 py-2 text-sm text-neutral-900 bg-white border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 transition-colors focus:outline-none focus:ring-2 focus:ring-music-500 focus:border-music-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:border-neutral-200;
+    @apply block w-full px-3 py-2 text-base md:text-sm text-neutral-900 bg-white border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 transition-colors focus:outline-none focus:ring-2 focus:ring-music-500 focus:border-music-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:border-neutral-200;
   }
 
   /* Form control sizes */
   .form-control-xs {
-    @apply form-control px-2 py-1 text-xs;
+    @apply form-control px-2 py-1 text-base md:text-xs;
   }
 
   .form-control-sm {
-    @apply form-control px-3 py-2 text-sm;
+    @apply form-control px-3 py-2 text-base md:text-sm;
   }
 
   .form-control-md {
-    @apply form-control px-3 py-2 text-sm;
+    @apply form-control px-3 py-2 text-base md:text-sm;
   }
 
   .form-control-lg {
@@ -341,8 +351,15 @@
 
   /* Button-matching input size for perfect alignment */
   .form-control-btn {
-    @apply form-control px-4 py-2 text-sm;
-    height: 42px; /* Match btn-search height exactly */
+    @apply form-control px-4 py-2 text-base md:text-sm;
+    min-height: 44px; /* Comfortable touch target on mobile */
+  }
+
+  @media (min-width: 768px) {
+    .form-control-btn {
+      height: 42px; /* Match btn-search height exactly */
+      min-height: 0;
+    }
   }
 
   /* Form control variants */
@@ -356,14 +373,14 @@
 
   /* Select specific styling */
   .form-select {
-    @apply form-control bg-white bg-no-repeat bg-right pr-10 appearance-none;
+    @apply form-control bg-white bg-no-repeat bg-right pr-10 appearance-none text-base md:text-sm;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-size: 1rem 1rem;
   }
 
   .form-select-sm {
-    @apply form-select px-3 py-2 text-sm pr-8;
+    @apply form-select px-3 py-2 text-base md:text-sm pr-8;
     background-position: right 0.5rem center;
     background-size: 0.875rem 0.875rem;
   }
@@ -375,10 +392,17 @@
   }
 
   .form-select-btn {
-    @apply form-select px-4 py-2 text-sm pr-10;
-    height: 42px; /* Match btn-search height exactly */
+    @apply form-select px-4 py-2 text-base md:text-sm pr-10;
+    min-height: 44px; /* Comfortable touch target on mobile */
     background-position: right 0.75rem center;
     background-size: 1rem 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .form-select-btn {
+      height: 42px; /* Match btn-search height exactly */
+      min-height: 0;
+    }
   }
 
   /* Label styling */
@@ -462,12 +486,17 @@
   /* Table System - Modern data presentation */
 
   /* Base table styles */
+  /* Scrolls horizontally rather than overflowing the viewport on mobile. */
   .table-modern {
-    @apply w-full bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden;
+    @apply w-full bg-white rounded-lg shadow-sm border border-neutral-200;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .table-modern table {
     @apply w-full border-collapse;
+    min-width: 34rem; /* Below this, columns get crushed unreadably */
   }
 
   /* Table header styling */
@@ -490,6 +519,17 @@
 
   .table-modern td {
     @apply px-4 py-3 text-sm text-neutral-900 text-center align-middle;
+  }
+
+  /* Tighter cells on small screens so less horizontal scrolling is needed */
+  @media (max-width: 639px) {
+    .table-modern th {
+      @apply px-2 py-2;
+    }
+
+    .table-modern td {
+      @apply px-2 py-2;
+    }
   }
 
   /* Special content styling */

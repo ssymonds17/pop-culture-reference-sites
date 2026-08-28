@@ -1,12 +1,40 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { SignInButton, SignOutButton, useUser } from '@clerk/nextjs';
 import { Variation } from '../../types';
 import { NavItemWrapper } from '../NavItemWrapper/NavItemWrapper';
 
+const NAV_LINKS = [
+  { href: '/artists', label: 'Artists' },
+  { href: '/albums', label: 'Albums' },
+  { href: '/top-albums', label: 'Top Albums' },
+  { href: '/songs', label: 'Songs' },
+  { href: '/years', label: 'Years' },
+];
+
 export const Navbar = () => {
   const { isSignedIn, user } = useUser();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Close the mobile menu if the viewport grows to desktop width.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsMenuOpen(false);
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   return (
     <nav className="bg-white border-b border-neutral-200 sticky top-0 z-50">
       <div className="layout-container">
@@ -42,21 +70,11 @@ export const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
-            <Link href="/artists" className="nav-link">
-              Artists
-            </Link>
-            <Link href="/albums" className="nav-link">
-              Albums
-            </Link>
-            <Link href="/top-albums" className="nav-link">
-              Top Albums
-            </Link>
-            <Link href="/songs" className="nav-link">
-              Songs
-            </Link>
-            <Link href="/years" className="nav-link">
-              Years
-            </Link>
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link key={href} href={href} className="nav-link">
+                {label}
+              </Link>
+            ))}
           </div>
 
           {/* Action Buttons & Auth */}
@@ -99,15 +117,92 @@ export const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Toggle (placeholder for future mobile menu) */}
+          {/* Mobile Menu Toggle */}
           <div className="md:hidden">
-            <button className="nav-mobile-toggle">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <button
+              type="button"
+              className="nav-mobile-toggle"
+              onClick={() => setIsMenuOpen((open) => !open)}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {isMenuOpen ? (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu Panel */}
+        {isMenuOpen && (
+          <div
+            id="mobile-menu"
+            className="md:hidden border-t border-neutral-200 py-3 space-y-1"
+          >
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full px-3 py-3 text-base font-medium text-neutral-700 rounded-md hover:text-music-600 hover:bg-neutral-50 transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+
+            <div className="pt-3 mt-2 border-t border-neutral-200">
+              {isSignedIn ? (
+                <div className="flex items-center justify-between gap-3 px-3">
+                  <span className="text-sm text-neutral-600 truncate">
+                    {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                  </span>
+                  <SignOutButton>
+                    <button className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded text-sm font-medium transition-colors shrink-0">
+                      Sign Out
+                    </button>
+                  </SignOutButton>
+                </div>
+              ) : (
+                <div className="px-3">
+                  <SignInButton mode="modal">
+                    <button className="w-full px-3 py-2 bg-music-600 hover:bg-music-700 text-white rounded text-sm font-medium transition-colors">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
