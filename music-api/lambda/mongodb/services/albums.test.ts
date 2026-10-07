@@ -6,6 +6,7 @@ import {
   findAlbumsByTitle,
   updateAlbumRatingById,
   updateAlbumTotalSongsById,
+  addSongToAlbum,
 } from "./albums"
 import Album, { Rating } from "../models/album"
 
@@ -433,6 +434,19 @@ describe("albums service", () => {
       const result = await updateAlbumTotalSongsById("nonexistent", 10)
 
       expect(result).toBeNull()
+    })
+  })
+
+  describe("addSongToAlbum", () => {
+    it("should add the song id to the album without duplicating it", async () => {
+      const exec = jest.fn().mockResolvedValue({ id: "album1" })
+      mockAlbum.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
+
+      await addSongToAlbum("album1", "song1")
+
+      expect(mockAlbum.findByIdAndUpdate).toHaveBeenCalledWith("album1", {
+        $addToSet: { songs: "song1" },
+      })
     })
   })
 })

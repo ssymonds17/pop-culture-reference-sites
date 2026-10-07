@@ -1,39 +1,40 @@
 import { createApiResponse, logger, normalizeForSearch } from "./utils"
-import { updateAssociatedArtists } from "./utils/create-album"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import { AlbumData, Rating } from "./mongodb/models/album"
-import { connectToDatabase, createAlbum, updateYearStats } from "./mongodb"
-import { ArtistDocument } from "./mongodb/models/artist"
+import {
+  addAlbumToArtist,
+  connectToDatabase,
+  createAlbum,
+  updateArtistStats,
+  updateYearStats,
+} from "./mongodb"
 import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const { title, artistDisplayName, year, artists, rating, totalSongs } =
     JSON.parse(event.body)
 
-  const defaultAlbum: AlbumData = {
-    title: normalizeForSearch(title),
-    displayTitle: title,
-    artistDisplayName,
-    songs: [],
-    totalSongs: totalSongs ?? 0,
-    rating: rating ?? Rating.NONE,
-    artists,
-    year,
-  }
-
   try {
     if (!title || !artistDisplayName || !year || !artists) {
       throw new Error("Required fields are missing")
+    }
+
+    const defaultAlbum: AlbumData = {
+      title: normalizeForSearch(title),
+      displayTitle: title,
+      artistDisplayName,
+      songs: [],
+      totalSongs: totalSongs ?? 0,
+      rating: rating ?? Rating.NONE,
+      artists,
+      year,
     }
 
     await connectToDatabase()
 
     // Check that each artist associated with the album exists
     // If any artist does not exist return an error
-    const fullArtists = (await validateAssociatedEntities(
-      artists,
-      "artist",
-    )) as ArtistDocument[] | null
+    const fullArtists = await validateAssociatedEntities(artists, "artist")
 
     if (!fullArtists) {
       logger.error(`Artist not found`)
@@ -43,7 +44,10 @@ const handlerImpl = async (event: any, _userId: string) => {
     }
 
     const album = await createAlbum(defaultAlbum)
-    await updateAssociatedArtists(fullArtists, album.id, rating)
+    for (const artistId of artists) {
+      await addAlbumToArtist(artistId, album.id)
+      await updateArtistStats(artistId)
+    }
 
     // Cascade update to year statistics
     await updateYearStats(album.year)

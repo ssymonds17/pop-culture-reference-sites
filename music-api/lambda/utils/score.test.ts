@@ -1,40 +1,17 @@
-import { Rating } from "../mongodb/models/album"
-import {
-  ratingsMap,
-  updateScoreBasedOnAlbumRatings,
-} from "./score"
+import { calculateScore } from "./score"
 
 describe("score utilities", () => {
-  describe("ratingsMap", () => {
-    it("should have correct values for each rating", () => {
-      expect(ratingsMap[Rating.NONE]).toBe(0)
-      expect(ratingsMap[Rating.SILVER]).toBe(5)
-      expect(ratingsMap[Rating.GOLD]).toBe(15)
-    })
-  })
-
-  describe("updateScoreBasedOnAlbumRatings", () => {
-    it("should add 0 points for NONE rating", () => {
-      const currentScore = 10
-      const result = updateScoreBasedOnAlbumRatings(currentScore, Rating.NONE)
-      expect(result).toBe(10)
+  describe("calculateScore", () => {
+    it("should score 1 per song, 15 per gold album and 5 per silver album", () => {
+      expect(calculateScore(7, 1, 2)).toBe(32)
     })
 
-    it("should add 5 points for SILVER rating", () => {
-      const currentScore = 10
-      const result = updateScoreBasedOnAlbumRatings(currentScore, Rating.SILVER)
-      expect(result).toBe(15)
+    it("should score songs alone when there are no rated albums", () => {
+      expect(calculateScore(4, 0, 0)).toBe(4)
     })
 
-    it("should add 15 points for GOLD rating", () => {
-      const currentScore = 10
-      const result = updateScoreBasedOnAlbumRatings(currentScore, Rating.GOLD)
-      expect(result).toBe(25)
-    })
-
-    it("should work with zero as current score", () => {
-      const result = updateScoreBasedOnAlbumRatings(0, Rating.GOLD)
-      expect(result).toBe(15)
+    it("should return 0 when there is nothing to score", () => {
+      expect(calculateScore(0, 0, 0)).toBe(0)
     })
   })
 })

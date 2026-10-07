@@ -1,21 +1,27 @@
 import { handler } from "./create-album"
 import * as mongodb from "./mongodb"
 import * as utils from "./utils"
-import * as createAlbumUtils from "./utils/create-album"
 import * as validateUtils from "./utils/validate-upstream-entities"
 import { Rating } from "./mongodb/models/album"
 
 jest.mock("./mongodb")
-jest.mock("./utils")
-jest.mock("./utils/create-album")
+jest.mock("./utils", () => ({
+  ...jest.createMockFromModule<typeof import("./utils")>("./utils"),
+  normalizeForSearch: jest.requireActual("./utils").normalizeForSearch,
+}))
 jest.mock("./utils/validate-upstream-entities")
+jest.mock("./auth", () => ({
+  requireAuth:
+    (handler: (event: any, userId: string) => Promise<any>) => (event: any) =>
+      handler(event, "user1"),
+}))
 
 const mockConnectToDatabase = mongodb.connectToDatabase as jest.Mock
 const mockCreateAlbum = mongodb.createAlbum as jest.Mock
 const mockCreateApiResponse = utils.createApiResponse as jest.Mock
 const mockLogger = utils.logger as any
-const mockUpdateAssociatedArtists =
-  createAlbumUtils.updateAssociatedArtists as jest.Mock
+const mockAddAlbumToArtist = mongodb.addAlbumToArtist as jest.Mock
+const mockUpdateArtistStats = mongodb.updateArtistStats as jest.Mock
 const mockValidateAssociatedEntities =
   validateUtils.validateAssociatedEntities as jest.Mock
 
@@ -53,7 +59,6 @@ describe("create-album handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockCreateAlbum.mockResolvedValueOnce(mockCreatedAlbum)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
@@ -72,11 +77,8 @@ describe("create-album handler", () => {
       artists: ["artist1"],
       year: 2020,
     })
-    expect(mockUpdateAssociatedArtists).toHaveBeenCalledWith(
-      mockArtists,
-      "album1",
-      Rating.GOLD,
-    )
+    expect(mockAddAlbumToArtist).toHaveBeenCalledWith("artist1", "album1")
+    expect(mockUpdateArtistStats).toHaveBeenCalledWith("artist1")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(201, {
       id: "album1",
       year: 2020,
@@ -102,7 +104,6 @@ describe("create-album handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockCreateAlbum.mockResolvedValueOnce(mockCreatedAlbum)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
@@ -134,6 +135,7 @@ describe("create-album handler", () => {
       "artist",
     )
     expect(mockCreateAlbum).not.toHaveBeenCalled()
+    expect(mockUpdateArtistStats).not.toHaveBeenCalled()
     expect(mockLogger.error).toHaveBeenCalledWith("Artist not found")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(404, {
       message: "Could not create album. Artist not found",
@@ -274,7 +276,6 @@ describe("create-album handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockCreateAlbum.mockResolvedValueOnce(mockCreatedAlbum)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 

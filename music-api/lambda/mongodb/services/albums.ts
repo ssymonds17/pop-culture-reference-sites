@@ -97,6 +97,12 @@ export const updateAlbumRatingById = async (id: string, newRating: Rating) => {
   return Album.findByIdAndUpdate(id, { rating: newRating }, { new: true })
 }
 
+export const addSongToAlbum = async (albumId: string, songId: string) => {
+  return Album.findByIdAndUpdate(albumId, {
+    $addToSet: { songs: songId },
+  }).exec()
+}
+
 export const updateAlbumTotalSongsById = async (id: string, totalSongs: number) => {
   return Album.findByIdAndUpdate(id, { totalSongs }, { new: true })
 }

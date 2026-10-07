@@ -5,7 +5,7 @@ export interface YearStatsDocument extends mongoose.Document {
   songs: number // Total songs for year
   goldAlbums: number // Count of gold-rated albums
   silverAlbums: number // Count of silver-rated albums
-  totalScore: number // songs * 1 + goldAlbums * 15 + silverAlbums * 5
+  totalScore: number // see calculateScore in utils/score.ts
 }
 
 // Type for creating new year stats (excludes mongoose Document fields)

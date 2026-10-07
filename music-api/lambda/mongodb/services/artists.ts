@@ -1,7 +1,7 @@
 import Artist, { ArtistData } from "../models/artist"
 import Album, { Rating } from "../models/album"
 import Song from "../models/song"
-import { escapeRegex, normalizeForSearch, ratingsMap } from "../../utils"
+import { calculateScore, escapeRegex, normalizeForSearch } from "../../utils"
 
 export const createArtist = async (artistData: ArtistData) => {
   return Artist.create(artistData)
@@ -44,16 +44,25 @@ export const findArtistsByName = async (name: string) => {
   ).exec()
 }
 
+export const addAlbumToArtist = async (artistId: string, albumId: string) => {
+  return Artist.findByIdAndUpdate(artistId, {
+    $addToSet: { albums: albumId },
+  }).exec()
+}
+
+export const addSongToArtist = async (artistId: string, songId: string) => {
+  return Artist.findByIdAndUpdate(artistId, {
+    $addToSet: { songs: songId },
+  }).exec()
+}
+
 export const updateArtistStats = async (id: string) => {
   const [goldAlbums, silverAlbums, totalSongs] = await Promise.all([
     Album.countDocuments({ artists: id, rating: Rating.GOLD }),
     Album.countDocuments({ artists: id, rating: Rating.SILVER }),
     Song.countDocuments({ artists: id }),
   ])
-  const totalScore =
-    totalSongs +
-    goldAlbums * ratingsMap[Rating.GOLD] +
-    silverAlbums * ratingsMap[Rating.SILVER]
+  const totalScore = calculateScore(totalSongs, goldAlbums, silverAlbums)
 
   return Artist.findByIdAndUpdate(
     id,

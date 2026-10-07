@@ -5,6 +5,8 @@ import {
   getArtistByIdFull,
   findArtistsByName,
   updateArtistStats,
+  addAlbumToArtist,
+  addSongToArtist,
 } from "./artists"
 import Artist from "../models/artist"
 import Album, { Rating } from "../models/album"
@@ -176,6 +178,32 @@ describe("artists service", () => {
 
       expect(result).toEqual([])
       expect(mockArtist.find).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("addAlbumToArtist", () => {
+    it("should add the album id to the artist without duplicating it", async () => {
+      const exec = jest.fn().mockResolvedValue({ _id: "artist1" })
+      mockArtist.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
+
+      await addAlbumToArtist("artist1", "album1")
+
+      expect(mockArtist.findByIdAndUpdate).toHaveBeenCalledWith("artist1", {
+        $addToSet: { albums: "album1" },
+      })
+    })
+  })
+
+  describe("addSongToArtist", () => {
+    it("should add the song id to the artist without duplicating it", async () => {
+      const exec = jest.fn().mockResolvedValue({ _id: "artist1" })
+      mockArtist.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
+
+      await addSongToArtist("artist1", "song1")
+
+      expect(mockArtist.findByIdAndUpdate).toHaveBeenCalledWith("artist1", {
+        $addToSet: { songs: "song1" },
+      })
     })
   })
 

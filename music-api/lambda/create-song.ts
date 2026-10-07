@@ -1,47 +1,43 @@
 import { createApiResponse, logger, normalizeForSearch } from "./utils"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
-import {
-  updateAssociatedAlbum,
-  updateAssociatedArtists,
-} from "./utils/create-song"
 import { SongData } from "./mongodb/models/song"
-import { ArtistDocument } from "./mongodb/models/artist"
-import { AlbumDocument } from "./mongodb/models/album"
-import { connectToDatabase, createSong, updateYearStats } from "./mongodb"
+import {
+  addSongToAlbum,
+  addSongToArtist,
+  connectToDatabase,
+  createSong,
+  updateArtistStats,
+  updateYearStats,
+} from "./mongodb"
 import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
     JSON.parse(event.body)
 
-  const defaultSong: SongData = {
-    title: normalizeForSearch(title),
-    displayTitle: title,
-    artists,
-    artistDisplayName: artistDisplayName,
-    year,
-    album: album ?? undefined,
-    albumDisplayTitle: albumDisplayTitle ?? undefined,
-  }
-
   try {
     if (!title || !artistDisplayName || !year || !artists) {
       throw new Error("Song title is required")
     }
 
+    const defaultSong: SongData = {
+      title: normalizeForSearch(title),
+      displayTitle: title,
+      artists,
+      artistDisplayName: artistDisplayName,
+      year,
+      album: album ?? undefined,
+      albumDisplayTitle: albumDisplayTitle ?? undefined,
+    }
+
     await connectToDatabase()
     // Check that each artist associated with the song exists
-    const validatedArtists = (await validateAssociatedEntities(
-      artists,
-      "artist",
-    )) as ArtistDocument[] | null
+    const validatedArtists = await validateAssociatedEntities(artists, "artist")
 
     // If an album is provided, check that it exists
     let validatedAlbum = undefined
     if (album) {
-      validatedAlbum = (await validateAssociatedEntities([album], "album")) as
-        | AlbumDocument[]
-        | null
+      validatedAlbum = await validateAssociatedEntities([album], "album")
     }
 
     if (!validatedArtists || (album && !validatedAlbum)) {
@@ -53,11 +49,14 @@ const handlerImpl = async (event: any, _userId: string) => {
 
     const song = await createSong(defaultSong)
 
-    if (album && validatedAlbum) {
-      await updateAssociatedAlbum(validatedAlbum[0], song.id)
+    if (album) {
+      await addSongToAlbum(album, song.id)
     }
 
-    await updateAssociatedArtists(validatedArtists, song.id)
+    for (const artistId of artists) {
+      await addSongToArtist(artistId, song.id)
+      await updateArtistStats(artistId)
+    }
 
     // Cascade update to year statistics
     await updateYearStats(song.year)

@@ -1,22 +1,27 @@
 import { handler } from "./create-song"
 import * as mongodb from "./mongodb"
 import * as utils from "./utils"
-import * as createSongUtils from "./utils/create-song"
 import * as validateUtils from "./utils/validate-upstream-entities"
 
 jest.mock("./mongodb")
-jest.mock("./utils")
-jest.mock("./utils/create-song")
+jest.mock("./utils", () => ({
+  ...jest.createMockFromModule<typeof import("./utils")>("./utils"),
+  normalizeForSearch: jest.requireActual("./utils").normalizeForSearch,
+}))
 jest.mock("./utils/validate-upstream-entities")
+jest.mock("./auth", () => ({
+  requireAuth:
+    (handler: (event: any, userId: string) => Promise<any>) => (event: any) =>
+      handler(event, "user1"),
+}))
 
 const mockConnectToDatabase = mongodb.connectToDatabase as jest.Mock
 const mockCreateSong = mongodb.createSong as jest.Mock
 const mockCreateApiResponse = utils.createApiResponse as jest.Mock
 const mockLogger = utils.logger as any
-const mockUpdateAssociatedAlbum =
-  createSongUtils.updateAssociatedAlbum as jest.Mock
-const mockUpdateAssociatedArtists =
-  createSongUtils.updateAssociatedArtists as jest.Mock
+const mockAddSongToAlbum = mongodb.addSongToAlbum as jest.Mock
+const mockAddSongToArtist = mongodb.addSongToArtist as jest.Mock
+const mockUpdateArtistStats = mongodb.updateArtistStats as jest.Mock
 const mockValidateAssociatedEntities =
   validateUtils.validateAssociatedEntities as jest.Mock
 
@@ -62,8 +67,6 @@ describe("create-song handler", () => {
       .mockResolvedValueOnce(mockArtists)
       .mockResolvedValueOnce(mockAlbum)
     mockCreateSong.mockResolvedValueOnce(mockCreatedSong)
-    mockUpdateAssociatedAlbum.mockResolvedValueOnce(undefined)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
@@ -85,14 +88,9 @@ describe("create-song handler", () => {
       album: "album1",
       albumDisplayTitle: "Test Album",
     })
-    expect(mockUpdateAssociatedAlbum).toHaveBeenCalledWith(
-      mockAlbum[0],
-      "song1"
-    )
-    expect(mockUpdateAssociatedArtists).toHaveBeenCalledWith(
-      mockArtists,
-      "song1"
-    )
+    expect(mockAddSongToAlbum).toHaveBeenCalledWith("album1", "song1")
+    expect(mockAddSongToArtist).toHaveBeenCalledWith("artist1", "song1")
+    expect(mockUpdateArtistStats).toHaveBeenCalledWith("artist1")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(201, {
       id: "song1",
       year: 2020,
@@ -131,16 +129,13 @@ describe("create-song handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockCreateSong.mockResolvedValueOnce(mockCreatedSong)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
     expect(mockValidateAssociatedEntities).toHaveBeenCalledTimes(1)
-    expect(mockUpdateAssociatedAlbum).not.toHaveBeenCalled()
-    expect(mockUpdateAssociatedArtists).toHaveBeenCalledWith(
-      mockArtists,
-      "song1"
-    )
+    expect(mockAddSongToAlbum).not.toHaveBeenCalled()
+    expect(mockAddSongToArtist).toHaveBeenCalledWith("artist1", "song1")
+    expect(mockUpdateArtistStats).toHaveBeenCalledWith("artist1")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(201, {
       id: "song1",
       year: 2020,
@@ -177,7 +172,6 @@ describe("create-song handler", () => {
     mockConnectToDatabase.mockResolvedValueOnce(undefined)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockCreateSong.mockResolvedValueOnce(mockCreatedSong)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 

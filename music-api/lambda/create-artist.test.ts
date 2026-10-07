@@ -3,7 +3,15 @@ import * as mongodb from "./mongodb"
 import * as utils from "./utils"
 
 jest.mock("./mongodb")
-jest.mock("./utils")
+jest.mock("./utils", () => ({
+  ...jest.createMockFromModule<typeof import("./utils")>("./utils"),
+  normalizeForSearch: jest.requireActual("./utils").normalizeForSearch,
+}))
+jest.mock("./auth", () => ({
+  requireAuth:
+    (handler: (event: any, userId: string) => Promise<any>) => (event: any) =>
+      handler(event, "user1"),
+}))
 
 const mockConnectToDatabase = mongodb.connectToDatabase as jest.Mock
 const mockCreateArtist = mongodb.createArtist as jest.Mock

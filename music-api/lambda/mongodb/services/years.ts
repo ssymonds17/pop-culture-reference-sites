@@ -1,6 +1,7 @@
 import Song from "../models/song"
 import Album, { Rating } from "../models/album"
 import YearStats, { YearStatsData } from "../models/yearStats"
+import { calculateScore } from "../../utils"
 
 export const countSongsByYear = async (year: number) => {
   return Song.countDocuments({ year })
@@ -18,8 +19,11 @@ export const updateYearStats = async (year: number) => {
   const songsCount = await countSongsByYear(year)
   const goldAlbumsCount = await countAlbumsByRating(Rating.GOLD, year)
   const silverAlbumsCount = await countAlbumsByRating(Rating.SILVER, year)
-  const totalScore =
-    songsCount * 1 + goldAlbumsCount * 15 + silverAlbumsCount * 5
+  const totalScore = calculateScore(
+    songsCount,
+    goldAlbumsCount,
+    silverAlbumsCount,
+  )
 
   const yearStatsData: YearStatsData = {
     year,

@@ -9,7 +9,6 @@ import {
   addAlbumToTop,
   removeAlbumFromTop,
 } from "./mongodb"
-import { ArtistDocument } from "./mongodb/models/artist"
 import { Rating } from "./mongodb/models/album"
 import { requireAuth } from "./auth"
 
@@ -34,10 +33,10 @@ const handlerImpl = async (event: any, _userId: string) => {
       throw new Error("Album not found")
     }
 
-    const fullArtists = (await validateAssociatedEntities(
+    const fullArtists = await validateAssociatedEntities(
       currentAlbum.artists,
       "artist",
-    )) as ArtistDocument[] | null
+    )
 
     if (!fullArtists) {
       throw new Error("Failed to validate artists")
