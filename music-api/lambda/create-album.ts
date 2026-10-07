@@ -11,10 +11,10 @@ import {
 import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
-  const { title, artistDisplayName, year, artists, rating, totalSongs } =
-    JSON.parse(event.body)
-
   try {
+    const { title, artistDisplayName, year, artists, rating, totalSongs } =
+      JSON.parse(event.body)
+
     if (!title || !artistDisplayName || !year || !artists) {
       throw new Error("Required fields are missing")
     }

@@ -14,9 +14,10 @@ import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const albumId = event.pathParameters?.id
-  const { rating } = JSON.parse(event.body)
 
   try {
+    const { rating } = JSON.parse(event.body)
+
     if (!albumId) {
       throw new Error("Album ID is missing")
     }

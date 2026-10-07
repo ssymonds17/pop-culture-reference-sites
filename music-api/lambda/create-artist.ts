@@ -4,8 +4,9 @@ import { connectToDatabase, createArtist } from "./mongodb"
 import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
-  const artistName = JSON.parse(event.body).name
   try {
+    const artistName = JSON.parse(event.body).name
+
     if (!artistName) {
       throw new Error("Artist name is required")
     }

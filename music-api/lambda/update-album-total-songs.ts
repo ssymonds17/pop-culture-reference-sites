@@ -3,9 +3,10 @@ import { connectToDatabase, getAlbumById, updateAlbumTotalSongsById } from "./mo
 
 const handler = async (event: any) => {
   const albumId = event.pathParameters?.id
-  const { totalSongs } = JSON.parse(event.body)
 
   try {
+    const { totalSongs } = JSON.parse(event.body)
+
     if (!albumId) {
       throw new Error("Album ID is missing")
     }

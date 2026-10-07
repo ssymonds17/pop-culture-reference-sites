@@ -12,12 +12,12 @@ import {
 import { requireAuth } from "./auth"
 
 const handlerImpl = async (event: any, _userId: string) => {
-  const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
-    JSON.parse(event.body)
-
   try {
+    const { title, album, albumDisplayTitle, year, artists, artistDisplayName } =
+      JSON.parse(event.body)
+
     if (!title || !artistDisplayName || !year || !artists) {
-      throw new Error("Song title is required")
+      throw new Error("Required fields are missing")
     }
 
     const defaultSong: SongData = {
