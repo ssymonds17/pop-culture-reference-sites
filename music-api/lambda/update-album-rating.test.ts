@@ -1,22 +1,24 @@
 import { handler } from "./update-album-rating"
 import * as mongodb from "./mongodb"
 import * as utils from "./utils"
-import * as updateAlbumUtils from "./utils/update-album"
 import * as validateUtils from "./utils/validate-upstream-entities"
 import { Rating } from "./mongodb/models/album"
 
 jest.mock("./mongodb")
 jest.mock("./utils")
-jest.mock("./utils/update-album")
 jest.mock("./utils/validate-upstream-entities")
+jest.mock("./auth", () => ({
+  requireAuth:
+    (handler: (event: any, userId: string) => Promise<any>) => (event: any) =>
+      handler(event, "user1"),
+}))
 
 const mockConnectToDatabase = mongodb.connectToDatabase as jest.Mock
 const mockGetAlbumById = mongodb.getAlbumById as jest.Mock
 const mockUpdateAlbumRatingById = mongodb.updateAlbumRatingById as jest.Mock
 const mockCreateApiResponse = utils.createApiResponse as jest.Mock
 const mockLogger = utils.logger as any
-const mockUpdateAssociatedArtists =
-  updateAlbumUtils.updateAssociatedArtists as jest.Mock
+const mockUpdateArtistStats = mongodb.updateArtistStats as jest.Mock
 const mockValidateAssociatedEntities =
   validateUtils.validateAssociatedEntities as jest.Mock
 
@@ -61,7 +63,6 @@ describe("update-album-rating handler", () => {
     mockGetAlbumById.mockResolvedValueOnce(mockCurrentAlbum)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockUpdateAlbumRatingById.mockResolvedValueOnce(mockUpdatedAlbum)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
@@ -75,11 +76,7 @@ describe("update-album-rating handler", () => {
       "album1",
       Rating.GOLD,
     )
-    expect(mockUpdateAssociatedArtists).toHaveBeenCalledWith(
-      mockArtists,
-      Rating.NONE,
-      Rating.GOLD,
-    )
+    expect(mockUpdateArtistStats).toHaveBeenCalledWith("artist1")
     expect(mockCreateApiResponse).toHaveBeenCalledWith(201, {
       id: "album1",
       year: 2020,
@@ -120,15 +117,10 @@ describe("update-album-rating handler", () => {
     mockGetAlbumById.mockResolvedValueOnce(mockCurrentAlbum)
     mockValidateAssociatedEntities.mockResolvedValueOnce(mockArtists)
     mockUpdateAlbumRatingById.mockResolvedValueOnce(mockUpdatedAlbum)
-    mockUpdateAssociatedArtists.mockResolvedValueOnce(undefined)
 
     await handler(event)
 
-    expect(mockUpdateAssociatedArtists).toHaveBeenCalledWith(
-      mockArtists,
-      Rating.GOLD,
-      Rating.SILVER,
-    )
+    expect(mockUpdateArtistStats).toHaveBeenCalledWith("artist1")
   })
 
   it("should return 502 when album ID is missing", async () => {
@@ -249,6 +241,7 @@ describe("update-album-rating handler", () => {
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining("Failed to update album"),
     )
+    expect(mockUpdateArtistStats).not.toHaveBeenCalled()
     expect(mockCreateApiResponse).toHaveBeenCalledWith(502, {
       message: "Could not update album",
     })

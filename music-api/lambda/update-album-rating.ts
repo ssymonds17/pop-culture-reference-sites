@@ -1,10 +1,10 @@
 import { createApiResponse, logger } from "./utils"
-import { updateAssociatedArtists } from "./utils/update-album"
 import { validateAssociatedEntities } from "./utils/validate-upstream-entities"
 import {
   connectToDatabase,
   getAlbumById,
   updateAlbumRatingById,
+  updateArtistStats,
   updateYearStats,
   addAlbumToTop,
   removeAlbumFromTop,
@@ -49,11 +49,9 @@ const handlerImpl = async (event: any, _userId: string) => {
       throw new Error("Failed to update album")
     }
 
-    await updateAssociatedArtists(
-      fullArtists,
-      currentAlbum.rating,
-      updatedAlbum.rating,
-    )
+    for (const artistId of currentAlbum.artists) {
+      await updateArtistStats(artistId)
+    }
 
     // Cascade update to year statistics
     await updateYearStats(updatedAlbum.year)

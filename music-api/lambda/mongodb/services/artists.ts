@@ -1,5 +1,7 @@
 import Artist, { ArtistData } from "../models/artist"
-import { escapeRegex, normalizeForSearch } from "../../utils"
+import Album, { Rating } from "../models/album"
+import Song from "../models/song"
+import { escapeRegex, normalizeForSearch, ratingsMap } from "../../utils"
 
 export const createArtist = async (artistData: ArtistData) => {
   return Artist.create(artistData)
@@ -39,5 +41,23 @@ export const findArtistsByName = async (name: string) => {
     { name: new RegExp(escapeRegex(needle), "i") },
     null,
     { sort: { name: 1 } }
+  ).exec()
+}
+
+export const updateArtistStats = async (id: string) => {
+  const [goldAlbums, silverAlbums, totalSongs] = await Promise.all([
+    Album.countDocuments({ artists: id, rating: Rating.GOLD }),
+    Album.countDocuments({ artists: id, rating: Rating.SILVER }),
+    Song.countDocuments({ artists: id }),
+  ])
+  const totalScore =
+    totalSongs +
+    goldAlbums * ratingsMap[Rating.GOLD] +
+    silverAlbums * ratingsMap[Rating.SILVER]
+
+  return Artist.findByIdAndUpdate(
+    id,
+    { goldAlbums, silverAlbums, totalSongs, totalScore },
+    { new: true }
   ).exec()
 }

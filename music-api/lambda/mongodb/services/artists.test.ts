@@ -4,12 +4,19 @@ import {
   getArtistById,
   getArtistByIdFull,
   findArtistsByName,
+  updateArtistStats,
 } from "./artists"
 import Artist from "../models/artist"
+import Album, { Rating } from "../models/album"
+import Song from "../models/song"
 
 jest.mock("../models/artist")
+jest.mock("../models/album")
+jest.mock("../models/song")
 
 const mockArtist = Artist as jest.Mocked<typeof Artist>
+const mockAlbum = Album as jest.Mocked<typeof Album>
+const mockSong = Song as jest.Mocked<typeof Song>
 
 describe("artists service", () => {
   beforeEach(() => {
@@ -169,6 +176,38 @@ describe("artists service", () => {
 
       expect(result).toEqual([])
       expect(mockArtist.find).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("updateArtistStats", () => {
+    it("should recount rated albums and songs and derive the score", async () => {
+      mockAlbum.countDocuments = jest
+        .fn()
+        .mockImplementation(({ rating }) =>
+          Promise.resolve(rating === Rating.GOLD ? 1 : 2)
+        ) as any
+      mockSong.countDocuments = jest.fn().mockResolvedValueOnce(12) as any
+      const exec = jest.fn().mockResolvedValue({ _id: "artist1" })
+      mockArtist.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
+
+      await updateArtistStats("artist1")
+
+      expect(mockAlbum.countDocuments).toHaveBeenCalledWith({
+        artists: "artist1",
+        rating: Rating.GOLD,
+      })
+      expect(mockAlbum.countDocuments).toHaveBeenCalledWith({
+        artists: "artist1",
+        rating: Rating.SILVER,
+      })
+      expect(mockSong.countDocuments).toHaveBeenCalledWith({
+        artists: "artist1",
+      })
+      expect(mockArtist.findByIdAndUpdate).toHaveBeenCalledWith(
+        "artist1",
+        { goldAlbums: 1, silverAlbums: 2, totalSongs: 12, totalScore: 37 },
+        { new: true }
+      )
     })
   })
 })
