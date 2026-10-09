@@ -54,19 +54,18 @@ export interface PersonStats {
   totalPoints: number
 }
 
-export interface Director extends PersonStats {
+export interface Person extends PersonStats {
   _id: string
   tmdbPersonId: string
   name: string
   displayName: string
+}
+
+export interface Director extends Person {
   films: Film[]
 }
 
-export interface Actor extends PersonStats {
-  _id: string
-  tmdbPersonId: string
-  name: string
-  displayName: string
+export interface Actor extends Person {
   profilePath?: string
   // Only returned by the single-actor endpoint
   films?: Film[]
@@ -139,4 +138,4 @@ export interface FilmFilters {
   owned?: boolean
 }
 
-export type DirectorSortOption = 'totalPoints' | 'seenFilms' | 'totalFilms' | 'averageRating'
+export type PersonSortOption = 'totalPoints' | 'seenFilms' | 'totalFilms' | 'averageRating'

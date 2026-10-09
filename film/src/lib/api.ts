@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
   randomFilms: `${API_URL}/random`,
   directors: `${API_URL}/directors`,
   director: (tmdbPersonId: string) => `${API_URL}/director/${tmdbPersonId}`,
+  actors: `${API_URL}/actors`,
+  actor: (tmdbPersonId: string) => `${API_URL}/actor/${tmdbPersonId}`,
   stats: `${API_URL}/stats`,
   years: `${API_URL}/years`,
   year: (year: number) => `${API_URL}/year/${year}`,

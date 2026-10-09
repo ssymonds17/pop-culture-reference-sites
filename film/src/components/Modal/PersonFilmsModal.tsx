@@ -1,49 +1,51 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Director, Film } from "@/types"
+import { Film, Person } from "@/types"
 import axios from "axios"
-import { API_ENDPOINTS } from "@/lib/api"
+import { PERSON_KINDS, PersonKind } from "@/lib/personKinds"
 
-interface DirectorFilmsModalProps {
-  director: Director | null
+interface PersonFilmsModalProps {
+  person: Person | null
+  kind: PersonKind
   isOpen: boolean
   onClose: () => void
 }
 
-export default function DirectorFilmsModal({
-  director,
+export default function PersonFilmsModal({
+  person,
+  kind,
   isOpen,
   onClose,
-}: DirectorFilmsModalProps) {
+}: PersonFilmsModalProps) {
   const [films, setFilms] = useState<Film[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchDirectorFilms = async () => {
-      if (!isOpen || !director) return
+    const fetchPersonFilms = async () => {
+      if (!isOpen || !person) return
 
       try {
         setLoading(true)
         setError(null)
 
         const response = await axios.get(
-          API_ENDPOINTS.director(director.tmdbPersonId),
+          PERSON_KINDS[kind].detailEndpoint(person.tmdbPersonId),
         )
         setFilms(response.data.data.films || [])
       } catch (err) {
-        console.error("Error fetching director films:", err)
+        console.error(`Error fetching ${PERSON_KINDS[kind].singular} films:`, err)
         setError("Failed to load films")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDirectorFilms()
-  }, [isOpen, director])
+    fetchPersonFilms()
+  }, [isOpen, person, kind])
 
-  if (!isOpen || !director) return null
+  if (!isOpen || !person) return null
 
   return (
     <div
@@ -54,11 +56,11 @@ export default function DirectorFilmsModal({
         className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-2">{director.displayName}</h2>
+        <h2 className="text-2xl font-bold mb-2">{person.displayName}</h2>
         <p className="text-gray-400 text-sm mb-6">
-          {director.totalFilms} films · {director.seenFilms} seen
-          {director.averageRating &&
-            ` · ${director.averageRating.toFixed(2)} avg rating`}
+          {person.totalFilms} films · {person.seenFilms} seen
+          {person.averageRating &&
+            ` · ${person.averageRating.toFixed(2)} avg rating`}
         </p>
 
         {error && (

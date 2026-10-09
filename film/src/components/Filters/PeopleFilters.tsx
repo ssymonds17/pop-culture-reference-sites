@@ -1,18 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { DirectorSortOption } from '@/types'
+import { PersonSortOption } from '@/types'
+import { PERSON_KINDS, PersonKind } from '@/lib/personKinds'
 
-interface DirectorFiltersProps {
+interface PeopleFiltersProps {
+  kind: PersonKind
   /** Currently selected sort, owned by the page */
-  sortBy: DirectorSortOption
+  sortBy: PersonSortOption
   /** Called when the user presses Search, Enter or a sort option - the only fetch triggers */
-  onSearch: (searchString: string, sortBy: DirectorSortOption) => void
+  onSearch: (searchString: string, sortBy: PersonSortOption) => void
   /** Called when the user presses Reset - clears inputs and results, no fetch */
   onReset: () => void
 }
 
-export default function DirectorFilters({ sortBy, onSearch, onReset }: DirectorFiltersProps) {
+export default function PeopleFilters({ kind, sortBy, onSearch, onReset }: PeopleFiltersProps) {
   const [searchInput, setSearchInput] = useState('')
 
   const handleSearchSubmit = () => {
@@ -43,7 +45,7 @@ export default function DirectorFilters({ sortBy, onSearch, onReset }: DirectorF
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Search directors"
+                placeholder={`Search ${PERSON_KINDS[kind].plural}`}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 pr-8 text-sm focus:outline-none focus:border-film-500"
               />
               {searchInput && (
@@ -96,7 +98,7 @@ export default function DirectorFilters({ sortBy, onSearch, onReset }: DirectorF
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => onSearch(searchInput, option.value as DirectorSortOption)}
+                onClick={() => onSearch(searchInput, option.value as PersonSortOption)}
                 className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                   sortBy === option.value
                     ? 'bg-film-700 text-white'

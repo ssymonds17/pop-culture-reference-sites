@@ -15,6 +15,7 @@ export default function Navbar() {
     { href: '/films', label: 'Films' },
     { href: '/top-films', label: 'Top Films' },
     { href: '/directors', label: 'Directors' },
+    { href: '/actors', label: 'Actors' },
     { href: '/years', label: 'Years' },
     { href: '/random', label: 'Random' },
   ]

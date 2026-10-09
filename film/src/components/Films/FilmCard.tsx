@@ -5,7 +5,7 @@ import { Film, Director } from "@/types"
 import { formatDuration, getTmdbPosterUrl } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
 import FilmDetailModal from "../Modal/FilmDetailModal"
-import DirectorFilmsModal from "../Modal/DirectorFilmsModal"
+import PersonFilmsModal from "../Modal/PersonFilmsModal"
 
 interface FilmCardProps {
   film: Film
@@ -110,8 +110,9 @@ export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardP
         readOnly={readOnly}
       />
 
-      <DirectorFilmsModal
-        director={selectedDirector}
+      <PersonFilmsModal
+        person={selectedDirector}
+        kind="director"
         isOpen={isDirectorModalOpen}
         onClose={handleCloseDirectorModal}
       />

@@ -3,10 +3,10 @@
 import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import PeopleRankings from '@/components/People/PeopleRankings'
 
-export default function DirectorsPage() {
+export default function ActorsPage() {
   return (
     <ProtectedRoute>
-      <PeopleRankings kind="director" />
+      <PeopleRankings kind="actor" />
     </ProtectedRoute>
   )
 }
