@@ -11,8 +11,11 @@ get {
 }
 
 docs {
-  Retrieves a single film by its MongoDB ObjectId.
-  The film document is populated with full director information.
+  Retrieves a single film by its MongoDB ObjectId, with the details that
+  film lists leave out:
+  - directors and cast actors populated
+  - productionCompanies
+  - tmdbCollection (the TMDb franchise, when the film belongs to one)
 
   Set the FILM_ID environment variable to test this endpoint.
 }

@@ -7,7 +7,11 @@ meta {
 patch {
   url: {{API_URL}}/film/{{FILM_ID}}
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{CLERK_TOKEN}}
 }
 
 body:json {
@@ -18,19 +22,24 @@ body:json {
 }
 
 docs {
-  Updates a film's rating and/or owned status.
+  Updates a film's rating, owned status and/or review.
+
+  Requires CLERK_TOKEN (returns 401 without it).
 
   Fields:
-  - rating: number (1-10) or null to clear rating
+  - rating: whole number (1-10) or null to clear rating
   - owned: boolean
+  - review: string, or null or "" to clear the review
 
   Watched status is automatically derived from rating:
   - If rating has a value (1-10) → watched = true
   - If rating is null → watched = false (and rating is cleared)
 
-  This triggers cascading updates to:
-  1. All associated directors' statistics (if rating changed)
-  2. Year statistics for the film's release year (if rating changed)
+  If rating is included in the body, this triggers cascading updates to:
+  1. All associated directors' statistics
+  2. Year statistics for the film's release year
+  3. The top films list, when the film moves into, out of or between the 8-10 tiers
+  4. The statistics of every actor in the film's cast
 
   Set the FILM_ID environment variable to test this endpoint.
 }

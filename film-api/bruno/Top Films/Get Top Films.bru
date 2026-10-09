@@ -1,0 +1,25 @@
+meta {
+  name: Get Top Films
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/top-films
+  body: none
+  auth: none
+}
+
+docs {
+  Returns the ranked list of films rated 8, 9 or 10.
+
+  Response format:
+  {
+    "films": [ { ...film, "rank": 1 }, ... ],
+    "total": 42,
+    "message": "Successfully retrieved top films"
+  }
+
+  Each film has its directors populated and leaves out cast, production
+  companies and collection. An empty list returns "films": [] and "total": 0.
+}

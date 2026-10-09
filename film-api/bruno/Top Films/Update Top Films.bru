@@ -1,0 +1,40 @@
+meta {
+  name: Update Top Films
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{API_URL}}/top-films
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{CLERK_TOKEN}}
+}
+
+body:json {
+  {
+    "filmIds": ["65abc123def456789012345"]
+  }
+}
+
+docs {
+  Saves a new ranking for the top films list.
+
+  Requires CLERK_TOKEN (returns 401 without it).
+
+  Body:
+  - filmIds: MongoDB ObjectIds in ranked order
+
+  The list is rejected with 400 and a message unless it:
+  - is a non-empty array
+  - has no duplicate IDs
+  - contains every film rated 8, 9 or 10
+  - contains no other films
+  - keeps the tiers in order (every 10 before every 9, every 9 before every 8)
+
+  Films are added to and removed from the list automatically when ratings
+  change, so this is only needed to reorder films within a tier.
+}

@@ -15,20 +15,22 @@ params:query {
   ~yearStart: 1990
   ~yearEnd: 2010
   ~genres: Drama,Crime
+  ~count: 5
 }
 
 docs {
-  Returns up to 5 random films that match the specified criteria.
+  Returns random films that match the specified criteria.
 
   Query Parameters:
   - watched: Filter by watched status (true/false)
   - yearStart: Start of year range (inclusive)
   - yearEnd: End of year range (inclusive)
-  - genres: Filter by genres (comma-separated for AND logic - film must have ALL listed genres)
+  - genres: Filter by genres (comma-separated - film must have ANY of the listed genres)
+  - count: How many films to return (default 5, 1 to 100)
 
   Note: Results are always filtered to owned films only.
 
-  Returns 0-5 films depending on how many match the criteria.
+  Returns fewer than count when not enough films match.
 
   Enable/disable query params by toggling the ~ prefix
 }

@@ -7,7 +7,11 @@ meta {
 post {
   url: {{API_URL}}/film
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{CLERK_TOKEN}}
 }
 
 body:json {
@@ -19,12 +23,16 @@ body:json {
 docs {
   Creates a new film in the database.
 
+  Requires CLERK_TOKEN (returns 401 without it).
+
   **Method 1: From TMDB (Recommended)**
   Provide just the tmdbId and the backend will:
   - Fetch all film details from TMDB
   - Find or create director records
+  - Find or create actor records for the top 20 credited cast, in billing order
+  - Store production companies and the TMDb collection
   - Create the film with all metadata
-  - Update director statistics
+  - Update director, actor and year statistics
 
   Example:
   {
@@ -41,6 +49,9 @@ docs {
     "directors": [],
     "genres": ["Drama"]
   }
+
+  This updates year statistics, the top films list (if rated 8 to 10) and the
+  stats of any actors in a provided cast. It does not create directors.
 
   The API will return 409 if the film already exists (duplicate tmdbId).
 }

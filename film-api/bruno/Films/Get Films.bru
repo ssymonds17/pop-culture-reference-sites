@@ -15,6 +15,8 @@ params:query {
   ~minRating: 7
   ~maxRating: 10
   ~year: 1994
+  ~yearStart: 1990
+  ~yearEnd: 1999
   ~genres: Drama,Crime
   ~directorId:
   ~owned: true
@@ -27,10 +29,14 @@ docs {
   - minRating: Minimum rating (1-10)
   - maxRating: Maximum rating (1-10)
   - year: Filter by release year
-  - genres: Filter by genres (comma-separated for AND logic - film must have ALL listed genres)
+  - yearStart / yearEnd: Filter by a year range (inclusive, overrides year)
+  - genres: Filter by genres (comma-separated - film must have ANY of the listed genres)
   - directorId: Filter by director ObjectId
   - owned: Filter by ownership status (true/false)
   - hasReview: Filter by review status (true/false) - true returns films with reviews, false returns films without reviews
+
+  Returns up to 500 films sorted by rating, then year (newest first), then title.
+  Cast, production companies and collection are left out; use Get Film By Id for those.
 
   Enable/disable query params by toggling the ~ prefix
 }

@@ -7,11 +7,17 @@ meta {
 put {
   url: {{API_URL}}/year/{{YEAR}}/stats
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{CLERK_TOKEN}}
 }
 
 docs {
   Manually recalculates statistics for a specific year.
+
+  Requires CLERK_TOKEN (returns 401 without it).
 
   Recalculates:
   - totalFilms, watchedFilms

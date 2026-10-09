@@ -29,7 +29,7 @@ const handler = async (event: any) => {
         filters.yearEnd = parseInt(params.yearEnd)
       }
       if (params.genres) {
-        // Support comma-separated genres for AND filtering
+        // Comma-separated; a film matches if it has any of them
         filters.genres = params.genres.split(',').map((g: string) => g.trim())
       }
       if (params.directorId) {
