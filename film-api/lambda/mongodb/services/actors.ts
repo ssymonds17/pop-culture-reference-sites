@@ -15,8 +15,9 @@ export const findOrCreateActor = async (
         tmdbPersonId,
         name: normalizeForSearch(displayName),
         displayName,
-        profilePath,
       },
+      // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
+      ...(profilePath && { $set: { profilePath } }),
     },
     { upsert: true, new: true },
   ).exec()

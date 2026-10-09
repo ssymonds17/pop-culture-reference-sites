@@ -16,7 +16,7 @@ export {
 
 // Director services
 export {
-  createDirector,
+  findOrCreateDirector,
   getDirectors,
   getDirectorById,
   getDirectorByTmdbPersonId,

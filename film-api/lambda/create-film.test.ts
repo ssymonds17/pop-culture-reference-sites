@@ -21,8 +21,7 @@ const mockAxiosGet = axios.get as jest.Mock
 const mockConnectToDatabase = mongodb.connectToDatabase as jest.Mock
 const mockGetFilmByTmdbId = mongodb.getFilmByTmdbId as jest.Mock
 const mockCreateFilm = mongodb.createFilm as jest.Mock
-const mockGetDirectorByTmdbPersonId = mongodb.getDirectorByTmdbPersonId as jest.Mock
-const mockCreateDirector = mongodb.createDirector as jest.Mock
+const mockFindOrCreateDirector = mongodb.findOrCreateDirector as jest.Mock
 const mockUpdateDirectorStats = mongodb.updateDirectorStats as jest.Mock
 const mockFindOrCreateActor = mongodb.findOrCreateActor as jest.Mock
 const mockUpdateCastActorStats = mongodb.updateCastActorStats as jest.Mock
@@ -47,7 +46,7 @@ const tmdbFilm = (overrides: Record<string, unknown> = {}) => ({
   external_ids: { imdb_id: "tt0137523" },
   credits: {
     cast: [],
-    crew: [{ id: 7467, name: "David Fincher", job: "Director" }],
+    crew: [{ id: 7467, name: "David Fincher", job: "Director", profile_path: "/fincher.jpg" }],
   },
   production_companies: [],
   belongs_to_collection: null,
@@ -79,8 +78,7 @@ describe("create-film handler", () => {
     }))
     mockConnectToDatabase.mockResolvedValue(undefined)
     mockGetFilmByTmdbId.mockResolvedValue(null)
-    mockGetDirectorByTmdbPersonId.mockResolvedValue(null)
-    mockCreateDirector.mockResolvedValue({ _id: "director1" })
+    mockFindOrCreateDirector.mockResolvedValue({ _id: "director1" })
     mockFindOrCreateActor.mockImplementation(async (tmdbPersonId: string) => ({
       _id: `actor-${tmdbPersonId}`,
     }))
@@ -114,11 +112,11 @@ describe("create-film handler", () => {
         overview: "An overview",
         voteAverage: 8.4,
       })
-      expect(mockCreateDirector).toHaveBeenCalledWith({
-        tmdbPersonId: "7467",
-        name: "david fincher",
-        displayName: "David Fincher",
-      })
+      expect(mockFindOrCreateDirector).toHaveBeenCalledWith(
+        "7467",
+        "David Fincher",
+        "/fincher.jpg",
+      )
       expect(mockDirectorFindByIdAndUpdate).toHaveBeenCalledWith("director1", {
         $push: { films: "film1" },
       })
@@ -134,14 +132,28 @@ describe("create-film handler", () => {
       })
     })
 
-    it("should reuse an existing director", async () => {
-      mockGetDirectorByTmdbPersonId.mockResolvedValueOnce({ _id: "existing" })
+    it("should link the director the lookup returns", async () => {
+      mockFindOrCreateDirector.mockResolvedValueOnce({ _id: "existing" })
       mockAxiosGet.mockResolvedValueOnce({ data: tmdbFilm() })
 
       await handler(tmdbEvent)
 
-      expect(mockCreateDirector).not.toHaveBeenCalled()
       expect(createdFilmData().directors).toEqual(["existing"])
+    })
+
+    it("should pass no photo for a director TMDb has none for", async () => {
+      mockAxiosGet.mockResolvedValueOnce({
+        data: tmdbFilm({
+          credits: {
+            cast: [],
+            crew: [{ id: 1, name: "Unknown Director", job: "Director", profile_path: null }],
+          },
+        }),
+      })
+
+      await handler(tmdbEvent)
+
+      expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1", "Unknown Director", undefined)
     })
 
     it("should keep the top 20 credited cast members in billing order", async () => {

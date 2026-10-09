@@ -1,4 +1,5 @@
 import {
+  findOrCreateDirector,
   getDirectorById,
   getDirectorByTmdbPersonId,
   getDirectors,
@@ -20,6 +21,54 @@ const mockFindByIdPopulated = (result: unknown) => {
 describe("directors service", () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  describe("findOrCreateDirector", () => {
+    const mockUpsert = () => {
+      const director = { _id: "director1" }
+      mockDirector.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(director),
+      }) as any
+      return director
+    }
+
+    it("should upsert by TMDb person ID, setting names on insert and the photo every time", async () => {
+      const director = mockUpsert()
+
+      const result = await findOrCreateDirector("7467", "David Fincher", "/fincher.jpg")
+
+      expect(result).toBe(director)
+      expect(mockDirector.findOneAndUpdate).toHaveBeenCalledWith(
+        { tmdbPersonId: "7467" },
+        {
+          $setOnInsert: {
+            tmdbPersonId: "7467",
+            name: "david fincher",
+            displayName: "David Fincher",
+          },
+          $set: { profilePath: "/fincher.jpg" },
+        },
+        { upsert: true, new: true },
+      )
+    })
+
+    it.each([undefined, ""])(
+      "should keep the stored photo when TMDb gives %p",
+      async (profilePath) => {
+        mockUpsert()
+
+        await findOrCreateDirector("7467", "David Fincher", profilePath)
+
+        const [, update] = (mockDirector.findOneAndUpdate as jest.Mock).mock.calls[0]
+        expect(update).toEqual({
+          $setOnInsert: {
+            tmdbPersonId: "7467",
+            name: "david fincher",
+            displayName: "David Fincher",
+          },
+        })
+      },
+    )
   })
 
   describe("getDirectors", () => {

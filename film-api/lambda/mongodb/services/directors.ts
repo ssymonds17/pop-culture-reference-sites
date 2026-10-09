@@ -1,10 +1,22 @@
-import Director, { DirectorData } from "../models/director"
+import Director from "../models/director"
 import { normalizeForSearch } from "../../utils"
 import { calculatePersonStats, personStatsSort } from "../models/personStats"
 import { EXCLUDE_DETAIL_FIELDS, FilmDocument } from "../models/film"
 
-export const createDirector = async (directorData: DirectorData) => {
-  return Director.create(directorData)
+export const findOrCreateDirector = async (
+  tmdbPersonId: string,
+  displayName: string,
+  profilePath?: string,
+) => {
+  return Director.findOneAndUpdate(
+    { tmdbPersonId },
+    {
+      $setOnInsert: { tmdbPersonId, name: displayName.toLowerCase(), displayName },
+      // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
+      ...(profilePath && { $set: { profilePath } }),
+    },
+    { upsert: true, new: true },
+  ).exec()
 }
 
 export const getDirectors = async (sortBy?: string) => {

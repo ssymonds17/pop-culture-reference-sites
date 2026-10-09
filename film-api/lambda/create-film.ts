@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating, findOrCreateActor, updateCastActorStats } from "./mongodb"
+import { connectToDatabase, createFilm, getFilmByTmdbId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating, findOrCreateActor, findOrCreateDirector, updateCastActorStats } from "./mongodb"
 import { CastMember, FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
@@ -21,7 +21,7 @@ interface TmdbFilmDetails {
   vote_average?: number
   credits?: {
     cast?: TmdbCastMember[]
-    crew?: Array<{ id: number; name: string; job: string }>
+    crew?: Array<{ id: number; name: string; job: string; profile_path?: string | null }>
   }
   external_ids?: {
     imdb_id?: string
@@ -51,21 +51,6 @@ const getTmdbFilmDetails = async (tmdbId: string): Promise<TmdbFilmDetails> => {
     },
   })
   return response.data
-}
-
-const findOrCreateDirector = async (tmdbPersonId: string, name: string) => {
-  let director = await getDirectorByTmdbPersonId(tmdbPersonId)
-
-  if (!director) {
-    director = await createDirector({
-      tmdbPersonId,
-      name: name.toLowerCase(),
-      displayName: name,
-    })
-    logger.info(`Created director: ${name} (${tmdbPersonId})`)
-  }
-
-  return director
 }
 
 // TMDb has no lead/supporting flag, so billing order is the best proxy for who matters.
@@ -127,7 +112,8 @@ const handlerImpl = async (event: any, _userId: string) => {
         for (const directorData of directorCrew) {
           const director = await findOrCreateDirector(
             directorData.id.toString(),
-            directorData.name
+            directorData.name,
+            directorData.profile_path ?? undefined
           )
           directorIds.push(director._id)
         }

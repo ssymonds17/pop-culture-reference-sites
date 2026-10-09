@@ -21,7 +21,7 @@ describe("actors service", () => {
   })
 
   describe("findOrCreateActor", () => {
-    it("should upsert by TMDb person ID, only setting fields on insert", async () => {
+    it("should upsert by TMDb person ID, setting names on insert and the photo every time", async () => {
       const actor = { _id: "actor1" }
       const exec = jest.fn().mockResolvedValue(actor)
       mockActor.findOneAndUpdate = jest.fn().mockReturnValue({ exec }) as any
@@ -36,23 +36,32 @@ describe("actors service", () => {
             tmdbPersonId: "123",
             name: "penelope cruz",
             displayName: "Penélope Cruz",
-            profilePath: "/p.jpg",
           },
+          $set: { profilePath: "/p.jpg" },
         },
         { upsert: true, new: true },
       )
     })
 
-    it("should leave the profile path undefined when TMDb has none", async () => {
-      mockActor.findOneAndUpdate = jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue({ _id: "actor1" }),
-      }) as any
+    it.each([undefined, ""])(
+      "should keep the stored photo when TMDb gives %p",
+      async (profilePath) => {
+        mockActor.findOneAndUpdate = jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ _id: "actor1" }),
+        }) as any
 
-      await findOrCreateActor("123", "Actor One")
+        await findOrCreateActor("123", "Actor One", profilePath)
 
-      const [, update] = (mockActor.findOneAndUpdate as jest.Mock).mock.calls[0]
-      expect(update.$setOnInsert.profilePath).toBeUndefined()
-    })
+        const [, update] = (mockActor.findOneAndUpdate as jest.Mock).mock.calls[0]
+        expect(update).toEqual({
+          $setOnInsert: {
+            tmdbPersonId: "123",
+            name: "actor one",
+            displayName: "Actor One",
+          },
+        })
+      },
+    )
   })
 
   describe("getActors", () => {

@@ -127,6 +127,7 @@ const fetchTmdbDetails = async (tmdbId, isRetry = false) => {
   }
 }
 
+// Keep this identical to findOrCreateActor in lambda/mongodb/services/actors.ts.
 const upsertActor = async (actors, member) => {
   const tmdbPersonId = member.id.toString()
   const actor = await actors.findOneAndUpdate(
@@ -136,8 +137,8 @@ const upsertActor = async (actors, member) => {
         tmdbPersonId,
         name: normalizeForSearch(member.name),
         displayName: member.name,
-        ...(member.profile_path && { profilePath: member.profile_path }),
       },
+      ...(member.profile_path && { $set: { profilePath: member.profile_path } }),
     },
     { upsert: true, returnDocument: "after" }
   )
