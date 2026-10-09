@@ -198,14 +198,6 @@ export class ApiStack extends core.Stack {
       }
     )
 
-    const importFilmsLambda = new LambdaConstruct(this, "ImportFilms", {
-      functionName: "film-import-films-handler",
-      code: lambda.Code.fromAsset("build/apps/import-films"),
-      handler: "index.handler",
-      timeout: core.Duration.minutes(5), // Longer timeout for import operations
-      environment: lambdaEnvironment,
-    })
-
     // Lambda functions for Top Films
     const getTopFilmsLambda = new LambdaConstruct(this, "GetTopFilms", {
       functionName: "film-get-top-films-handler",
@@ -407,18 +399,6 @@ export class ApiStack extends core.Stack {
     tmdbFilmDetails.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
-    })
-
-    // RESOURCES - Import
-    const importResource = api.root.addResource("import")
-    const importFilms = importResource.addResource("films")
-    importFilms.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(importFilmsLambda.function)
-    )
-    importFilms.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["POST"],
     })
 
     // RESOURCES - Top Films

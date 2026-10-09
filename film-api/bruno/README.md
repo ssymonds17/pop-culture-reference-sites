@@ -64,10 +64,6 @@ Bruno requires you to manually set these environment variables in the **Producti
 
 - **Search** - GET /search
 
-### Import (1 endpoint)
-
-- **Import Films** - POST /import/films
-
 ## Testing Workflow
 
 ### 1. After Initial Deployment

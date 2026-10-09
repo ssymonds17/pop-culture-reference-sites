@@ -104,10 +104,6 @@ npm run deploy
 
 - `GET /search` - Search films and directors
 
-### Import
-
-- `POST /import/films` - Bulk import endpoint
-
 ## Development
 
 Run tests:
