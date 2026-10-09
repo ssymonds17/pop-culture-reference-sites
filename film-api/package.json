@@ -5,7 +5,7 @@
     "film-api": "bin/film-api.js"
   },
   "scripts": {
-    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film && npm run build:delete-film && npm run build:get-genres && npm run build:get-random-films && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:search-tmdb && npm run build:get-tmdb-film-details && npm run build:import-films && npm run build:get-top-films && npm run build:update-top-films",
+    "build:all": "npm run build:create-film && npm run build:get-films && npm run build:get-film-by-id && npm run build:update-film && npm run build:delete-film && npm run build:get-genres && npm run build:get-random-films && npm run build:get-director-by-person-id && npm run build:get-directors && npm run build:get-actors && npm run build:get-actor-by-person-id && npm run build:update-director-stats && npm run build:get-stats && npm run build:get-years && npm run build:get-year && npm run build:update-year-stats && npm run build:search && npm run build:search-tmdb && npm run build:get-tmdb-film-details && npm run build:import-films && npm run build:get-top-films && npm run build:update-top-films",
     "build:create-film": "esbuild lambda/create-film.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/create-film/index.js",
     "build:get-films": "esbuild lambda/get-films.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-films/index.js",
     "build:get-film-by-id": "esbuild lambda/get-film-by-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-film-by-id/index.js",
@@ -15,6 +15,8 @@
     "build:get-random-films": "esbuild lambda/get-random-films.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-random-films/index.js",
     "build:get-director-by-person-id": "esbuild lambda/get-director-by-person-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-director-by-person-id/index.js",
     "build:get-directors": "esbuild lambda/get-directors.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-directors/index.js",
+    "build:get-actors": "esbuild lambda/get-actors.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-actors/index.js",
+    "build:get-actor-by-person-id": "esbuild lambda/get-actor-by-person-id.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-actor-by-person-id/index.js",
     "build:update-director-stats": "esbuild lambda/update-director-stats.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/update-director-stats/index.js",
     "build:get-stats": "esbuild lambda/get-stats.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-stats/index.js",
     "build:get-years": "esbuild lambda/get-years.ts --bundle --platform=node --target=node22.11.0 --outfile=build/apps/get-years/index.js",

@@ -1,5 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase, findFilmsByTitle, findDirectorsByName } from "./mongodb"
+import { connectToDatabase, findFilmsByTitle, findDirectorsByName, findActorsByName } from "./mongodb"
 
 const handler = async (event: any) => {
   try {
@@ -22,6 +22,12 @@ const handler = async (event: any) => {
     if (itemType === "director" || !itemType) {
       const directors = await findDirectorsByName(searchString)
       results = [...results, ...directors.map(d => ({ ...d.toObject(), type: "director" }))]
+    }
+
+    // Actors are opt-in only: the collection is large enough to swamp the default mixed results.
+    if (itemType === "actor") {
+      const actors = await findActorsByName(searchString)
+      results = [...results, ...actors.map(a => ({ ...a.toObject(), type: "actor" }))]
     }
 
     return createApiResponse(200, {

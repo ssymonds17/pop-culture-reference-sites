@@ -123,6 +123,27 @@ export class ApiStack extends core.Stack {
       }
     )
 
+    // Lambda functions for Actors
+    const getActorsLambda = new LambdaConstruct(this, "GetActors", {
+      functionName: "film-get-actors-handler",
+      code: lambda.Code.fromAsset("build/apps/get-actors"),
+      handler: "index.handler",
+      timeout: core.Duration.seconds(30),
+      environment: lambdaEnvironment,
+    })
+
+    const getActorByPersonIdLambda = new LambdaConstruct(
+      this,
+      "GetActorByPersonId",
+      {
+        functionName: "film-get-actor-by-person-id-handler",
+        code: lambda.Code.fromAsset("build/apps/get-actor-by-person-id"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
+      }
+    )
+
     // Lambda functions for Stats and Years
     const getStatsLambda = new LambdaConstruct(this, "GetStats", {
       functionName: "film-get-stats-handler",
@@ -310,6 +331,28 @@ export class ApiStack extends core.Stack {
     directorStats.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["PUT"],
+    })
+
+    // RESOURCES - Actors
+    const actors = api.root.addResource("actors")
+    actors.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getActorsLambda.function)
+    )
+    actors.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+
+    const actor = api.root.addResource("actor")
+    const actorByPersonId = actor.addResource("{tmdbPersonId}")
+    actorByPersonId.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getActorByPersonIdLambda.function)
+    )
+    actorByPersonId.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
     })
 
     // RESOURCES - Stats

@@ -1,0 +1,26 @@
+meta {
+  name: Get Actors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_URL}}/actors
+  body: none
+  auth: none
+}
+
+params:query {
+  ~sortBy: totalPoints
+}
+
+docs {
+  Query Parameters:
+  - sortBy: Sort order (totalPoints | seenFilms | totalFilms | averageRating)
+
+  Default sort is by totalPoints (descending).
+
+  Only actors credited in at least one film are returned.
+
+  Limit: 200 actors per request
+}
