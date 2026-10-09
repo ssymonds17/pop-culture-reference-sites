@@ -141,6 +141,7 @@ Run from `film-api/` with `.env` in place. Each supports `--dry-run`, skips reco
 
 - **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Also accepts `--limit=N` for a spot check. Needs `TMDB_API_KEY`.
 - **`scripts/backfill-film-search-titles.mjs`**: Sets each film's accent-folded `searchTitle` from its title.
+- **`scripts/backfill-director-photos.mjs`**: Fetches a TMDb profile photo for every director without one. Also accepts `--limit=N`. Needs `TMDB_API_KEY`.
 
 ```bash
 node --env-file=.env scripts/backfill-tmdb-credits.mjs --dry-run --limit=5
@@ -170,7 +171,7 @@ npm run build:create-film
 ## MongoDB Models
 
 - **Film**: Ratings, ownership and review, plus TMDb metadata: directors, cast (top 20 credited, in billing order), production companies, collection, and an accent-folded `searchTitle`
-- **Director**: TMDb person with their films and aggregated statistics
-- **Actor**: TMDb person with aggregated statistics. Their films are found through `Film.cast`
+- **Director**: TMDb person with their photo, films and aggregated statistics
+- **Actor**: TMDb person with their photo and aggregated statistics. Their films are found through `Film.cast`
 - **YearStats**: Pre-computed year statistics with weighted scoring
 - **TopFilms**: The user's ranked order of films rated 8 to 10
