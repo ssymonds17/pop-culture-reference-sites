@@ -24,11 +24,11 @@ Bruno requires you to manually set these environment variables in the **Producti
 
 ### Optional Variables (for specific endpoints)
 
-| Variable         | Description                  | Example                   | Used By                                          |
-| ---------------- | ---------------------------- | ------------------------- | ------------------------------------------------ |
-| `FILM_ID`        | MongoDB ObjectId of a film   | `65abc123def456789012345` | Get Film By Id, Update Film Rating, Delete Film  |
-| `TMDB_PERSON_ID` | TMDb person ID of a director | `5602` (Buster Keaton)    | Get Director By Person Id, Update Director Stats |
-| `YEAR`           | Release year for testing     | `2020`                    | Get Year, Update Year Stats                      |
+| Variable         | Description                            | Example                   | Used By                                           |
+| ---------------- | -------------------------------------- | ------------------------- | ------------------------------------------------- |
+| `FILM_ID`        | MongoDB ObjectId of a film             | `65abc123def456789012345` | Get Film By Id, Update Film Rating, Delete Film   |
+| `TMDB_PERSON_ID` | TMDb person ID of a director or actor  | `5602` (Buster Keaton)    | Get Director By Person Id, Get Actor By Person Id |
+| `YEAR`           | Release year for testing               | `2020`                    | Get Year, Update Year Stats                       |
 
 ### How to Set Environment Variables
 
@@ -48,11 +48,10 @@ Bruno requires you to manually set these environment variables in the **Producti
 - **Update Film Rating** - PUT /film/{id}/rating
 - **Delete Film** - DELETE /film/{id}
 
-### Directors (3 endpoints)
+### Directors (2 endpoints)
 
 - **Get Directors** - GET /directors
 - **Get Director By Person Id** - GET /director/{tmdbPersonId}
-- **Update Director Stats** - PUT /director/{tmdbPersonId}/stats
 
 ### Stats (4 endpoints)
 
@@ -117,10 +116,9 @@ Copy these IDs into your Bruno environment variables.
 
 ### 5. Test Stats Recalculation
 
-If stats get out of sync:
+If year stats get out of sync:
 
-1. **Update Director Stats** - Recalculate specific director
-2. **Update Year Stats** - Recalculate specific year
+1. **Update Year Stats** - Recalculate specific year
 
 ## Query Parameters
 

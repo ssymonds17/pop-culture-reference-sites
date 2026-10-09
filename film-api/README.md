@@ -92,7 +92,6 @@ npm run deploy
 
 - `GET /directors` - List directors
 - `GET /director/{tmdbPersonId}` - Get director by TMDb ID
-- `PUT /director/{tmdbPersonId}/stats` - Recalculate director stats
 
 ### Statistics
 

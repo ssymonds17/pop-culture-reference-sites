@@ -111,18 +111,6 @@ export class ApiStack extends core.Stack {
       }
     )
 
-    const updateDirectorStatsLambda = new LambdaConstruct(
-      this,
-      "UpdateDirectorStats",
-      {
-        functionName: "film-update-director-stats-handler",
-        code: lambda.Code.fromAsset("build/apps/update-director-stats"),
-        handler: "index.handler",
-        timeout: core.Duration.seconds(30),
-        environment: lambdaEnvironment,
-      }
-    )
-
     // Lambda functions for Actors
     const getActorsLambda = new LambdaConstruct(this, "GetActors", {
       functionName: "film-get-actors-handler",
@@ -321,16 +309,6 @@ export class ApiStack extends core.Stack {
     directorByPersonId.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
-    })
-
-    const directorStats = directorByPersonId.addResource("stats")
-    directorStats.addMethod(
-      "PUT",
-      new apigateway.LambdaIntegration(updateDirectorStatsLambda.function)
-    )
-    directorStats.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["PUT"],
     })
 
     // RESOURCES - Actors
