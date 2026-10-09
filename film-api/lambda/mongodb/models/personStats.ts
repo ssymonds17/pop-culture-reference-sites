@@ -102,3 +102,11 @@ export const personStatsSort = (sortBy?: string): Record<string, 1 | -1> => {
       return { totalPoints: -1, averageRating: -1, seenFilms: -1 }
   }
 }
+
+// An average over a single rated film says little, so the average ranking needs at least two.
+const MIN_RATED_FILMS_FOR_AVERAGE = 2
+
+export const personStatsFilter = (
+  sortBy?: string,
+): { seenFilms?: { $gte: number } } =>
+  sortBy === "averageRating" ? { seenFilms: { $gte: MIN_RATED_FILMS_FOR_AVERAGE } } : {}

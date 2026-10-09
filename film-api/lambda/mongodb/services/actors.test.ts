@@ -79,6 +79,20 @@ describe("actors service", () => {
       expect(sort).toHaveBeenCalledWith({ seenFilms: -1, totalPoints: -1 })
       expect(limit).toHaveBeenCalledWith(200)
     })
+
+    it("should only rank actors with at least two rated films by average rating", async () => {
+      const exec = jest.fn().mockResolvedValue([])
+      const limit = jest.fn().mockReturnValue({ exec })
+      const sort = jest.fn().mockReturnValue({ limit })
+      mockActor.find = jest.fn().mockReturnValue({ sort }) as any
+
+      await getActors("averageRating")
+
+      expect(mockActor.find).toHaveBeenCalledWith({
+        totalFilms: { $gt: 0 },
+        seenFilms: { $gte: 2 },
+      })
+    })
   })
 
   describe("getActorByTmdbPersonId", () => {

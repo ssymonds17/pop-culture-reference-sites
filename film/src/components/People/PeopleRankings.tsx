@@ -36,6 +36,11 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<PersonSortOption>(DEFAULT_SORT)
+  // How the results on screen were loaded, so the average note describes them even while a new load is pending
+  const [resultsSource, setResultsSource] = useState<{
+    isSearch: boolean
+    sort: PersonSortOption
+  } | null>(null)
 
   const fetchPeople = async (searchString: string, sort: PersonSortOption) => {
     try {
@@ -53,6 +58,7 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
         const response = await axios.get(`${listEndpoint}?sortBy=${sort}`)
         setPeople(response.data.data)
       }
+      setResultsSource({ isSearch: Boolean(searchString), sort })
       setError(null)
     } catch (err) {
       console.error(`Error fetching ${plural}:`, err)
@@ -70,6 +76,7 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
   const handleReset = () => {
     setSortBy(DEFAULT_SORT)
     setPeople([])
+    setResultsSource(null)
     setError(null)
   }
 
@@ -111,6 +118,11 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
           <div className="mb-4 text-gray-400">
             Showing {people.length} {people.length === 1 ? singular : plural}
           </div>
+          {resultsSource?.sort === 'averageRating' && !resultsSource.isSearch && (
+            <p className="mb-4 text-sm text-gray-400">
+              Ranking by average only includes {plural} with at least 2 rated films.
+            </p>
+          )}
           <PeopleTable people={people} kind={kind} />
         </div>
       )}

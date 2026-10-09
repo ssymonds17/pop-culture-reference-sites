@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import PeopleRankings from './PeopleRankings'
@@ -38,6 +38,22 @@ const person = (id: number, stats: Partial<Person> = {}): Person => ({
 })
 
 const respondWith = (people: Person[]) => mockAxiosGet.mockResolvedValueOnce({ data: { data: people } })
+
+const deferred = () => {
+  let resolve!: (value: unknown) => void
+  const promise = new Promise((done) => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
+const averageNote = 'Ranking by average only includes actors with at least 2 rated films.'
+
+const loadRankingByAverage = async (user: ReturnType<typeof userEvent.setup>) => {
+  respondWith([person(1, { seenFilms: 2 })])
+  await user.click(screen.getByRole('button', { name: 'Average Rating' }))
+  await screen.findByText(averageNote)
+}
 
 const displayedNames = () =>
   screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
@@ -98,7 +114,7 @@ describe('PeopleRankings', () => {
     ['Total Points', { totalPoints: 1 }, { totalPoints: 9 }],
     ['Films Seen', { seenFilms: 1 }, { seenFilms: 9 }],
     ['Total Films', { totalFilms: 1 }, { totalFilms: 9 }],
-    ['Average Rating', { averageRating: 6 }, { averageRating: 8 }],
+    ['Average Rating', { averageRating: 6, seenFilms: 2 }, { averageRating: 8, seenFilms: 2 }],
   ])('should sort search results by %s, highest first', async (sortLabel, low, high) => {
     const user = userEvent.setup()
     mockAxiosGet.mockResolvedValue({ data: { data: [person(1, low), person(2, high)] } })
@@ -124,6 +140,95 @@ describe('PeopleRankings', () => {
 
     expect(mockAxiosGet).toHaveBeenLastCalledWith(API_ENDPOINTS.actor('1'))
     expect(await screen.findByText('Alien')).toBeInTheDocument()
+  })
+
+  it('should keep everyone in search results sorted by average, whatever their rated films', async () => {
+    const user = userEvent.setup()
+    respondWith([
+      person(1, { seenFilms: 1, averageRating: 10 }),
+      person(2, { seenFilms: 2, averageRating: 8 }),
+    ])
+    render(<PeopleRankings kind="actor" />)
+    await user.type(screen.getByRole('textbox'), 'person')
+
+    await user.click(screen.getByRole('button', { name: 'Average Rating' }))
+
+    await screen.findByText('Showing 2 actors')
+    expect(displayedNames()).toEqual(['Person 1', 'Person 2'])
+    expect(screen.queryByText(/Ranking by average only includes/)).not.toBeInTheDocument()
+  })
+
+  it('should explain the rated films rule only on the ranking sorted by average', async () => {
+    const user = userEvent.setup()
+    const note = 'Ranking by average only includes directors with at least 2 rated films.'
+    respondWith([person(1)])
+    render(<PeopleRankings kind="director" />)
+    await user.click(screen.getByRole('button', { name: 'Load All Directors' }))
+    await screen.findByText('Showing 1 director')
+    expect(screen.queryByText(note)).not.toBeInTheDocument()
+    respondWith([person(1, { seenFilms: 2 })])
+
+    await user.click(screen.getByRole('button', { name: 'Average Rating' }))
+
+    expect(await screen.findByText(note)).toBeInTheDocument()
+    expect(mockAxiosGet).toHaveBeenLastCalledWith(`${API_ENDPOINTS.directors}?sortBy=averageRating`)
+  })
+
+  describe('average rating note', () => {
+    it('should hide the note while a search loads and keep it hidden for the search results', async () => {
+      const user = userEvent.setup()
+      render(<PeopleRankings kind="actor" />)
+      await loadRankingByAverage(user)
+      const pending = deferred()
+      mockAxiosGet.mockReturnValueOnce(pending.promise)
+
+      await user.type(screen.getByRole('textbox'), 'person{Enter}')
+
+      expect(screen.queryByText(averageNote)).not.toBeInTheDocument()
+      await act(async () => pending.resolve({ data: { data: [person(1, { seenFilms: 1 })] } }))
+      expect(await screen.findByText('Showing 1 actor')).toBeInTheDocument()
+      expect(screen.queryByText(averageNote)).not.toBeInTheDocument()
+    })
+
+    it('should show the note once the ranking replaces search results', async () => {
+      const user = userEvent.setup()
+      render(<PeopleRankings kind="actor" />)
+      respondWith([person(1)])
+      await user.type(screen.getByRole('textbox'), 'person')
+      await user.click(screen.getByRole('button', { name: 'Average Rating' }))
+      await screen.findByText('Showing 1 actor')
+      expect(screen.queryByText(averageNote)).not.toBeInTheDocument()
+      respondWith([person(1, { seenFilms: 2 })])
+
+      await user.clear(screen.getByRole('textbox'))
+      await user.click(screen.getByRole('button', { name: 'Average Rating' }))
+
+      expect(await screen.findByText(averageNote)).toBeInTheDocument()
+    })
+
+    it('should keep describing the ranking on screen when a later search fails', async () => {
+      const user = userEvent.setup()
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+      render(<PeopleRankings kind="actor" />)
+      await loadRankingByAverage(user)
+      mockAxiosGet.mockRejectedValueOnce(new Error('network down'))
+
+      await user.type(screen.getByRole('textbox'), 'person{Enter}')
+
+      expect(await screen.findByText('Failed to load actors')).toBeInTheDocument()
+      expect(screen.getByText(averageNote)).toBeInTheDocument()
+      consoleError.mockRestore()
+    })
+
+    it('should clear the note on reset', async () => {
+      const user = userEvent.setup()
+      render(<PeopleRankings kind="actor" />)
+      await loadRankingByAverage(user)
+
+      await user.click(screen.getByRole('button', { name: 'Reset' }))
+
+      expect(screen.queryByText(averageNote)).not.toBeInTheDocument()
+    })
   })
 
   it('should show an error when loading fails', async () => {

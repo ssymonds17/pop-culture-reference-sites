@@ -82,9 +82,22 @@ describe("directors service", () => {
       const result = await getDirectors("averageRating")
 
       expect(result).toBe(directors)
-      expect(mockDirector.find).toHaveBeenCalledWith({})
+      expect(mockDirector.find).toHaveBeenCalledWith({ seenFilms: { $gte: 2 } })
       expect(sort).toHaveBeenCalledWith({ averageRating: -1, seenFilms: -1 })
       expect(limit).toHaveBeenCalledWith(200)
+    })
+  })
+
+  describe("getDirectors without the average sort", () => {
+    it("should not filter on rated films", async () => {
+      const exec = jest.fn().mockResolvedValue([])
+      const limit = jest.fn().mockReturnValue({ exec })
+      const sort = jest.fn().mockReturnValue({ limit })
+      mockDirector.find = jest.fn().mockReturnValue({ sort }) as any
+
+      await getDirectors("totalPoints")
+
+      expect(mockDirector.find).toHaveBeenCalledWith({})
     })
   })
 

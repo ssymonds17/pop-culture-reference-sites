@@ -169,7 +169,7 @@ Toggle the `~` prefix in Bruno to enable/disable parameters.
 ?sortBy=totalPoints        # Sort by weighted score (default)
 ?sortBy=seenFilms          # Sort by number of watched films
 ?sortBy=totalFilms         # Sort by number of films
-?sortBy=averageRating      # Sort by average rating
+?sortBy=averageRating      # Sort by average rating (only people with 2+ rated films)
 ```
 
 ### Search Query Params

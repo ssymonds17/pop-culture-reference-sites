@@ -102,9 +102,9 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 
 | Method | Path | Auth | Description |
 | ------ | ---- | ---- | ----------- |
-| `GET` | `/directors` | | Directors ranked by a stat (up to 200) |
+| `GET` | `/directors` | | Directors ranked by a stat (up to 200; the average-rating ranking needs 2+ rated films) |
 | `GET` | `/director/{tmdbPersonId}` | | A director with their films |
-| `GET` | `/actors` | | Actors ranked by a stat (up to 200, only actors with films) |
+| `GET` | `/actors` | | Actors ranked by a stat (up to 200, only actors with films; the average-rating ranking needs 2+ rated films) |
 | `GET` | `/actor/{tmdbPersonId}` | | An actor with the films they are credited in |
 
 ### Statistics

@@ -1,6 +1,6 @@
 import Actor from "../models/actor"
 import Film, { CastMember, EXCLUDE_DETAIL_FIELDS } from "../models/film"
-import { calculatePersonStats, personStatsSort } from "../models/personStats"
+import { calculatePersonStats, personStatsFilter, personStatsSort } from "../models/personStats"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
 export const findOrCreateActor = async (
@@ -24,7 +24,7 @@ export const findOrCreateActor = async (
 }
 
 export const getActors = async (sortBy?: string) => {
-  return Actor.find({ totalFilms: { $gt: 0 } })
+  return Actor.find({ totalFilms: { $gt: 0 }, ...personStatsFilter(sortBy) })
     .sort(personStatsSort(sortBy))
     .limit(200)
     .exec()

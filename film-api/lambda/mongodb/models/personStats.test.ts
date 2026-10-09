@@ -1,4 +1,4 @@
-import { calculatePersonStats, personStatsSort } from "./personStats"
+import { calculatePersonStats, personStatsFilter, personStatsSort } from "./personStats"
 
 const emptyRatingCounts = {
   rating1: 0,
@@ -119,6 +119,19 @@ describe("personStatsSort", () => {
         averageRating: -1,
         seenFilms: -1,
       })
+    },
+  )
+})
+
+describe("personStatsFilter", () => {
+  it("should require at least two rated films when ranking by average rating", () => {
+    expect(personStatsFilter("averageRating")).toEqual({ seenFilms: { $gte: 2 } })
+  })
+
+  it.each(["totalPoints", "seenFilms", "totalFilms", undefined])(
+    "should not filter when sorting by %s",
+    (sortBy) => {
+      expect(personStatsFilter(sortBy)).toEqual({})
     },
   )
 })

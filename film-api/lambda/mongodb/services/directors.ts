@@ -1,6 +1,6 @@
 import Director from "../models/director"
 import { normalizeForSearch } from "../../utils"
-import { calculatePersonStats, personStatsSort } from "../models/personStats"
+import { calculatePersonStats, personStatsFilter, personStatsSort } from "../models/personStats"
 import { EXCLUDE_DETAIL_FIELDS, FilmDocument } from "../models/film"
 
 export const findOrCreateDirector = async (
@@ -20,7 +20,10 @@ export const findOrCreateDirector = async (
 }
 
 export const getDirectors = async (sortBy?: string) => {
-  return Director.find({}).sort(personStatsSort(sortBy)).limit(200).exec()
+  return Director.find(personStatsFilter(sortBy))
+    .sort(personStatsSort(sortBy))
+    .limit(200)
+    .exec()
 }
 
 export const getDirectorById = async (id: string) => {
