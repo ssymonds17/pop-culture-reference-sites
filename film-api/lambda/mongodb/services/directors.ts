@@ -1,5 +1,7 @@
 import Director, { DirectorData } from "../models/director"
 import { normalizeForSearch } from "../../utils"
+import { calculatePersonStats } from "../models/personStats"
+import { FilmDocument } from "../models/film"
 
 export const createDirector = async (directorData: DirectorData) => {
   return Director.create(directorData)
@@ -70,57 +72,8 @@ export const updateDirectorStats = async (directorId: string) => {
     throw new Error("Director not found")
   }
 
-  const films = director.films as any[]
-
-  // Calculate statistics
-  const totalFilms = films.length
-  const watchedFilms = films.filter((f: any) => f.watched && f.rating)
-  const seenFilms = watchedFilms.length
-
-  const totalScore = watchedFilms.reduce(
-    (sum: number, f: any) => sum + (f.rating || 0),
-    0,
-  )
-
-  const averageRating = seenFilms > 0 ? totalScore / seenFilms : undefined
-
-  // Calculate rating counts
-  const ratingCounts = {
-    rating1: 0,
-    rating2: 0,
-    rating3: 0,
-    rating4: 0,
-    rating5: 0,
-    rating6: 0,
-    rating7: 0,
-    rating8: 0,
-    rating9: 0,
-    rating10: 0,
-  }
-
-  watchedFilms.forEach((f: any) => {
-    const rating = f.rating
-    if (rating >= 1 && rating <= 10) {
-      const key = `rating${rating}` as keyof typeof ratingCounts
-      ratingCounts[key]++
-    }
-  })
-
-  // Calculate total points (6=1pt, 7=3pt, 8=6pt, 9=10pt, 10=15pt)
-  const totalPoints =
-    ratingCounts.rating6 * 1 +
-    ratingCounts.rating7 * 3 +
-    ratingCounts.rating8 * 6 +
-    ratingCounts.rating9 * 10 +
-    ratingCounts.rating10 * 15
-
-  // Update director
-  director.totalFilms = totalFilms
-  director.seenFilms = seenFilms
-  director.averageRating = averageRating
-  director.totalScore = totalScore
-  director.ratingCounts = ratingCounts
-  director.totalPoints = totalPoints
+  const films = director.films as unknown as FilmDocument[]
+  Object.assign(director, calculatePersonStats(films))
 
   return director.save()
 }
