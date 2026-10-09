@@ -64,6 +64,15 @@ describe("Film model", () => {
       expect(film.searchTitle).toBe("leon")
     })
 
+    it("should leave the search title alone when the title has not changed", async () => {
+      const film = Film.hydrate({ _id: new mongoose.Types.ObjectId(), ...baseFilm, searchTitle: "stored" })
+
+      film.rating = 8
+      await film.validate()
+
+      expect(film.searchTitle).toBe("stored")
+    })
+
     it("should follow a change of title", async () => {
       const film = new Film({ ...baseFilm, title: "Old Title" })
       await film.validate()

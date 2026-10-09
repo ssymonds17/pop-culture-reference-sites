@@ -1,4 +1,9 @@
-import { getDirectors, updateDirectorStats } from "./directors"
+import {
+  getDirectorById,
+  getDirectorByTmdbPersonId,
+  getDirectors,
+  updateDirectorStats,
+} from "./directors"
 import Director from "../models/director"
 
 jest.mock("../models/director")
@@ -34,6 +39,28 @@ describe("directors service", () => {
     })
   })
 
+  describe.each([
+    ["getDirectorById", getDirectorById, "findById", "director1", "director1"],
+    ["getDirectorByTmdbPersonId", getDirectorByTmdbPersonId, "findOne", "123", { tmdbPersonId: "123" }],
+  ] as const)("%s", (_name, lookup, method, argument, expectedQuery) => {
+    it("should populate the director's films without the detail-only fields", async () => {
+      const director = { _id: "director1" }
+      const exec = jest.fn().mockResolvedValue(director)
+      const populate = jest.fn().mockReturnValue({ exec })
+      ;(mockDirector as any)[method] = jest.fn().mockReturnValue({ populate })
+
+      const result = await lookup(argument)
+
+      expect(result).toBe(director)
+      expect((mockDirector as any)[method]).toHaveBeenCalledWith(expectedQuery)
+      expect(populate).toHaveBeenCalledWith({
+        path: "films",
+        select: "-cast -productionCompanies -tmdbCollection",
+        options: { sort: { year: -1, title: 1 } },
+      })
+    })
+  })
+
   describe("updateDirectorStats", () => {
     it("should throw when the director does not exist", async () => {
       mockFindByIdPopulated(null)
@@ -58,7 +85,7 @@ describe("directors service", () => {
       await updateDirectorStats("director1")
 
       expect(mockDirector.findById).toHaveBeenCalledWith("director1")
-      expect(populate).toHaveBeenCalledWith("films")
+      expect(populate).toHaveBeenCalledWith({ path: "films", select: "watched rating" })
       expect(save).toHaveBeenCalledTimes(1)
       expect(director).toMatchObject({
         totalFilms: 3,

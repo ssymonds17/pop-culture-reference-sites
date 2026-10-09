@@ -104,7 +104,7 @@ describe("actors service", () => {
 
       expect(mockActor.findOne).toHaveBeenCalledWith({ tmdbPersonId: "123" })
       expect(mockFilm.find).toHaveBeenCalledWith({ "cast.actor": "actor1" })
-      expect(select).toHaveBeenCalledWith("-cast")
+      expect(select).toHaveBeenCalledWith("-cast -productionCompanies -tmdbCollection")
       expect(sort).toHaveBeenCalledWith({ year: -1, title: 1 })
       expect(populate).toHaveBeenCalledWith("directors")
       expect(result).toEqual({ _id: "actor1", displayName: "Actor One", films })

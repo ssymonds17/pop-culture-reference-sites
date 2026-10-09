@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import TopFilms from "../models/topFilms"
-import Film, { FilmDocument } from "../models/film"
+import Film, { EXCLUDE_DETAIL_FIELDS, FilmDocument } from "../models/film"
 
 export const ELIGIBLE_RATINGS = [10, 9, 8] as const
 export type EligibleRating = (typeof ELIGIBLE_RATINGS)[number]
@@ -12,7 +12,11 @@ export const isEligibleRating = (
 
 export const getTopFilms = async () => {
   return TopFilms.findOne()
-    .populate({ path: "filmIds", populate: { path: "directors" } })
+    .populate({
+      path: "filmIds",
+      select: EXCLUDE_DETAIL_FIELDS,
+      populate: { path: "directors" },
+    })
     .exec()
 }
 

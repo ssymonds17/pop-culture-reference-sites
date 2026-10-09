@@ -1,4 +1,8 @@
-import Film, { FilmData } from "../models/film"
+import Film, {
+  EXCLUDE_DETAIL_FIELDS,
+  EXCLUDE_DETAIL_FIELDS_PROJECTION,
+  FilmData,
+} from "../models/film"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
 export const createFilm = async (filmData: FilmData) => {
@@ -68,6 +72,7 @@ export const getFilms = async (filters?: {
   }
 
   return Film.find(query)
+    .select(EXCLUDE_DETAIL_FIELDS)
     .populate("directors")
     .sort({ rating: -1, year: -1, title: 1 })
     .limit(500)
@@ -147,6 +152,7 @@ export const findFilmsByTitle = async (title: string) => {
   return Film.find({ searchTitle: new RegExp(escapeRegex(needle), "i") }, null, {
     sort: { year: -1, title: 1 },
   })
+    .select(EXCLUDE_DETAIL_FIELDS)
     .populate("directors")
     .exec()
 }
@@ -199,6 +205,7 @@ export const getRandomFilms = async (filters?: {
   return Film.aggregate([
     { $match: query },
     { $sample: { size: sampleSize } },
+    { $project: EXCLUDE_DETAIL_FIELDS_PROJECTION },
     { $lookup: {
         from: 'directors',
         localField: 'directors',

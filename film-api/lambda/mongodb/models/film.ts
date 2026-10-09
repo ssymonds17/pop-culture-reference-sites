@@ -42,6 +42,13 @@ export interface FilmDocument extends mongoose.Document {
   tmdbCollection?: FilmCollection // Franchise the film belongs to (from TMDb)
 }
 
+// Only the film detail view shows these, so list queries leave them out to keep responses small.
+const DETAIL_ONLY_FIELDS = ["cast", "productionCompanies", "tmdbCollection"]
+export const EXCLUDE_DETAIL_FIELDS = DETAIL_ONLY_FIELDS.map((field) => `-${field}`).join(" ")
+export const EXCLUDE_DETAIL_FIELDS_PROJECTION = Object.fromEntries(
+  DETAIL_ONLY_FIELDS.map((field) => [field, 0]),
+)
+
 // Type for creating new films (excludes mongoose Document fields)
 export type FilmData = Omit<FilmDocument, keyof mongoose.Document>
 
@@ -102,7 +109,7 @@ const filmSchema = new mongoose.Schema({
   tmdbCollection: { type: filmCollectionSchema },
 })
 
-// Derived here so every path that saves a film keeps it in step with the title.
+// Runs on create, save and insertMany only; a title changed through an update query would skip it.
 filmSchema.pre("validate", function () {
   if (this.isModified("title")) {
     this.searchTitle = normalizeForSearch(this.title)

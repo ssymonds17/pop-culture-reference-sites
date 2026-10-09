@@ -1,7 +1,7 @@
 import Director, { DirectorData } from "../models/director"
 import { normalizeForSearch } from "../../utils"
 import { calculatePersonStats, personStatsSort } from "../models/personStats"
-import { FilmDocument } from "../models/film"
+import { EXCLUDE_DETAIL_FIELDS, FilmDocument } from "../models/film"
 
 export const createDirector = async (directorData: DirectorData) => {
   return Director.create(directorData)
@@ -13,13 +13,21 @@ export const getDirectors = async (sortBy?: string) => {
 
 export const getDirectorById = async (id: string) => {
   return Director.findById(id)
-    .populate({ path: "films", options: { sort: { year: -1, title: 1 } } })
+    .populate({
+      path: "films",
+      select: EXCLUDE_DETAIL_FIELDS,
+      options: { sort: { year: -1, title: 1 } },
+    })
     .exec()
 }
 
 export const getDirectorByTmdbPersonId = async (tmdbPersonId: string) => {
   return Director.findOne({ tmdbPersonId })
-    .populate({ path: "films", options: { sort: { year: -1, title: 1 } } })
+    .populate({
+      path: "films",
+      select: EXCLUDE_DETAIL_FIELDS,
+      options: { sort: { year: -1, title: 1 } },
+    })
     .exec()
 }
 
@@ -43,7 +51,9 @@ export const findDirectorsByName = async (name: string) => {
 }
 
 export const updateDirectorStats = async (directorId: string) => {
-  const director = await Director.findById(directorId).populate("films").exec()
+  const director = await Director.findById(directorId)
+    .populate({ path: "films", select: "watched rating" })
+    .exec()
 
   if (!director) {
     throw new Error("Director not found")

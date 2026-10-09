@@ -1,5 +1,5 @@
 import Actor from "../models/actor"
-import Film, { CastMember } from "../models/film"
+import Film, { CastMember, EXCLUDE_DETAIL_FIELDS } from "../models/film"
 import { calculatePersonStats, personStatsSort } from "../models/personStats"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
@@ -37,7 +37,7 @@ export const getActorByTmdbPersonId = async (tmdbPersonId: string) => {
   }
 
   const films = await Film.find({ "cast.actor": actor._id })
-    .select("-cast")
+    .select(EXCLUDE_DETAIL_FIELDS)
     .sort({ year: -1, title: 1 })
     .populate("directors")
     .exec()

@@ -10,7 +10,7 @@ export const getYearStats = async (year: number) => {
 }
 
 export const updateYearStats = async (year: number) => {
-  const films = await Film.find({ year }).exec()
+  const films = await Film.find({ year }).select("watched rating genres").exec()
 
   const totalFilms = films.length
   const watchedFilms = films.filter((f) => f.watched && f.rating)
