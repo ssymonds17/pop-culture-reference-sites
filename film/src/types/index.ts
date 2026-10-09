@@ -59,6 +59,7 @@ export interface Person extends PersonStats {
   tmdbPersonId: string
   name: string
   displayName: string
+  profilePath?: string // TMDb profile image path; absent when TMDb has no photo
 }
 
 export interface Director extends Person {
@@ -66,7 +67,6 @@ export interface Director extends Person {
 }
 
 export interface Actor extends Person {
-  profilePath?: string
   // Only returned by the single-actor endpoint
   films?: Film[]
 }

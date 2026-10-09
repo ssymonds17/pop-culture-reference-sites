@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import axios from 'axios'
 import PersonFilmsModal from './PersonFilmsModal'
 import { API_ENDPOINTS } from '@/lib/api'
@@ -103,6 +103,78 @@ describe('PersonFilmsModal', () => {
 
     expect(await screen.findByText('Failed to load films')).toBeInTheDocument()
     consoleError.mockRestore()
+  })
+
+  describe('photo', () => {
+    const withPhoto = { ...person, profilePath: '/weaver.jpg' }
+
+    it("should show the person's TMDb photo as a decorative image", async () => {
+      mockAxiosGet.mockResolvedValueOnce(filmsResponse([]))
+
+      const { container } = render(renderModal(withPhoto))
+
+      const photo = container.querySelector('img')
+      expect(photo).toHaveAttribute('src', 'https://image.tmdb.org/t/p/w185/weaver.jpg')
+      expect(photo).toHaveAttribute('alt', '')
+      expect(screen.queryByText('SW')).not.toBeInTheDocument()
+      await screen.findByText('No films found')
+    })
+
+    it.each([
+      ['Sigourney Weaver', 'SW'],
+      ['Philip Seymour Hoffman', 'PH'],
+      ['Madonna', 'M'],
+      ['  Sigourney   Weaver ', 'SW'],
+      ['Éva Green', 'ÉG'],
+    ])('should show initials for "%s" when there is no photo', async (displayName, initials) => {
+      mockAxiosGet.mockResolvedValueOnce(filmsResponse([]))
+
+      const { container } = render(renderModal({ ...person, displayName }))
+
+      expect(container.querySelector('img')).not.toBeInTheDocument()
+      expect(screen.getByText(initials)).toHaveAttribute('aria-hidden', 'true')
+      await screen.findByText('No films found')
+    })
+
+    it('should fall back to initials when the photo fails to load', async () => {
+      mockAxiosGet.mockResolvedValueOnce(filmsResponse([]))
+      const { container } = render(renderModal(withPhoto))
+
+      fireEvent.error(container.querySelector('img')!)
+
+      expect(container.querySelector('img')).not.toBeInTheDocument()
+      expect(screen.getByText('SW')).toBeInTheDocument()
+      await screen.findByText('No films found')
+    })
+
+    it('should still load a different photo after one has failed', async () => {
+      mockAxiosGet
+        .mockResolvedValueOnce(filmsResponse([]))
+        .mockResolvedValueOnce(filmsResponse([]))
+      const { container, rerender } = render(renderModal(withPhoto))
+      fireEvent.error(container.querySelector('img')!)
+
+      rerender(renderModal({ ...otherPerson, profilePath: '/paxton.jpg' }))
+
+      expect(container.querySelector('img')).toHaveAttribute(
+        'src',
+        'https://image.tmdb.org/t/p/w185/paxton.jpg'
+      )
+      await screen.findByText('No films found')
+    })
+
+    it('should switch from a photo to initials for a person without one', async () => {
+      mockAxiosGet
+        .mockResolvedValueOnce(filmsResponse([]))
+        .mockResolvedValueOnce(filmsResponse([]))
+      const { container, rerender } = render(renderModal(withPhoto))
+
+      rerender(renderModal(otherPerson))
+
+      expect(container.querySelector('img')).not.toBeInTheDocument()
+      expect(screen.getByText('BP')).toBeInTheDocument()
+      await screen.findByText('No films found')
+    })
   })
 
   it('should say no films were found when the response has none', async () => {

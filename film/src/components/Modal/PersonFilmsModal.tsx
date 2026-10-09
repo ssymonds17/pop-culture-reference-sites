@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Film, Person } from "@/types"
 import axios from "axios"
 import { PERSON_KINDS, PersonKind } from "@/lib/personKinds"
+import { getTmdbPosterUrl } from "@/lib/utils"
 
 interface PersonFilmsModalProps {
   person: Person | null
@@ -11,6 +12,15 @@ interface PersonFilmsModalProps {
   isOpen: boolean
   onClose: () => void
 }
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => Array.from(word)[0])
+    .filter((_, index, letters) => index === 0 || index === letters.length - 1)
+    .join("")
+    .toUpperCase()
 
 type FilmsState =
   | { key: string; status: "loaded"; films: Film[] }
@@ -24,6 +34,8 @@ export default function PersonFilmsModal({
 }: PersonFilmsModalProps) {
   // Keyed by person and kind so switching never shows the previous person's films while loading
   const [filmsState, setFilmsState] = useState<FilmsState | null>(null)
+  // Remembered by path so a stale TMDb photo falls back to initials, and a different photo still loads
+  const [failedPhotoPath, setFailedPhotoPath] = useState<string | null>(null)
   const tmdbPersonId = person?.tmdbPersonId
   const requestKey = tmdbPersonId ? `${kind}:${tmdbPersonId}` : null
 
@@ -65,6 +77,7 @@ export default function PersonFilmsModal({
   const loading = currentFilms === null
   const error = currentFilms?.status === "error" ? "Failed to load films" : null
   const films = currentFilms?.status === "loaded" ? currentFilms.films : []
+  const photoPath = person.profilePath !== failedPhotoPath ? person.profilePath : undefined
 
   return (
     <div
@@ -75,12 +88,31 @@ export default function PersonFilmsModal({
         className="bg-gray-900 border border-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-2">{person.displayName}</h2>
-        <p className="text-gray-400 text-sm mb-6">
-          {person.totalFilms} films · {person.seenFilms} seen
-          {person.averageRating &&
-            ` · ${person.averageRating.toFixed(2)} avg rating`}
-        </p>
+        <div className="flex items-center gap-4 mb-6">
+          {photoPath ? (
+            <img
+              src={getTmdbPosterUrl(photoPath, "w185")}
+              alt=""
+              onError={() => setFailedPhotoPath(photoPath)}
+              className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-xl font-semibold text-gray-400 flex-shrink-0"
+            >
+              {initialsOf(person.displayName)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold mb-2">{person.displayName}</h2>
+            <p className="text-gray-400 text-sm">
+              {person.totalFilms} films · {person.seenFilms} seen
+              {person.averageRating &&
+                ` · ${person.averageRating.toFixed(2)} avg rating`}
+            </p>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-4 bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded">
