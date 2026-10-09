@@ -1,4 +1,4 @@
-import { calculatePersonStats } from "./personStats"
+import { calculatePersonStats, personStatsSort } from "./personStats"
 
 const emptyRatingCounts = {
   rating1: 0,
@@ -91,4 +91,26 @@ describe("calculatePersonStats", () => {
       totalPoints: 23,
     })
   })
+})
+
+describe("personStatsSort", () => {
+  it.each([
+    ["seenFilms", { seenFilms: -1, totalPoints: -1 }],
+    ["totalFilms", { totalFilms: -1, totalPoints: -1 }],
+    ["averageRating", { averageRating: -1, seenFilms: -1 }],
+    ["totalPoints", { totalPoints: -1, averageRating: -1, seenFilms: -1 }],
+  ])("should sort by %s", (sortBy, expected) => {
+    expect(personStatsSort(sortBy)).toEqual(expected)
+  })
+
+  it.each([undefined, "unknown"])(
+    "should fall back to total points for %s",
+    (sortBy) => {
+      expect(personStatsSort(sortBy)).toEqual({
+        totalPoints: -1,
+        averageRating: -1,
+        seenFilms: -1,
+      })
+    },
+  )
 })

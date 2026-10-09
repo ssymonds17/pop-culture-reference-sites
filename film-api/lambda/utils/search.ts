@@ -1,3 +1,7 @@
+export const escapeRegex = (str: string) => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 /**
  * Folds a string into an accent-insensitive form for searching.
  *

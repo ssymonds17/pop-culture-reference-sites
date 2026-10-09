@@ -78,6 +78,10 @@ export const getFilmById = async (id: string) => {
   return Film.findById(id).populate("directors").exec()
 }
 
+export const getFilmDetailsById = async (id: string) => {
+  return Film.findById(id).populate("directors").populate("cast.actor").exec()
+}
+
 export const getFilmByTmdbId = async (tmdbId: string) => {
   return Film.findOne({ tmdbId }).exec()
 }

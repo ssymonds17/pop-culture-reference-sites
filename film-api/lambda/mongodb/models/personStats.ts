@@ -88,3 +88,17 @@ export const calculatePersonStats = (
     totalPoints,
   }
 }
+
+export const personStatsSort = (sortBy?: string): Record<string, 1 | -1> => {
+  switch (sortBy) {
+    case "seenFilms":
+      return { seenFilms: -1, totalPoints: -1 }
+    case "totalFilms":
+      return { totalFilms: -1, totalPoints: -1 }
+    case "averageRating":
+      return { averageRating: -1, seenFilms: -1 }
+    case "totalPoints":
+    default:
+      return { totalPoints: -1, averageRating: -1, seenFilms: -1 }
+  }
+}

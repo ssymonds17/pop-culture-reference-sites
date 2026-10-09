@@ -5,6 +5,7 @@ export {
   createFilm,
   getFilms,
   getFilmById,
+  getFilmDetailsById,
   getFilmByTmdbId,
   updateFilm,
   deleteFilm,
@@ -22,6 +23,15 @@ export {
   findDirectorsByName,
   updateDirectorStats,
 } from "./services/directors"
+
+// Actor services
+export {
+  findOrCreateActor,
+  getActors,
+  getActorByTmdbPersonId,
+  findActorsByName,
+  updateActorStats,
+} from "./services/actors"
 
 // Director model (for direct updates)
 export { default as Director } from "./models/director"

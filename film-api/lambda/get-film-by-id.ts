@@ -1,5 +1,5 @@
 import { createApiResponse, logger } from "./utils"
-import { connectToDatabase, getFilmById } from "./mongodb"
+import { connectToDatabase, getFilmDetailsById } from "./mongodb"
 
 const handler = async (event: any) => {
   const filmId = event.pathParameters?.id
@@ -11,7 +11,7 @@ const handler = async (event: any) => {
 
     await connectToDatabase()
 
-    const film = await getFilmById(filmId)
+    const film = await getFilmDetailsById(filmId)
 
     if (!film) {
       return createApiResponse(404, {

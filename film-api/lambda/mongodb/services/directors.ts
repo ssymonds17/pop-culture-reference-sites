@@ -1,6 +1,6 @@
 import Director, { DirectorData } from "../models/director"
 import { normalizeForSearch } from "../../utils"
-import { calculatePersonStats } from "../models/personStats"
+import { calculatePersonStats, personStatsSort } from "../models/personStats"
 import { FilmDocument } from "../models/film"
 
 export const createDirector = async (directorData: DirectorData) => {
@@ -8,30 +8,7 @@ export const createDirector = async (directorData: DirectorData) => {
 }
 
 export const getDirectors = async (sortBy?: string) => {
-  const sortOptions: any = {}
-
-  switch (sortBy) {
-    case "seenFilms":
-      sortOptions.seenFilms = -1
-      sortOptions.totalPoints = -1
-      break
-    case "totalFilms":
-      sortOptions.totalFilms = -1
-      sortOptions.totalPoints = -1
-      break
-    case "averageRating":
-      sortOptions.averageRating = -1
-      sortOptions.seenFilms = -1
-      break
-    case "totalPoints":
-    default:
-      sortOptions.totalPoints = -1
-      sortOptions.averageRating = -1
-      sortOptions.seenFilms = -1
-      break
-  }
-
-  return Director.find({}).sort(sortOptions).limit(200).exec()
+  return Director.find({}).sort(personStatsSort(sortBy)).limit(200).exec()
 }
 
 export const getDirectorById = async (id: string) => {

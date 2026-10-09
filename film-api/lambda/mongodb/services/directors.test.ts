@@ -1,4 +1,4 @@
-import { updateDirectorStats } from "./directors"
+import { getDirectors, updateDirectorStats } from "./directors"
 import Director from "../models/director"
 
 jest.mock("../models/director")
@@ -15,6 +15,23 @@ const mockFindByIdPopulated = (result: unknown) => {
 describe("directors service", () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  describe("getDirectors", () => {
+    it("should return directors sorted by the requested stat and limited to 200", async () => {
+      const directors = [{ _id: "director1" }]
+      const exec = jest.fn().mockResolvedValue(directors)
+      const limit = jest.fn().mockReturnValue({ exec })
+      const sort = jest.fn().mockReturnValue({ limit })
+      mockDirector.find = jest.fn().mockReturnValue({ sort }) as any
+
+      const result = await getDirectors("averageRating")
+
+      expect(result).toBe(directors)
+      expect(mockDirector.find).toHaveBeenCalledWith({})
+      expect(sort).toHaveBeenCalledWith({ averageRating: -1, seenFilms: -1 })
+      expect(limit).toHaveBeenCalledWith(200)
+    })
   })
 
   describe("updateDirectorStats", () => {
