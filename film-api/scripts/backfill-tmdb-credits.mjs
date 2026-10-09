@@ -208,7 +208,7 @@ async function backfillFilms(db) {
 
     console.log(
       `  [${index + 1}/${pending.length}] ${label}: ${credited.length} cast, ` +
-        `${productionCompanies.length} companies${tmdbCollection ? `, collection "${tmdbCollection.name}"` : ""}`
+        `${productionCompanies.length} ${productionCompanies.length === 1 ? "company" : "companies"}${tmdbCollection ? `, collection "${tmdbCollection.name}"` : ""}`
     )
 
     if (DRY_RUN) {
