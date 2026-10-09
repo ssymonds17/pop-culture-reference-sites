@@ -46,4 +46,32 @@ describe("Film model", () => {
       expect.arrayContaining(["cast.0.actor", "cast.0.order"]),
     )
   })
+
+  describe("searchTitle", () => {
+    it("should be derived from the title as lowercase without accents", async () => {
+      const film = new Film({ ...baseFilm, title: "  Amélie " })
+
+      await film.validate()
+
+      expect(film.searchTitle).toBe("amelie")
+    })
+
+    it("should replace a searchTitle sent with the film", async () => {
+      const film = new Film({ ...baseFilm, title: "Léon", searchTitle: "something else" })
+
+      await film.validate()
+
+      expect(film.searchTitle).toBe("leon")
+    })
+
+    it("should follow a change of title", async () => {
+      const film = new Film({ ...baseFilm, title: "Old Title" })
+      await film.validate()
+
+      film.title = "Ça"
+      await film.validate()
+
+      expect(film.searchTitle).toBe("ca")
+    })
+  })
 })

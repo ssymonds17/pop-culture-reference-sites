@@ -1,5 +1,5 @@
 import Film, { FilmData } from "../models/film"
-import { normalizeForSearch } from "../../utils"
+import { escapeRegex, normalizeForSearch } from "../../utils"
 
 export const createFilm = async (filmData: FilmData) => {
   return Film.create(filmData)
@@ -143,21 +143,12 @@ export const findFilmsByTitle = async (title: string) => {
     return []
   }
 
-  // Accent-insensitive substring match. A MongoDB regex compares against the
-  // raw stored title, so "Amelie" would never match a stored "Amélie". Instead
-  // we fold both the stored title and the query to a diacritic-free form and
-  // compare in app code. The dataset is small (a few thousand films), so
-  // fetching and filtering here is cheap.
-  const films = await Film.find({}, null, {
+  // The stored searchTitle is folded at write time, so the folded query can be matched in the database.
+  return Film.find({ searchTitle: new RegExp(escapeRegex(needle), "i") }, null, {
     sort: { year: -1, title: 1 },
-  }).exec()
-
-  const matches = films.filter((film) =>
-    normalizeForSearch(film.title).includes(needle),
-  )
-
-  // Populate directors only for the matched films to keep the payload small.
-  return Film.populate(matches, { path: "directors" })
+  })
+    .populate("directors")
+    .exec()
 }
 
 export const getUniqueGenres = async () => {

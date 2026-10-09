@@ -1,4 +1,5 @@
 import mongoose from "mongoose"
+import { normalizeForSearch } from "../../utils/search"
 
 export interface CastMember {
   actor: mongoose.Types.ObjectId // Actor reference
@@ -20,6 +21,7 @@ export interface FilmCollection {
 
 export interface FilmDocument extends mongoose.Document {
   title: string // Primary title (from TMDb)
+  searchTitle?: string // Lowercased and accent-folded title for searching
   year: number // Release year
   directors: mongoose.Types.ObjectId[] // Array of Director IDs
   watched: boolean // Seen status
@@ -72,6 +74,7 @@ const filmCollectionSchema = new mongoose.Schema(
 
 const filmSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  searchTitle: { type: String },
   year: { type: Number, required: true },
   directors: [
     {
@@ -97,6 +100,13 @@ const filmSchema = new mongoose.Schema({
   cast: { type: [castMemberSchema], default: undefined },
   productionCompanies: { type: [productionCompanySchema], default: undefined },
   tmdbCollection: { type: filmCollectionSchema },
+})
+
+// Derived here so every path that saves a film keeps it in step with the title.
+filmSchema.pre("validate", function () {
+  if (this.isModified("title")) {
+    this.searchTitle = normalizeForSearch(this.title)
+  }
 })
 
 // Indexes for efficient querying
