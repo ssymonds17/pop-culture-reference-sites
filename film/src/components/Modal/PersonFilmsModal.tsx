@@ -12,40 +12,59 @@ interface PersonFilmsModalProps {
   onClose: () => void
 }
 
+type FilmsState =
+  | { key: string; status: "loaded"; films: Film[] }
+  | { key: string; status: "error" }
+
 export default function PersonFilmsModal({
   person,
   kind,
   isOpen,
   onClose,
 }: PersonFilmsModalProps) {
-  const [films, setFilms] = useState<Film[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Keyed by person and kind so switching never shows the previous person's films while loading
+  const [filmsState, setFilmsState] = useState<FilmsState | null>(null)
+  const tmdbPersonId = person?.tmdbPersonId
+  const requestKey = tmdbPersonId ? `${kind}:${tmdbPersonId}` : null
 
   useEffect(() => {
+    if (!isOpen || !tmdbPersonId || !requestKey) return
+
+    let cancelled = false
+    setFilmsState((previous) => (previous?.status === "error" ? null : previous))
+
     const fetchPersonFilms = async () => {
-      if (!isOpen || !person) return
-
       try {
-        setLoading(true)
-        setError(null)
-
-        const response = await axios.get(
-          PERSON_KINDS[kind].detailEndpoint(person.tmdbPersonId),
+        const response = await axios.get<{ data: { films?: Film[] } }>(
+          PERSON_KINDS[kind].detailEndpoint(tmdbPersonId),
         )
-        setFilms(response.data.data.films || [])
+        if (!cancelled) {
+          setFilmsState({
+            key: requestKey,
+            status: "loaded",
+            films: response.data.data.films || [],
+          })
+        }
       } catch (err) {
+        if (cancelled) return
         console.error(`Error fetching ${PERSON_KINDS[kind].singular} films:`, err)
-        setError("Failed to load films")
-      } finally {
-        setLoading(false)
+        setFilmsState({ key: requestKey, status: "error" })
       }
     }
 
     fetchPersonFilms()
-  }, [isOpen, person, kind])
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, kind, tmdbPersonId, requestKey])
 
   if (!isOpen || !person) return null
+
+  const currentFilms = filmsState?.key === requestKey ? filmsState : null
+  const loading = currentFilms === null
+  const error = currentFilms?.status === "error" ? "Failed to load films" : null
+  const films = currentFilms?.status === "loaded" ? currentFilms.films : []
 
   return (
     <div
