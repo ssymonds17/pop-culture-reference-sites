@@ -67,6 +67,14 @@ describe("calculatePersonStats", () => {
     expect(stats.totalPoints).toBe(6)
   })
 
+  it("should count a non-whole rating as seen but not in the rating counts", () => {
+    const stats = calculatePersonStats([{ watched: true, rating: 7.5 }])
+
+    expect(stats.seenFilms).toBe(1)
+    expect(stats.totalScore).toBe(7.5)
+    expect(stats.ratingCounts).toEqual(emptyRatingCounts)
+  })
+
   it("should treat a watched film with a rating of 0 as unseen", () => {
     const stats = calculatePersonStats([{ watched: true, rating: 0 }])
 

@@ -66,7 +66,7 @@ export const calculatePersonStats = (
 
   watchedFilms.forEach((f) => {
     const rating = f.rating as number
-    if (rating >= 1 && rating <= 10) {
+    if (Number.isInteger(rating) && rating >= 1 && rating <= 10) {
       const key = `rating${rating}` as keyof RatingCounts
       ratingCounts[key]++
     }
