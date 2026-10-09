@@ -4,6 +4,7 @@ import {
   getActorByTmdbPersonId,
   findActorsByName,
   updateActorStats,
+  updateCastActorStats,
 } from "./actors"
 import Actor from "../models/actor"
 import Film from "../models/film"
@@ -185,6 +186,39 @@ describe("actors service", () => {
         totalScore: 9,
         totalPoints: 10,
       })
+    })
+  })
+
+  describe("updateCastActorStats", () => {
+    const mockActorLookups = () => {
+      mockActor.findById = jest.fn().mockImplementation((id: string) => ({
+        exec: jest.fn().mockResolvedValue({ _id: id, save: jest.fn() }),
+      })) as any
+      mockFilm.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      }) as any
+    }
+
+    it("should recalculate each actor once, even when they play several roles", async () => {
+      mockActorLookups()
+
+      await updateCastActorStats([
+        { actor: "actor1", character: "Role A", order: 0 },
+        { actor: "actor2", character: "Role B", order: 1 },
+        { actor: "actor1", character: "Role C", order: 2 },
+      ] as any)
+
+      expect(mockActor.findById).toHaveBeenCalledTimes(2)
+      expect(mockActor.findById).toHaveBeenCalledWith("actor1")
+      expect(mockActor.findById).toHaveBeenCalledWith("actor2")
+    })
+
+    it("should do nothing for a film with no cast", async () => {
+      mockActorLookups()
+
+      await updateCastActorStats(undefined)
+
+      expect(mockActor.findById).not.toHaveBeenCalled()
     })
   })
 })

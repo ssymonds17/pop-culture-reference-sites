@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director, removeFilmFromTop } from "./mongodb"
+import { connectToDatabase, getFilmById, deleteFilm, updateDirectorStats, updateYearStats, Director, removeFilmFromTop, updateCastActorStats } from "./mongodb"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
@@ -45,6 +45,9 @@ const handlerImpl = async (event: any, _userId: string) => {
 
     // Remove from top films list (no-op if not present)
     await removeFilmFromTop(filmId)
+
+    // Last, so a failing actor lookup cannot skip the year and top-film updates.
+    await updateCastActorStats(film.cast)
 
     return createApiResponse(200, {
       message: "Successfully deleted film",

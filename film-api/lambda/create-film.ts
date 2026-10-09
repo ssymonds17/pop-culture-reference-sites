@@ -1,12 +1,13 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating } from "./mongodb"
-import { FilmData } from "./mongodb/models/film"
+import { connectToDatabase, createFilm, getFilmByTmdbId, createDirector, getDirectorByTmdbPersonId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating, findOrCreateActor, updateCastActorStats } from "./mongodb"
+import { CastMember, FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
+const MAX_CAST = 20
 
 interface TmdbFilmDetails {
   id: number
@@ -19,11 +20,27 @@ interface TmdbFilmDetails {
   overview?: string
   vote_average?: number
   credits?: {
+    cast?: TmdbCastMember[]
     crew?: Array<{ id: number; name: string; job: string }>
   }
   external_ids?: {
     imdb_id?: string
   }
+  production_companies?: Array<{
+    id: number
+    name: string
+    logo_path?: string | null
+    origin_country?: string
+  }>
+  belongs_to_collection?: { id: number; name: string } | null
+}
+
+interface TmdbCastMember {
+  id: number
+  name: string
+  character?: string
+  order: number
+  profile_path?: string | null
 }
 
 const getTmdbFilmDetails = async (tmdbId: string): Promise<TmdbFilmDetails> => {
@@ -49,6 +66,30 @@ const findOrCreateDirector = async (tmdbPersonId: string, name: string) => {
   }
 
   return director
+}
+
+// TMDb has no lead/supporting flag, so billing order is the best proxy for who matters.
+const buildCast = async (tmdbCast: TmdbCastMember[] = []): Promise<CastMember[]> => {
+  const credited = tmdbCast
+    .filter((member) => !member.character?.includes("(uncredited)"))
+    .sort((a, b) => a.order - b.order)
+    .slice(0, MAX_CAST)
+
+  const cast: CastMember[] = []
+  for (const member of credited) {
+    const actor = await findOrCreateActor(
+      member.id.toString(),
+      member.name,
+      member.profile_path ?? undefined
+    )
+    cast.push({
+      actor: actor._id,
+      character: member.character || undefined,
+      order: member.order,
+    })
+  }
+
+  return cast
 }
 
 const handlerImpl = async (event: any, _userId: string) => {
@@ -92,6 +133,8 @@ const handlerImpl = async (event: any, _userId: string) => {
         }
       }
 
+      const cast = await buildCast(tmdbDetails.credits?.cast)
+
       // Extract year from release_date
       const year = tmdbDetails.release_date
         ? new Date(tmdbDetails.release_date).getFullYear()
@@ -112,6 +155,19 @@ const handlerImpl = async (event: any, _userId: string) => {
         posterPath: tmdbDetails.poster_path,
         overview: tmdbDetails.overview,
         voteAverage: tmdbDetails.vote_average,
+        cast,
+        productionCompanies: (tmdbDetails.production_companies ?? []).map((company) => ({
+          tmdbId: company.id.toString(),
+          name: company.name,
+          logoPath: company.logo_path ?? undefined,
+          originCountry: company.origin_country || undefined,
+        })),
+        tmdbCollection: tmdbDetails.belongs_to_collection
+          ? {
+              tmdbId: tmdbDetails.belongs_to_collection.id.toString(),
+              name: tmdbDetails.belongs_to_collection.name,
+            }
+          : undefined,
       }
 
       const newFilm = await createFilm(filmData)
@@ -133,6 +189,9 @@ const handlerImpl = async (event: any, _userId: string) => {
       if (isEligibleRating(newFilm.rating)) {
         await addFilmToTopAtTierBottom(newFilm._id.toString(), newFilm.rating)
       }
+
+      // Last, so a failing actor lookup cannot skip the year and top-film updates.
+      await updateCastActorStats(cast)
 
       return createApiResponse(201, {
         id: newFilm._id,
@@ -156,6 +215,8 @@ const handlerImpl = async (event: any, _userId: string) => {
       if (isEligibleRating(newFilm.rating)) {
         await addFilmToTopAtTierBottom(newFilm._id.toString(), newFilm.rating)
       }
+
+      await updateCastActorStats(newFilm.cast)
 
       return createApiResponse(201, {
         id: newFilm._id,

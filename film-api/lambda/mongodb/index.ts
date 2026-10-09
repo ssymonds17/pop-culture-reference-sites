@@ -31,6 +31,7 @@ export {
   getActorByTmdbPersonId,
   findActorsByName,
   updateActorStats,
+  updateCastActorStats,
 } from "./services/actors"
 
 // Director model (for direct updates)

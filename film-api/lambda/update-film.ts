@@ -1,18 +1,19 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, removeFilmFromTop, isEligibleRating } from "./mongodb"
+import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, removeFilmFromTop, isEligibleRating, updateCastActorStats } from "./mongodb"
 
 const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
-  const { rating, owned, review } = JSON.parse(event.body)
 
   try {
+    const { rating, owned, review } = JSON.parse(event.body)
+
     if (!filmId) {
       throw new Error("Film ID is missing")
     }
 
-    if (rating !== undefined && rating !== null && (rating < 1 || rating > 10)) {
-      throw new Error("Rating must be between 1 and 10")
+    if (rating !== undefined && rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 10)) {
+      throw new Error("Rating must be a whole number between 1 and 10")
     }
 
     await connectToDatabase()
@@ -56,6 +57,9 @@ const handlerImpl = async (event: any, _userId: string) => {
           logger.info(`Added film ${filmId} to top films at bottom of tier ${newTier}`)
         }
       }
+
+      // Last, so a failing actor lookup cannot skip the year and top-film updates.
+      await updateCastActorStats(currentFilm.cast)
     }
 
     return createApiResponse(200, {

@@ -1,5 +1,5 @@
 import Actor from "../models/actor"
-import Film from "../models/film"
+import Film, { CastMember } from "../models/film"
 import { calculatePersonStats, personStatsSort } from "../models/personStats"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
@@ -70,4 +70,11 @@ export const updateActorStats = async (actorId: string) => {
   Object.assign(actor, calculatePersonStats(films))
 
   return actor.save()
+}
+
+// An actor can appear more than once when they play several roles, so recompute each only once.
+export const updateCastActorStats = async (cast: CastMember[] = []) => {
+  const actorIds = new Set(cast.map((member) => member.actor.toString()))
+
+  await Promise.all([...actorIds].map((actorId) => updateActorStats(actorId)))
 }
