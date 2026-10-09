@@ -16,14 +16,25 @@ export interface Film {
   voteAverage?: number
   originalTitle?: string
   review?: string
+  // Only returned by the single-film endpoint, not by film lists
+  cast?: CastMember[]
+  productionCompanies?: ProductionCompany[]
 }
 
-export interface Director {
-  _id: string
-  tmdbPersonId: string
+export interface CastMember {
+  actor: Actor | null // null when the actor document no longer exists
+  character?: string
+  order: number
+}
+
+export interface ProductionCompany {
+  tmdbId: string
   name: string
-  displayName: string
-  films: Film[]
+  logoPath?: string
+  originCountry?: string
+}
+
+export interface PersonStats {
   totalFilms: number
   seenFilms: number
   averageRating?: number
@@ -41,6 +52,24 @@ export interface Director {
     rating10: number
   }
   totalPoints: number
+}
+
+export interface Director extends PersonStats {
+  _id: string
+  tmdbPersonId: string
+  name: string
+  displayName: string
+  films: Film[]
+}
+
+export interface Actor extends PersonStats {
+  _id: string
+  tmdbPersonId: string
+  name: string
+  displayName: string
+  profilePath?: string
+  // Only returned by the single-actor endpoint
+  films?: Film[]
 }
 
 export interface YearStats {

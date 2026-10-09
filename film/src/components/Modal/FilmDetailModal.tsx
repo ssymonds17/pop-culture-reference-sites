@@ -1,12 +1,24 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Film } from "@/types"
+import { useState, useEffect, useId, useRef } from "react"
+import axios from "axios"
+import { Actor, CastMember, Film } from "@/types"
 import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
 import { createAuthenticatedClient } from "@/lib/auth-api"
 import { formatDirectorNames, formatDuration, getTmdbPosterUrl } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
+
+const CAST_PREVIEW_SIZE = 5
+
+type FilmDetails = Pick<Film, "cast" | "productionCompanies">
+
+type DetailsState =
+  | { filmId: string; status: "loaded"; data: FilmDetails }
+  | { filmId: string; status: "error" }
+
+const hasActor = (member: CastMember): member is CastMember & { actor: Actor } =>
+  member.actor !== null
 
 const Spinner = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg
@@ -62,6 +74,10 @@ export default function FilmDetailModal({
   const [ratingSaved, setRatingSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Keyed by film so switching film never shows the previous film's cast while the new one loads
+  const [detailsState, setDetailsState] = useState<DetailsState | null>(null)
+  const [expandedCastFilmId, setExpandedCastFilmId] = useState<string | null>(null)
+  const castHeadingId = useId()
 
   useEffect(() => {
     if (isOpen && film) {
@@ -89,6 +105,34 @@ export default function FilmDetailModal({
       if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     }
   }, [])
+
+  // Cast and companies only come from the single-film endpoint, not the lists that open this modal
+  const filmId = film?._id
+  useEffect(() => {
+    if (!isOpen || !filmId) return
+
+    let cancelled = false
+    setDetailsState((previous) => (previous?.status === "error" ? null : previous))
+
+    const fetchDetails = async () => {
+      try {
+        const response = await axios.get<{ data: FilmDetails }>(API_ENDPOINTS.film(filmId))
+        if (!cancelled) {
+          setDetailsState({ filmId, status: "loaded", data: response.data.data })
+        }
+      } catch (err) {
+        if (cancelled) return
+        console.error("Error fetching film details:", err)
+        setDetailsState({ filmId, status: "error" })
+      }
+    }
+
+    fetchDetails()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, filmId])
 
   const patchFilm = async (updates: Record<string, unknown>) => {
     if (!film) return
@@ -180,6 +224,15 @@ export default function FilmDetailModal({
   const displayRating =
     pendingRating !== undefined ? pendingRating : film.rating
 
+  const currentDetails = detailsState?.filmId === film._id ? detailsState : null
+  const isLoadingDetails = currentDetails === null
+  const detailsError = currentDetails?.status === "error"
+  const loadedDetails = currentDetails?.status === "loaded" ? currentDetails.data : null
+  const cast = (loadedDetails?.cast ?? []).filter(hasActor)
+  const showFullCast = expandedCastFilmId === film._id
+  const visibleCast = showFullCast ? cast : cast.slice(0, CAST_PREVIEW_SIZE)
+  const productionCompanies = loadedDetails?.productionCompanies ?? []
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -224,6 +277,12 @@ export default function FilmDetailModal({
               <p className="text-sm text-gray-400 mt-1">
                 <span className="text-gray-500">Directed by </span>
                 {formatDirectorNames(film.directors)}
+              </p>
+            )}
+            {productionCompanies.length > 0 && (
+              <p className="text-sm text-gray-400 mt-1">
+                <span className="text-gray-500">Produced by </span>
+                {productionCompanies.map((company) => company.name).join(", ")}
               </p>
             )}
           </div>
@@ -366,6 +425,46 @@ export default function FilmDetailModal({
             <p className="text-sm text-gray-500">No genres</p>
           )}
         </div>
+
+        {/* Cast */}
+        {(isLoadingDetails || detailsError || cast.length > 0) && (
+          <div className="mb-6">
+            <h3 id={castHeadingId} className="block text-sm font-medium text-gray-400 mb-2">
+              Cast
+            </h3>
+            {isLoadingDetails ? (
+              <p role="status" className="flex items-center gap-1.5 text-sm text-gray-500">
+                <Spinner />
+                Loading cast...
+              </p>
+            ) : detailsError ? (
+              <p className="text-sm text-gray-500">Could not load cast</p>
+            ) : (
+              <>
+                <ul aria-labelledby={castHeadingId} className="space-y-1 text-sm">
+                  {visibleCast.map((member) => (
+                    <li key={`${member.actor._id}-${member.order}`} className="text-gray-300">
+                      {member.actor.displayName}
+                      {member.character && (
+                        <span className="text-gray-500"> as {member.character}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {cast.length > CAST_PREVIEW_SIZE && (
+                  <button
+                    type="button"
+                    aria-expanded={showFullCast}
+                    onClick={() => setExpandedCastFilmId(showFullCast ? null : film._id)}
+                    className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    {showFullCast ? "Show less" : `Show full cast (${cast.length})`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* Overview */}
         {film.overview && (
