@@ -156,7 +156,7 @@ describe("create-film handler", () => {
       expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1", "Unknown Director", undefined)
     })
 
-    it("should keep the top 20 credited cast members in billing order", async () => {
+    it("should keep the top 10 credited cast members in billing order", async () => {
       const cast = [
         castMember(0, { character: "Narrator (uncredited)" }),
         ...Array.from({ length: 25 }, (_, i) => castMember(25 - i)),
@@ -168,16 +168,16 @@ describe("create-film handler", () => {
       await handler(tmdbEvent)
 
       const storedCast = createdFilmData().cast
-      expect(storedCast).toHaveLength(20)
+      expect(storedCast).toHaveLength(10)
       expect(storedCast.map((member: any) => member.order)).toEqual(
-        Array.from({ length: 20 }, (_, i) => i + 1),
+        Array.from({ length: 10 }, (_, i) => i + 1),
       )
       expect(storedCast[0]).toEqual({
         actor: "actor-1001",
         character: "Character 1",
         order: 1,
       })
-      expect(mockFindOrCreateActor).toHaveBeenCalledTimes(20)
+      expect(mockFindOrCreateActor).toHaveBeenCalledTimes(10)
       expect(mockFindOrCreateActor).not.toHaveBeenCalledWith(
         "1000",
         expect.anything(),

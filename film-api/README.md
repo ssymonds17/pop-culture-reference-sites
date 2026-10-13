@@ -170,7 +170,7 @@ npm run build:create-film
 
 ## MongoDB Models
 
-- **Film**: Ratings, ownership and review, plus TMDb metadata: directors, cast (top 20 credited, in billing order), production companies, collection, and an accent-folded `searchTitle`
+- **Film**: Ratings, ownership and review, plus TMDb metadata: directors, cast (top 10 credited, in billing order), production companies, collection, and an accent-folded `searchTitle`
 - **Director**: TMDb person with their photo, films and aggregated statistics
 - **Actor**: TMDb person with their photo and aggregated statistics. Their films are found through `Film.cast`
 - **YearStats**: Pre-computed year statistics with weighted scoring
