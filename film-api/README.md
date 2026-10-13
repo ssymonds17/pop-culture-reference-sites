@@ -141,6 +141,7 @@ Run from `film-api/` with `.env` in place. Each supports `--dry-run`, skips reco
 
 - **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Also accepts `--limit=N` for a spot check. Needs `TMDB_API_KEY`.
 - **`scripts/backfill-film-search-titles.mjs`**: Sets each film's accent-folded `searchTitle` from its title.
+- **`scripts/trim-film-cast.mjs`**: One-off that trims every film's cast to the top 10 by billing order and deletes actors left in no film. Run `backfill-tmdb-credits.mjs` straight after it to recalculate actor stats.
 - **`scripts/backfill-director-photos.mjs`**: Fetches a TMDb profile photo for every director without one. Also accepts `--limit=N`. Needs `TMDB_API_KEY`.
 
 ```bash
