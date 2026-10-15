@@ -4,10 +4,10 @@ import { connectToDatabase, createFilm, getFilmByTmdbId, updateDirectorStats, up
 import { CastMember, FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
+import { creditedCast, TmdbCastMember } from "./tmdb-cast"
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
-const MAX_CAST = 10
 
 interface TmdbFilmDetails {
   id: number
@@ -35,14 +35,6 @@ interface TmdbFilmDetails {
   belongs_to_collection?: { id: number; name: string } | null
 }
 
-interface TmdbCastMember {
-  id: number
-  name: string
-  character?: string
-  order: number
-  profile_path?: string | null
-}
-
 const getTmdbFilmDetails = async (tmdbId: string): Promise<TmdbFilmDetails> => {
   const response = await axios.get<TmdbFilmDetails>(`${TMDB_BASE_URL}/movie/${tmdbId}`, {
     params: {
@@ -53,15 +45,9 @@ const getTmdbFilmDetails = async (tmdbId: string): Promise<TmdbFilmDetails> => {
   return response.data
 }
 
-// TMDb has no lead/supporting flag, so billing order is the best proxy for who matters.
-const buildCast = async (tmdbCast: TmdbCastMember[] = []): Promise<CastMember[]> => {
-  const credited = tmdbCast
-    .filter((member) => !member.character?.includes("(uncredited)"))
-    .sort((a, b) => a.order - b.order)
-    .slice(0, MAX_CAST)
-
+const buildCast = async (tmdbCast?: TmdbCastMember[]): Promise<CastMember[]> => {
   const cast: CastMember[] = []
-  for (const member of credited) {
+  for (const member of creditedCast(tmdbCast)) {
     const actor = await findOrCreateActor(
       member.id.toString(),
       member.name,

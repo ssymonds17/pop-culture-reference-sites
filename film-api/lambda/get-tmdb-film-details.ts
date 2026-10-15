@@ -1,5 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import axios from "axios"
+import { creditedCast, TmdbCastMember } from "./tmdb-cast"
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
@@ -10,6 +11,7 @@ interface TmdbFilmDetails {
   release_date?: string
   runtime?: number
   credits?: {
+    cast?: TmdbCastMember[]
     crew?: Array<{ id: number; name: string; job: string }>
   }
 }
@@ -56,6 +58,11 @@ const handler = async (event: any) => {
         : null,
       duration: tmdbDetails.runtime,
       directors,
+      cast: creditedCast(tmdbDetails.credits?.cast).map((member) => ({
+        tmdbPersonId: member.id.toString(),
+        name: member.name,
+        character: member.character || null,
+      })),
     })
   } catch (error) {
     logger.error(`Error fetching TMDB film details: ${error}`)
