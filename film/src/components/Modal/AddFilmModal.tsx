@@ -24,6 +24,11 @@ interface TmdbFilmDetails {
     tmdbPersonId: string
     name: string
   }>
+  cast: Array<{
+    tmdbPersonId: string
+    name: string
+    character: string | null
+  }>
 }
 
 interface AddFilmModalProps {
@@ -271,6 +276,14 @@ export const AddFilmModal = ({
                           </div>
                         ) : (
                           <p className="text-gray-500 text-sm">No director information available</p>
+                        )}
+                        {filmDetails[result.tmdbId].cast.length > 0 && (
+                          <div>
+                            <span className="text-gray-400 text-sm font-medium">Cast:</span>
+                            <span className="text-gray-300 text-sm ml-2">
+                              {filmDetails[result.tmdbId].cast.map((member) => member.name).join(", ")}
+                            </span>
+                          </div>
                         )}
                         {filmDetails[result.tmdbId].duration && (
                           <div>
