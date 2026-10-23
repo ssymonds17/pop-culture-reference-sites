@@ -131,7 +131,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/search` | | Search films, directors and actors in the database |
 | `GET` | `/search/tmdb` | | Search TMDb for films to add |
 | `GET` | `/tmdb/{tmdbId}` | | Preview a film's TMDb details without saving it |
-| `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | | A person's TMDb filmography with TMDb scores, marking films already in the collection |
+| `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | | A person's TMDb filmography, marking films already in the collection |
 | `GET` | `/tmdb/imdb-ratings?tmdbIds=348,679` | Auth | IMDb ratings and vote counts from OMDb for up to 100 films |
 
 ## Keeping Stats in Step

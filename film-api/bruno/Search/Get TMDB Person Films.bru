@@ -30,8 +30,6 @@ docs {
   - title: Film title
   - year: Release year, or null when TMDB has no date
   - character: Role played, joined with " / " for several roles; actors only, null when unknown
-  - tmdbRating: TMDB vote average, or null
-  - tmdbVoteCount: Number of TMDB votes (0 means the rating is meaningless)
   - inCollection: Whether the film is already in the database
 
   Returns 400 for a missing or unknown kind and 404 when TMDB has no such person.
@@ -45,8 +43,6 @@ docs {
         "title": "Fight Club",
         "year": 1999,
         "character": "Tyler Durden",
-        "tmdbRating": 8.4,
-        "tmdbVoteCount": 30000,
         "inCollection": true
       }
     ]

@@ -64,12 +64,12 @@ describe("get-tmdb-person-films handler", () => {
     })
   })
 
-  it("should return an actor's credited roles with their TMDb scores", async () => {
+  it("should return an actor's credited roles", async () => {
     mockAxiosGet.mockResolvedValueOnce({
       data: tmdbPerson([
         credit(1, { character: "Tyler Durden" }),
         credit(2, { character: "Himself (uncredited)" }),
-        credit(3, { character: "", vote_average: 0, vote_count: 0 }),
+        credit(3, { character: "" }),
       ]),
     })
 
@@ -82,8 +82,6 @@ describe("get-tmdb-person-films handler", () => {
         title: "Film 3",
         year: 2003,
         character: null,
-        tmdbRating: 0,
-        tmdbVoteCount: 0,
         inCollection: false,
       },
       {
@@ -91,8 +89,6 @@ describe("get-tmdb-person-films handler", () => {
         title: "Film 1",
         year: 2001,
         character: "Tyler Durden",
-        tmdbRating: 7.5,
-        tmdbVoteCount: 100,
         inCollection: false,
       },
     ])
@@ -113,8 +109,6 @@ describe("get-tmdb-person-films handler", () => {
         tmdbId: "1",
         title: "Film 1",
         year: 2001,
-        tmdbRating: 7.5,
-        tmdbVoteCount: 100,
         inCollection: false,
       },
     ])

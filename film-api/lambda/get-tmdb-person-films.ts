@@ -13,8 +13,6 @@ interface TmdbMovieCredit {
   id: number
   title: string
   release_date?: string
-  vote_average?: number
-  vote_count?: number
   character?: string
   job?: string
 }
@@ -104,8 +102,6 @@ const handler = async (event: any) => {
         title: film.title,
         year: film.release_date ? Number(film.release_date.slice(0, 4)) : null,
         ...(kind === "actor" && { character: film.characters.join(" / ") || null }),
-        tmdbRating: film.vote_average ?? null,
-        tmdbVoteCount: film.vote_count ?? 0,
         inCollection: collected.has(film.id.toString()),
       })),
     })
