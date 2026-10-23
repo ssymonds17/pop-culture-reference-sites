@@ -227,9 +227,22 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
+    // API Gateway applies these to each route separately. The unauthenticated routes that call
+    // TMDb get a lower limit to protect the TMDb key.
+    const tmdbProxyThrottle = { throttlingRateLimit: 2, throttlingBurstLimit: 5 }
+
     // Define the API Gateway resource
     const api = new apigateway.RestApi(this, "FilmApi", {
       restApiName: "film-api",
+      deployOptions: {
+        throttlingRateLimit: 20,
+        throttlingBurstLimit: 40,
+        methodOptions: {
+          "/search/tmdb/GET": tmdbProxyThrottle,
+          "/tmdb/{tmdbId}/GET": tmdbProxyThrottle,
+          "/tmdb/person/{tmdbPersonId}/GET": tmdbProxyThrottle,
+        },
+      },
     })
 
     // RESOURCES - Films
