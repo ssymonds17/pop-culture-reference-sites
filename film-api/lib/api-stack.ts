@@ -198,6 +198,18 @@ export class ApiStack extends core.Stack {
       }
     )
 
+    const getTmdbPersonFilmsLambda = new LambdaConstruct(
+      this,
+      "GetTmdbPersonFilms",
+      {
+        functionName: "film-get-tmdb-person-films-handler",
+        code: lambda.Code.fromAsset("build/apps/get-tmdb-person-films"),
+        handler: "index.handler",
+        timeout: core.Duration.seconds(30),
+        environment: lambdaEnvironment,
+      }
+    )
+
     // Lambda functions for Top Films
     const getTopFilmsLambda = new LambdaConstruct(this, "GetTopFilms", {
       functionName: "film-get-top-films-handler",
@@ -397,6 +409,16 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(getTmdbFilmDetailsLambda.function)
     )
     tmdbFilmDetails.addCorsPreflight({
+      allowOrigins: ["*"],
+      allowMethods: ["GET"],
+    })
+
+    const tmdbPersonFilms = tmdb.addResource("person").addResource("{tmdbPersonId}")
+    tmdbPersonFilms.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTmdbPersonFilmsLambda.function)
+    )
+    tmdbPersonFilms.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
     })

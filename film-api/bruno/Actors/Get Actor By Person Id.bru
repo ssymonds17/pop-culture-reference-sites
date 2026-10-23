@@ -14,6 +14,13 @@ docs {
   Retrieves an actor by their TMDb person ID, with a films array of every
   film they are credited in (newest first, directors populated).
 
+  Each film has a lead flag: true when the actor is tagged as a lead in it,
+  false for a supporting role. The films leave out cast, production companies
+  and collection, like the film lists.
+
+  The actor has imdbPersonId once it has been looked up: an IMDb "nm" ID, or
+  null when TMDb has none. It is absent for people never looked up.
+
   Set the TMDB_PERSON_ID environment variable to test this endpoint.
 
   Example TMDb person IDs:

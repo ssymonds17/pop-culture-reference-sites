@@ -98,6 +98,15 @@ export interface FilmUpdates {
   leadActorIds?: string[]
 }
 
+export const findCollectedTmdbIds = async (tmdbIds: string[]) => {
+  if (tmdbIds.length === 0) {
+    return new Set<string>()
+  }
+
+  const films = await Film.find({ tmdbId: { $in: tmdbIds } }, { tmdbId: 1 }).exec()
+  return new Set(films.map((film) => film.tmdbId))
+}
+
 export const updateFilm = async (
   id: string,
   { rating, owned, review, leadActorIds }: FilmUpdates,

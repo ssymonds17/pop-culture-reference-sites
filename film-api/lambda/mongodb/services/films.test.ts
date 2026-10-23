@@ -1,4 +1,5 @@
 import {
+  findCollectedTmdbIds,
   findFilmsByTitle,
   getFilmById,
   getFilmDetailsById,
@@ -147,6 +148,26 @@ describe("films service", () => {
         { $sample: { size: 3 } },
         { $project: { cast: 0, productionCompanies: 0, tmdbCollection: 0 } },
       ])
+    })
+  })
+
+  describe("findCollectedTmdbIds", () => {
+    it("should return the TMDb IDs of films already in the collection", async () => {
+      mockFilm.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([{ tmdbId: "550" }]),
+      }) as any
+
+      const result = await findCollectedTmdbIds(["550", "551"])
+
+      expect(result).toEqual(new Set(["550"]))
+      expect(mockFilm.find).toHaveBeenCalledWith({ tmdbId: { $in: ["550", "551"] } }, { tmdbId: 1 })
+    })
+
+    it("should not query for an empty list", async () => {
+      mockFilm.find = jest.fn() as any
+
+      expect(await findCollectedTmdbIds([])).toEqual(new Set())
+      expect(mockFilm.find).not.toHaveBeenCalled()
     })
   })
 
