@@ -11,6 +11,7 @@ jest.mock('axios', () => ({
 const mockUseUser = jest.fn()
 jest.mock('@clerk/nextjs', () => ({
   useUser: () => mockUseUser(),
+  useAuth: () => ({ getToken: jest.fn() }),
   SignInButton: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 

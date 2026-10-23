@@ -1,6 +1,7 @@
 import {
   formatDirectorNames,
   formatDuration,
+  formatVoteCount,
   getRatingColor,
   getRatingTextColor,
   getTmdbPosterUrl,
@@ -71,5 +72,17 @@ describe('formatDuration', () => {
     [139, '2h 19m'],
   ])('should format %i minutes as %s', (minutes, expected) => {
     expect(formatDuration(minutes)).toBe(expected)
+  })
+})
+
+describe('formatVoteCount', () => {
+  it.each([
+    [1, '1 vote'],
+    [950, '950 votes'],
+    [1234, '1.2K votes'],
+    [15000, '15K votes'],
+    [2345678, '2.3M votes'],
+  ])('should format %i as %s', (count, expected) => {
+    expect(formatVoteCount(count)).toBe(expected)
   })
 })

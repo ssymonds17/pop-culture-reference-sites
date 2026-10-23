@@ -11,6 +11,10 @@ jest.mock('axios', () => ({
   default: { get: jest.fn() },
 }))
 
+jest.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({ getToken: jest.fn() }),
+}))
+
 const mockAxiosGet = axios.get as jest.Mock
 
 const person = (id: number, stats: Partial<Person> = {}): Person => ({

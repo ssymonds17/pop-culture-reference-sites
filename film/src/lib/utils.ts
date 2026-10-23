@@ -55,3 +55,9 @@ export const formatDuration = (minutes: number): string => {
   if (mins === 0) return `${hours}h`
   return `${hours}h ${mins}m`
 }
+
+const compactNumber = new Intl.NumberFormat('en-GB', { notation: 'compact' })
+
+// Upper case explicitly, as ICU versions disagree on "1.2k" or "1.2K".
+export const formatVoteCount = (count: number): string =>
+  `${compactNumber.format(count).toUpperCase()} ${count === 1 ? 'vote' : 'votes'}`

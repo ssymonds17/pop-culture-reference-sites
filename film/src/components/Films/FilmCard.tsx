@@ -115,6 +115,7 @@ export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardP
         kind="director"
         isOpen={isDirectorModalOpen}
         onClose={handleCloseDirectorModal}
+        readOnly={readOnly}
       />
     </>
   )

@@ -10,6 +10,9 @@ jest.mock('axios', () => ({
   __esModule: true,
   default: { get: jest.fn() },
 }))
+jest.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({ getToken: jest.fn() }),
+}))
 jest.mock('../Modal/FilmDetailModal', () => ({
   __esModule: true,
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div>Film detail modal</div> : null),
@@ -55,6 +58,7 @@ const film: Film = {
 describe('FilmCard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockAxiosGet.mockReset()
   })
 
   it("should open the director's films from the director endpoint", async () => {
@@ -69,6 +73,38 @@ describe('FilmCard', () => {
     expect(mockAxiosGet).toHaveBeenCalledWith(API_ENDPOINTS.director('956'))
     expect(await screen.findByRole('heading', { name: 'Guy Ritchie' })).toBeInTheDocument()
     expect(screen.queryByText('Film detail modal')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [true, 'hide'],
+    [false, 'offer'],
+  ])("when readOnly is %p, should %s Add in the director's All films tab", async (readOnly) => {
+    const user = userEvent.setup()
+    mockAxiosGet.mockImplementation(async (url: string) =>
+      url === API_ENDPOINTS.tmdbPersonFilms('956')
+        ? {
+            data: {
+              data: [
+                {
+                  tmdbId: '10',
+                  title: 'Revolver',
+                  year: 2005,
+                  tmdbRating: 6.4,
+                  tmdbVoteCount: 900,
+                  inCollection: false,
+                },
+              ],
+            },
+          }
+        : { data: { data: { ...director, films: [] } } }
+    )
+    render(<FilmCard film={film} readOnly={readOnly} />)
+
+    await user.click(screen.getByRole('button', { name: 'Guy Ritchie' }))
+    await user.click(await screen.findByRole('tab', { name: 'All films' }))
+
+    expect(await screen.findByRole('link', { name: 'Revolver' })).toBeInTheDocument()
+    expect(screen.queryAllByRole('button', { name: 'Add Revolver (2005)' })).toHaveLength(readOnly ? 0 : 1)
   })
 
   it('should open the film details from the poster', async () => {

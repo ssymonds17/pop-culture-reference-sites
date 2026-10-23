@@ -61,6 +61,23 @@ export interface Person extends PersonStats {
   name: string
   displayName: string
   profilePath?: string // TMDb profile image path; absent when TMDb has no photo
+  imdbPersonId?: string | null // Absent until looked up; null when TMDb has none
+}
+
+// A film from the actor or director endpoint; only the actor endpoint sets `lead`
+export interface PersonFilm extends Film {
+  lead?: boolean
+}
+
+// A film from a person's TMDb filmography, which may not be in the collection
+export interface TmdbPersonFilm {
+  tmdbId: string
+  title: string
+  year: number | null
+  character?: string | null // Actors only; several roles are joined with " / "
+  tmdbRating: number | null
+  tmdbVoteCount: number
+  inCollection: boolean
 }
 
 export interface Director extends Person {
