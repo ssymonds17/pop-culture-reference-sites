@@ -75,8 +75,6 @@ export interface TmdbPersonFilm {
   title: string
   year: number | null
   character?: string | null // Actors only; several roles are joined with " / "
-  tmdbRating: number | null
-  tmdbVoteCount: number
   inCollection: boolean
 }
 

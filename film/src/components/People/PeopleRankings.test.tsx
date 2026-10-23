@@ -128,8 +128,6 @@ describe('PeopleRankings', () => {
                 tmdbId: '348',
                 title: 'Alien',
                 year: 1979,
-                tmdbRating: 8.1,
-                tmdbVoteCount: 100,
                 inCollection: false,
               },
             ],

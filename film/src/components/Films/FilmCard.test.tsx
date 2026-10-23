@@ -93,8 +93,6 @@ describe('FilmCard', () => {
                   tmdbId: '10',
                   title: 'Revolver',
                   year: 2005,
-                  tmdbRating: 6.4,
-                  tmdbVoteCount: 900,
                   inCollection: false,
                 },
               ],

@@ -47,6 +47,9 @@ type ImdbRatingEntry =
 // Keep in step with MAX_FILMS_PER_REQUEST in film-api/lambda/get-imdb-ratings.ts
 const IMDB_RATINGS_BATCH_SIZE = 100
 
+// Below this many IMDb votes a film is hidden from "All films" unless it's in the collection
+const MIN_IMDB_VOTES = 100
+
 const HEADER_CELL_CLASS = "px-4 py-3 text-xs font-medium text-gray-400 uppercase"
 
 const tabClass = (selected: boolean) =>
@@ -72,6 +75,8 @@ export default function PersonFilmsModal({
   const [failedPhotoPath, setFailedPhotoPath] = useState<string | null>(null)
   // The person and kind whose "All films" tab is showing; any other value shows "Your films"
   const [allFilmsKey, setAllFilmsKey] = useState<string | null>(null)
+  // The person and kind whose low-vote films are shown; any other value hides them
+  const [lowVoteFilmsKey, setLowVoteFilmsKey] = useState<string | null>(null)
   // Cached per person and kind, so each filmography is fetched from TMDb once while the modal is mounted
   const [tmdbFilmsByKey, setTmdbFilmsByKey] = useState<Record<string, TmdbFilmsEntry>>({})
   // Films added from this modal; any filmography listing one shows it as in the collection
@@ -140,6 +145,7 @@ export default function PersonFilmsModal({
     isOpenRef.current = isOpen
     if (isOpen) return
     setAllFilmsKey(null)
+    setLowVoteFilmsKey(null)
     if (hasUnreportedAddRef.current) {
       hasUnreportedAddRef.current = false
       onFilmsAdded?.()
@@ -226,11 +232,12 @@ export default function PersonFilmsModal({
         API_ENDPOINTS.tmdbPersonFilms(personId),
         { params: { kind } }
       )
+      // Held until the ratings settle, so the vote filter never drops rows while you look at them
+      await loadImdbRatings(response.data.data.map((film) => film.tmdbId))
       setTmdbFilmsByKey((previous) => ({
         ...previous,
         [key]: { status: "loaded", films: response.data.data },
       }))
-      loadImdbRatings(response.data.data.map((film) => film.tmdbId))
     } catch (err) {
       console.error(`Error fetching ${PERSON_KINDS[kind].singular} films from TMDb:`, err)
       setTmdbFilmsByKey((previous) => ({ ...previous, [key]: { status: "error" } }))
@@ -414,7 +421,7 @@ export default function PersonFilmsModal({
 
   const renderAllFilms = () => {
     if (!tmdbFilms || tmdbFilms.status === "loading") {
-      return <div className="text-center py-12 text-gray-400">Loading films from TMDb...</div>
+      return <div className="text-center py-12 text-gray-400">Loading films...</div>
     }
     if (tmdbFilms.status === "error") {
       return (
@@ -440,6 +447,25 @@ export default function PersonFilmsModal({
       .map((film) => film.tmdbId)
       .filter((tmdbId) => imdbRatingsByTmdbId[tmdbId]?.status === "error")
     const isRetryingImdb = retryingImdbKey !== null && retryingImdbKey === requestKey
+    const showLowVoteFilms = lowVoteFilmsKey !== null && lowVoteFilmsKey === requestKey
+    // Collection films always show, as do films whose votes are unknown because the lookup failed
+    const hasEnoughVotes = (film: TmdbPersonFilm) => {
+      if (film.inCollection || addedTmdbIds.has(film.tmdbId)) return true
+      const entry = imdbRatingsByTmdbId[film.tmdbId]
+      if (entry?.status !== "loaded") return true
+      return (entry.rating.imdbVotes ?? 0) >= MIN_IMDB_VOTES
+    }
+    const lowVoteCount = tmdbFilms.films.filter((film) => !hasEnoughVotes(film)).length
+    const visibleFilms = showLowVoteFilms ? tmdbFilms.films : tmdbFilms.films.filter(hasEnoughVotes)
+    const lowVoteToggle = (
+      <button
+        type="button"
+        onClick={() => setLowVoteFilmsKey(showLowVoteFilms ? null : requestKey)}
+        className="text-blue-400 hover:text-blue-300 transition-colors"
+      >
+        {showLowVoteFilms ? "Hide them" : "Show all"}
+      </button>
+    )
     return (
       <>
         {(failedImdbIds.length > 0 || isRetryingImdb) && (
@@ -464,55 +490,54 @@ export default function PersonFilmsModal({
               ? imdbRetryOutcome.message
               : ""}
         </p>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-800 border-b border-gray-700">
-              <tr>
-                <th className={`${HEADER_CELL_CLASS} text-left`}>Title</th>
-                <th className={`${HEADER_CELL_CLASS} text-center`}>Year</th>
-                <th className={`${HEADER_CELL_CLASS} text-center`}>TMDb</th>
-                <th className={`${HEADER_CELL_CLASS} text-center`}>IMDb</th>
-                <th className={`${HEADER_CELL_CLASS} text-center`}>
-                  <span className="sr-only">Collection</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {tmdbFilms.films.map((film) => (
-                <tr key={film.tmdbId} className="hover:bg-gray-800/50 transition-colors">
-                  <td className="px-4 py-3">
-                    <a
-                      href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:text-blue-300 transition-colors"
-                    >
-                      {film.title}
-                    </a>
-                    {film.character && (
-                      <div className="text-xs text-gray-400">as {film.character}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center text-gray-300">{film.year ?? "-"}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">
-                    {film.tmdbVoteCount > 0 && film.tmdbRating !== null ? (
-                      <>
-                        <div>{film.tmdbRating.toFixed(1)}</div>
-                        <div className="text-xs text-gray-400">
-                          {formatVoteCount(film.tmdbVoteCount)}
-                        </div>
-                      </>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">{renderImdbCell(film)}</td>
-                  <td className="px-4 py-3 text-center">{renderAddCell(film)}</td>
+        {lowVoteCount > 0 && visibleFilms.length > 0 && (
+          <p className="mb-3 text-sm text-gray-400">
+            {lowVoteCount} {lowVoteCount === 1 ? "film" : "films"} with fewer than {MIN_IMDB_VOTES}{" "}
+            IMDb votes {showLowVoteFilms ? "shown" : "hidden"} · {lowVoteToggle}
+          </p>
+        )}
+        {visibleFilms.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            No films with {MIN_IMDB_VOTES} or more IMDb votes · {lowVoteToggle}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-800 border-b border-gray-700">
+                <tr>
+                  <th className={`${HEADER_CELL_CLASS} text-left`}>Title</th>
+                  <th className={`${HEADER_CELL_CLASS} text-center`}>Year</th>
+                  <th className={`${HEADER_CELL_CLASS} text-center`}>IMDb</th>
+                  <th className={`${HEADER_CELL_CLASS} text-center`}>
+                    <span className="sr-only">Collection</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {visibleFilms.map((film) => (
+                  <tr key={film.tmdbId} className="hover:bg-gray-800/50 transition-colors">
+                    <td className="px-4 py-3">
+                      <a
+                        href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium hover:text-blue-300 transition-colors"
+                      >
+                        {film.title}
+                      </a>
+                      {film.character && (
+                        <div className="text-xs text-gray-400">as {film.character}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-300">{film.year ?? "-"}</td>
+                    <td className="px-4 py-3 text-center">{renderImdbCell(film)}</td>
+                    <td className="px-4 py-3 text-center">{renderAddCell(film)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </>
     )
   }
