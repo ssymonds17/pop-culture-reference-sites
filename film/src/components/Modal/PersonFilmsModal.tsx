@@ -86,6 +86,10 @@ export default function PersonFilmsModal({
   const requestedImdbIdsRef = useRef<Set<string>>(new Set())
   // The person and kind whose failed IMDb ratings are being retried, so the banner stays during it
   const [retryingImdbKey, setRetryingImdbKey] = useState<string | null>(null)
+  // How the last retry ended, read out by a status region that outlives the banner
+  const [imdbRetryOutcome, setImdbRetryOutcome] = useState<{ key: string; message: string } | null>(
+    null
+  )
   const imdbRetryButtonRef = useRef<HTMLButtonElement>(null)
   const filmsPanelRef = useRef<HTMLDivElement>(null)
   const [addStatusByTmdbId, setAddStatusByTmdbId] = useState<
@@ -150,7 +154,7 @@ export default function PersonFilmsModal({
     setImdbRatingsByTmdbId((previous) => ({ ...previous, ...entries }))
   }
 
-  const entriesFor = (tmdbIds: string[], entry: ImdbRatingEntry) =>
+  const buildEntries = (tmdbIds: string[], entry: ImdbRatingEntry) =>
     Object.fromEntries(tmdbIds.map((tmdbId) => [tmdbId, entry]))
 
   // Resolves with the films that still have no rating, failed or not reached
@@ -158,7 +162,7 @@ export default function PersonFilmsModal({
     const toRequest = tmdbIds.filter((tmdbId) => !requestedImdbIdsRef.current.has(tmdbId))
     if (toRequest.length === 0) return []
     toRequest.forEach((tmdbId) => requestedImdbIdsRef.current.add(tmdbId))
-    updateImdbRatings(entriesFor(toRequest, { status: "loading" }))
+    updateImdbRatings(buildEntries(toRequest, { status: "loading" }))
 
     const failed: string[] = []
     // One batch at a time, so a long filmography fills in gradually within the route's rate limit
@@ -167,7 +171,9 @@ export default function PersonFilmsModal({
       try {
         // A fresh token for each batch, as a long filmography can outlast one
         const client = await createAuthenticatedClient(getToken)
-        const response = await client.get<{ data: Record<string, ImdbRating | null> }>(
+        const response = await client.get<{
+          data: Partial<Record<string, ImdbRating | null>>
+        }>(
           API_ENDPOINTS.imdbRatings,
           { params: { tmdbIds: batch.join(",") } }
         )
@@ -185,7 +191,7 @@ export default function PersonFilmsModal({
         console.error("Error fetching IMDb ratings:", err)
         const unfinished = toRequest.slice(start)
         failed.push(...unfinished)
-        updateImdbRatings(entriesFor(unfinished, { status: "error" }))
+        updateImdbRatings(buildEntries(unfinished, { status: "error" }))
         break
       }
     }
@@ -194,13 +200,21 @@ export default function PersonFilmsModal({
 
   const handleRetryImdbRatings = async (failedIds: string[]) => {
     const key = requestKey
-    // Read before the button is disabled, which some browsers treat as losing focus
-    const retryHadFocus = document.activeElement === imdbRetryButtonRef.current
+    if (!key || retryingImdbKey === key) return
     setRetryingImdbKey(key)
+    setImdbRetryOutcome(null)
     const stillFailed = await loadImdbRatings(failedIds)
     setRetryingImdbKey((current) => (current === key ? null : current))
-    // With nothing left to retry the banner goes, so focus moves to the films rather than the page
-    if (stillFailed.length === 0 && retryHadFocus) {
+    setImdbRetryOutcome({
+      key,
+      message:
+        stillFailed.length === 0
+          ? "IMDb ratings loaded"
+          : "Some IMDb ratings still couldn't be loaded",
+    })
+    // With nothing left to retry the banner goes, so focus moves to the films rather than the page.
+    // Checked now, not at the click, so a user who has moved on keeps their focus.
+    if (stillFailed.length === 0 && document.activeElement === imdbRetryButtonRef.current) {
       filmsPanelRef.current?.focus()
     }
   }
@@ -431,17 +445,25 @@ export default function PersonFilmsModal({
         {(failedImdbIds.length > 0 || isRetryingImdb) && (
           <div className="flex items-center justify-between gap-3 mb-3 bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded text-sm">
             <span role="alert">Couldn&apos;t load some IMDb ratings</span>
+            {/* aria-disabled rather than disabled, so the button keeps keyboard focus while retrying */}
             <button
               ref={imdbRetryButtonRef}
               type="button"
               onClick={() => handleRetryImdbRatings(failedImdbIds)}
-              disabled={isRetryingImdb}
-              className="text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-disabled={isRetryingImdb}
+              className="text-blue-400 hover:text-blue-300 transition-colors aria-disabled:opacity-50 aria-disabled:cursor-not-allowed"
             >
               {isRetryingImdb ? "Retrying..." : "Retry"}
             </button>
           </div>
         )}
+        <p role="status" className="sr-only">
+          {isRetryingImdb
+            ? "Retrying IMDb ratings"
+            : imdbRetryOutcome?.key === requestKey
+              ? imdbRetryOutcome.message
+              : ""}
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-800 border-b border-gray-700">
