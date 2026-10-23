@@ -5,10 +5,19 @@ import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { Film } from '@/types'
 import FilmGrid from '@/components/Films/FilmGrid'
+import ProtectedRoute from '@/components/Auth/ProtectedRoute'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 
 export default function RandomFilmsPage() {
+  return (
+    <ProtectedRoute>
+      <RandomFilms />
+    </ProtectedRoute>
+  )
+}
+
+function RandomFilms() {
   const [films, setFilms] = useState<Film[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +71,18 @@ export default function RandomFilmsPage() {
       setError('Failed to load random films')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Refetches only the edited film, as a new random query would replace the films on screen
+  const handleFilmUpdated = async (filmId: string) => {
+    try {
+      const response = await axios.get<{ data: Film }>(API_ENDPOINTS.film(filmId))
+      const refreshed = response.data.data
+      // Matched by ID so a refresh finishing after a new draw cannot bring back the old film
+      setFilms((current) => current.map((film) => (film._id === filmId ? refreshed : film)))
+    } catch (err) {
+      console.error('Error refreshing random film:', err)
     }
   }
 
@@ -192,7 +213,7 @@ export default function RandomFilmsPage() {
           ))}
         </div>
       ) : films.length > 0 ? (
-        <FilmGrid films={films} readOnly />
+        <FilmGrid films={films} onUpdate={handleFilmUpdated} />
       ) : (
         <div className="text-center py-12 text-gray-400">
           {films.length === 0 && !loading ? 'No films found matching your criteria. Try adjusting your filters.' : 'Click "Get Random Films" to start'}

@@ -17,6 +17,7 @@ import { YearStats } from "@/types"
 import Skeleton from "react-loading-skeleton"
 import "react-loading-skeleton/dist/skeleton.css"
 import YearDetails from "@/components/Years/YearDetails"
+import ProtectedRoute from "@/components/Auth/ProtectedRoute"
 
 type MetricKey =
   | "yearScore"
@@ -41,12 +42,23 @@ const METRICS: Metric[] = [
 ]
 
 export default function YearsPage() {
+  return (
+    <ProtectedRoute>
+      <Years />
+    </ProtectedRoute>
+  )
+}
+
+function Years() {
   const [years, setYears] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<YearStats | null>(null)
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("yearScore")
   const detailsRef = useRef<HTMLDivElement>(null)
+
+  // Only the latest refresh may update the stats, so an earlier one landing late cannot undo an edit
+  const latestRefreshRef = useRef(0)
 
   const activeMetric =
     METRICS.find((m) => m.key === selectedMetric) ?? METRICS[0]
@@ -69,6 +81,22 @@ export default function YearsPage() {
     fetchYears()
   }, [])
 
+  // Quiet, so the open year stays on screen; its stats are swapped for the recalculated ones
+  const handleYearFilmUpdated = async () => {
+    const refreshId = ++latestRefreshRef.current
+    try {
+      const response = await axios.get<{ data: YearStats[] }>(API_ENDPOINTS.years)
+      if (refreshId !== latestRefreshRef.current) return
+      const refreshedYears = response.data.data
+      setYears(refreshedYears)
+      setSelectedYear((current) =>
+        current ? (refreshedYears.find((y) => y.year === current.year) ?? current) : current
+      )
+    } catch (err) {
+      console.error("Error refreshing year statistics:", err)
+    }
+  }
+
   // Chart runs left-to-right by year; the API returns them ordered by score
   const chartData = [...years].sort((a, b) => a.year - b.year)
 
@@ -81,12 +109,13 @@ export default function YearsPage() {
     if (stats) setSelectedYear(stats)
   }
 
-  // Bring the panel into view when a different year is picked
+  // Bring the panel into view when a different year is picked, not when its stats refresh
+  const selectedYearNumber = selectedYear?.year
   useEffect(() => {
-    if (selectedYear) {
+    if (selectedYearNumber !== undefined) {
       detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }
-  }, [selectedYear])
+  }, [selectedYearNumber])
 
   if (error) {
     return (
@@ -189,6 +218,7 @@ export default function YearsPage() {
             key={selectedYear.year}
             yearStats={selectedYear}
             onClose={() => setSelectedYear(null)}
+            onFilmUpdated={handleYearFilmUpdated}
           />
         )}
       </div>

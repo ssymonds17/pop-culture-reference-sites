@@ -6,9 +6,10 @@ import PersonFilmsModal from "../Modal/PersonFilmsModal"
 interface PeopleTableProps {
   people: Person[]
   kind: PersonKind
+  onFilmsAdded?: () => void
 }
 
-export default function PeopleTable({ people, kind }: PeopleTableProps) {
+export default function PeopleTable({ people, kind, onFilmsAdded }: PeopleTableProps) {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -100,6 +101,7 @@ export default function PeopleTable({ people, kind }: PeopleTableProps) {
         kind={kind}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        onFilmsAdded={onFilmsAdded}
       />
     </>
   )

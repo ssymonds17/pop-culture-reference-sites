@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import axios from 'axios'
 import { API_ENDPOINTS } from '@/lib/api'
 import { PERSON_KINDS, PersonKind } from '@/lib/personKinds'
@@ -39,12 +39,23 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
   // How the results on screen were loaded, so the average note describes them even while a new load is pending
   const [resultsSource, setResultsSource] = useState<{
     isSearch: boolean
+    searchString: string
     sort: PersonSortOption
   } | null>(null)
 
-  const fetchPeople = async (searchString: string, sort: PersonSortOption) => {
+  // Only the latest request may update the list, so a slow refresh cannot overwrite a newer search
+  const latestRequestRef = useRef(0)
+
+  // A quiet fetch keeps the list on screen, without the loading placeholders
+  const fetchPeople = async (
+    searchString: string,
+    sort: PersonSortOption,
+    { quiet = false } = {}
+  ) => {
+    const requestId = ++latestRequestRef.current
+    const isLatest = () => requestId === latestRequestRef.current
     try {
-      setLoading(true)
+      if (!quiet) setLoading(true)
 
       // The search endpoint does not sort by stats, so search results are sorted here
       if (searchString) {
@@ -53,18 +64,20 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
         params.append('itemType', kind)
 
         const response = await axios.get(`${API_ENDPOINTS.search}?${params.toString()}`)
+        if (!isLatest()) return
         setPeople(sortPeople(response.data.data, sort))
       } else {
         const response = await axios.get(`${listEndpoint}?sortBy=${sort}`)
+        if (!isLatest()) return
         setPeople(response.data.data)
       }
-      setResultsSource({ isSearch: Boolean(searchString), sort })
+      setResultsSource({ isSearch: Boolean(searchString), searchString, sort })
       setError(null)
     } catch (err) {
       console.error(`Error fetching ${plural}:`, err)
-      setError(`Failed to load ${plural}`)
+      if (isLatest()) setError(`Failed to load ${plural}`)
     } finally {
-      setLoading(false)
+      if (isLatest()) setLoading(false)
     }
   }
 
@@ -74,6 +87,9 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
   }
 
   const handleReset = () => {
+    // Supersedes any request in flight, so a late response cannot refill the cleared list
+    latestRequestRef.current++
+    setLoading(false)
     setSortBy(DEFAULT_SORT)
     setPeople([])
     setResultsSource(null)
@@ -123,7 +139,14 @@ export default function PeopleRankings({ kind }: PeopleRankingsProps) {
               Ranking by average only includes {plural} with at least 2 rated films.
             </p>
           )}
-          <PeopleTable people={people} kind={kind} />
+          <PeopleTable
+            people={people}
+            kind={kind}
+            onFilmsAdded={() =>
+              resultsSource &&
+              fetchPeople(resultsSource.searchString, resultsSource.sort, { quiet: true })
+            }
+          />
         </div>
       )}
     </div>

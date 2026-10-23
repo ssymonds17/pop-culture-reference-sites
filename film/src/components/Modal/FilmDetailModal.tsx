@@ -54,8 +54,6 @@ interface FilmDetailModalProps {
   isOpen: boolean
   onClose: () => void
   onUpdate: () => void
-  /** Hides all update controls (rating, owned, review, lead roles) - used on public pages */
-  readOnly?: boolean
 }
 
 export default function FilmDetailModal({
@@ -63,7 +61,6 @@ export default function FilmDetailModal({
   isOpen,
   onClose,
   onUpdate,
-  readOnly = false,
 }: FilmDetailModalProps) {
   const { getToken } = useAuth()
   const [isEditingReview, setIsEditingReview] = useState(false)
@@ -90,13 +87,14 @@ export default function FilmDetailModal({
   const [leadsError, setLeadsError] = useState<{ filmId: string; message: string } | null>(null)
   const castHeadingId = useId()
 
+  // Keyed on the film's ID, as a refresh after an edit passes a new object for the same film
   useEffect(() => {
     if (isOpen && film) {
       setIsEditingReview(false)
       setReviewText(film.review || "")
       setError(null)
     }
-  }, [isOpen, film])
+  }, [isOpen, film?._id])
 
   // Reset the rating feedback and unsaved leads whenever the modal opens or switches film
   useEffect(() => {
@@ -373,11 +371,7 @@ export default function FilmDetailModal({
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-3">
             <label className="text-sm font-medium text-gray-400">Rating</label>
-            {displayRating ? (
-              <RatingBadge rating={displayRating} />
-            ) : readOnly ? (
-              <span className="text-sm text-gray-500">Not rated</span>
-            ) : null}
+            {displayRating && <RatingBadge rating={displayRating} />}
             <span role="status" aria-live="polite" className="text-sm">
               {isUpdatingRating ? (
                 <span className="flex items-center gap-1.5 text-blue-400">
@@ -403,50 +397,46 @@ export default function FilmDetailModal({
               ) : null}
             </span>
           </div>
-          {!readOnly && (
-            <>
-              <div
-                className="grid grid-cols-5 gap-2 mb-3"
-                aria-busy={isUpdatingRating}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-                  const isSelected = displayRating === num
-                  const isPending = isUpdatingRating && pendingRating === num
-                  return (
-                    <button
-                      key={num}
-                      onClick={() => handleSetRating(num)}
-                      disabled={isUpdatingRating}
-                      aria-pressed={isSelected}
-                      className={`flex items-center justify-center py-2 h-10 rounded font-medium transition-all disabled:cursor-not-allowed ${
-                        isSelected
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                      } ${
-                        isPending
-                          ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900 scale-105"
-                          : isUpdatingRating
-                            ? "opacity-40"
-                            : ""
-                      }`}
-                    >
-                      {isPending ? <Spinner /> : num}
-                    </button>
-                  )
-                })}
-              </div>
-              {(displayRating || (isUpdatingRating && pendingRating === null)) && (
+          <div
+            className="grid grid-cols-5 gap-2 mb-3"
+            aria-busy={isUpdatingRating}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+              const isSelected = displayRating === num
+              const isPending = isUpdatingRating && pendingRating === num
+              return (
                 <button
-                  onClick={() => handleSetRating(null)}
+                  key={num}
+                  onClick={() => handleSetRating(num)}
                   disabled={isUpdatingRating}
-                  className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-pressed={isSelected}
+                  className={`flex items-center justify-center py-2 h-10 rounded font-medium transition-all disabled:cursor-not-allowed ${
+                    isSelected
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  } ${
+                    isPending
+                      ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900 scale-105"
+                      : isUpdatingRating
+                        ? "opacity-40"
+                        : ""
+                  }`}
                 >
-                  {isUpdatingRating && pendingRating === null
-                    ? "Clearing..."
-                    : "Clear rating (set to unwatched)"}
+                  {isPending ? <Spinner /> : num}
                 </button>
-              )}
-            </>
+              )
+            })}
+          </div>
+          {(displayRating || (isUpdatingRating && pendingRating === null)) && (
+            <button
+              onClick={() => handleSetRating(null)}
+              disabled={isUpdatingRating}
+              className="text-sm text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdatingRating && pendingRating === null
+                ? "Clearing..."
+                : "Clear rating (set to unwatched)"}
+            </button>
           )}
         </div>
 
@@ -455,29 +445,17 @@ export default function FilmDetailModal({
           <label className="block text-sm font-medium text-gray-400 mb-2">
             Owned
           </label>
-          {readOnly ? (
-            <span
-              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
-                film.owned
-                  ? "bg-blue-900/30 text-blue-400"
-                  : "bg-gray-800 text-gray-500"
-              }`}
-            >
-              {film.owned ? "Owned" : "Not Owned"}
-            </span>
-          ) : (
-            <button
-              onClick={handleToggleOwned}
-              disabled={isUpdatingOwned}
-              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                film.owned
-                  ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
-                  : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
-              }`}
-            >
-              {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
-            </button>
-          )}
+          <button
+            onClick={handleToggleOwned}
+            disabled={isUpdatingOwned}
+            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              film.owned
+                ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+                : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+            }`}
+          >
+            {isUpdatingOwned ? "..." : film.owned ? "Owned" : "Not Owned"}
+          </button>
         </div>
 
         {/* Genres */}
@@ -528,28 +506,20 @@ export default function FilmDetailModal({
                           <span className="text-gray-500"> as {member.character}</span>
                         )}
                       </span>
-                      {readOnly ? (
-                        leadIds.has(member.actor._id) && (
-                          <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400">
-                            Lead
-                          </span>
-                        )
-                      ) : (
-                        <button
-                          type="button"
-                          aria-pressed={leadIds.has(member.actor._id)}
-                          aria-label={`Lead: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
-                          onClick={() => handleToggleLead(member.actor._id)}
-                          disabled={isSavingLeads}
-                          className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                            leadIds.has(member.actor._id)
-                              ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
-                              : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
-                          }`}
-                        >
-                          Lead
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        aria-pressed={leadIds.has(member.actor._id)}
+                        aria-label={`Lead: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
+                        onClick={() => handleToggleLead(member.actor._id)}
+                        disabled={isSavingLeads}
+                        className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                          leadIds.has(member.actor._id)
+                            ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+                            : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+                        }`}
+                      >
+                        Lead
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -563,7 +533,7 @@ export default function FilmDetailModal({
                     {showFullCast ? "Show less" : `Show full cast (${cast.length})`}
                   </button>
                 )}
-                {!readOnly && hasUnsavedLeads && (
+                {hasUnsavedLeads && (
                   <div className="flex items-center justify-end gap-3 mt-3">
                     {currentLeadsError && (
                       <p role="alert" className="mr-auto text-sm text-red-400">
@@ -610,7 +580,7 @@ export default function FilmDetailModal({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-gray-400">Review</label>
-            {!readOnly && !isEditingReview && (
+            {!isEditingReview && (
               <div className="flex gap-3">
                 {film.review && (
                   <button
@@ -631,7 +601,7 @@ export default function FilmDetailModal({
             )}
           </div>
 
-          {!readOnly && isEditingReview ? (
+          {isEditingReview ? (
             <div className="space-y-3">
               <textarea
                 value={reviewText}

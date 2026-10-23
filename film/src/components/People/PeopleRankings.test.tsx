@@ -8,7 +8,7 @@ import { Person } from '@/types'
 // A factory avoids loading axios's ESM browser build, which Jest cannot parse.
 jest.mock('axios', () => ({
   __esModule: true,
-  default: { get: jest.fn() },
+  default: { get: jest.fn(), create: jest.fn() },
 }))
 
 jest.mock('@clerk/nextjs', () => ({
@@ -16,6 +16,7 @@ jest.mock('@clerk/nextjs', () => ({
 }))
 
 const mockAxiosGet = axios.get as jest.Mock
+const mockAxiosCreate = axios.create as jest.Mock
 
 const person = (id: number, stats: Partial<Person> = {}): Person => ({
   _id: `person${id}`,
@@ -65,6 +66,7 @@ const displayedNames = () =>
 describe('PeopleRankings', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockAxiosGet.mockReset()
   })
 
   describe.each([
@@ -102,6 +104,53 @@ describe('PeopleRankings', () => {
       )
       expect(await screen.findByText(`Showing 1 ${kind}`)).toBeInTheDocument()
     })
+  })
+
+  it('should quietly re-run the same search after closing a person having added a film', async () => {
+    const user = userEvent.setup()
+    const searchUrl = `${API_ENDPOINTS.search}?searchString=weaver&itemType=actor`
+    const refresh = deferred()
+    let searches = 0
+    mockAxiosCreate.mockReturnValue({ post: jest.fn().mockResolvedValue({}) })
+    mockAxiosGet.mockImplementation(async (url: string) => {
+      if (url === searchUrl) {
+        searches++
+        return searches === 1 ? { data: { data: [person(1)] } } : refresh.promise
+      }
+      if (url === API_ENDPOINTS.tmdbPersonFilms('1')) {
+        return {
+          data: {
+            data: [
+              {
+                tmdbId: '348',
+                title: 'Alien',
+                year: 1979,
+                tmdbRating: 8.1,
+                tmdbVoteCount: 100,
+                inCollection: false,
+              },
+            ],
+          },
+        }
+      }
+      return { data: { data: { ...person(1), films: [] } } }
+    })
+    render(<PeopleRankings kind="actor" />)
+    await user.type(screen.getByRole('textbox'), 'weaver{Enter}')
+    await screen.findByText('Showing 1 actor')
+
+    await user.click(screen.getByRole('heading', { level: 3, name: 'Person 1' }))
+    await user.click(await screen.findByRole('tab', { name: 'All films' }))
+    await user.click(await screen.findByRole('button', { name: 'Add Alien (1979)' }))
+    await screen.findByText('In collection')
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(searches).toBe(2)
+    expect(screen.getByText('Showing 1 actor')).toBeInTheDocument()
+
+    await act(async () => refresh.resolve({ data: { data: [person(1), person(2)] } }))
+
+    expect(screen.getByText('Showing 2 actors')).toBeInTheDocument()
   })
 
   it('should request the list with the chosen sort', async () => {

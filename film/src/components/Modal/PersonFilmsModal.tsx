@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useId } from "react"
+import { useState, useEffect, useId, useRef } from "react"
 import { Person, PersonFilm, TmdbPersonFilm } from "@/types"
 import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
@@ -14,8 +14,8 @@ interface PersonFilmsModalProps {
   kind: PersonKind
   isOpen: boolean
   onClose: () => void
-  /** Hides the Add buttons on the All films tab - used on public pages */
-  readOnly?: boolean
+  /** Called on closing after films were added, so the page behind can refresh */
+  onFilmsAdded?: () => void
 }
 
 const initialsOf = (name: string) =>
@@ -27,8 +27,9 @@ const initialsOf = (name: string) =>
     .join("")
     .toUpperCase()
 
+// `details` replaces the person passed in, whose stats go stale once a film is added
 type FilmsState =
-  | { key: string; status: "loaded"; films: PersonFilm[]; imdbPersonId?: string | null }
+  | { key: string; status: "loaded"; details: Person; films: PersonFilm[] }
   | { key: string; status: "error" }
 
 type TmdbFilmsEntry =
@@ -52,7 +53,7 @@ export default function PersonFilmsModal({
   kind,
   isOpen,
   onClose,
-  readOnly = false,
+  onFilmsAdded,
 }: PersonFilmsModalProps) {
   const { getToken } = useAuth()
   // Keyed by person and kind so switching never shows the previous person's films while loading
@@ -67,6 +68,10 @@ export default function PersonFilmsModal({
   const [tmdbFilmsByKey, setTmdbFilmsByKey] = useState<Record<string, TmdbFilmsEntry>>({})
   // Films added from this modal; any filmography listing one shows it as in the collection
   const [addedTmdbIds, setAddedTmdbIds] = useState<Set<string>>(new Set())
+  // Set by an add while the modal is open, and cleared when it closes and tells the page behind
+  const hasUnreportedAddRef = useRef(false)
+  // Lets an add that finishes after the modal closed report straight away
+  const isOpenRef = useRef(isOpen)
   const [addStatusByTmdbId, setAddStatusByTmdbId] = useState<
     Record<string, AddStatus | undefined>
   >({})
@@ -84,15 +89,16 @@ export default function PersonFilmsModal({
 
     const fetchPersonFilms = async () => {
       try {
-        const response = await axios.get<{
-          data: { films?: PersonFilm[]; imdbPersonId?: string | null }
-        }>(PERSON_KINDS[kind].detailEndpoint(tmdbPersonId))
+        const response = await axios.get<{ data: Person & { films?: PersonFilm[] } }>(
+          PERSON_KINDS[kind].detailEndpoint(tmdbPersonId)
+        )
         if (!cancelled) {
+          const { films: personFilms, ...details } = response.data.data
           setFilmsState({
             key: requestKey,
             status: "loaded",
-            films: response.data.data.films || [],
-            imdbPersonId: response.data.data.imdbPersonId,
+            details,
+            films: personFilms || [],
           })
         }
       } catch (err) {
@@ -109,9 +115,15 @@ export default function PersonFilmsModal({
     }
   }, [isOpen, kind, tmdbPersonId, requestKey, filmsVersion])
 
-  // Every opening starts on "Your films"
+  // Runs however the modal closes; every opening starts on "Your films"
   useEffect(() => {
-    if (!isOpen) setAllFilmsKey(null)
+    isOpenRef.current = isOpen
+    if (isOpen) return
+    setAllFilmsKey(null)
+    if (hasUnreportedAddRef.current) {
+      hasUnreportedAddRef.current = false
+      onFilmsAdded?.()
+    }
   }, [isOpen])
 
   const loadAllFilms = async (key: string, personId: string) => {
@@ -150,6 +162,11 @@ export default function PersonFilmsModal({
       setAddStatus(tmdbId, "adding")
       const client = await createAuthenticatedClient(getToken)
       await client.post(API_ENDPOINTS.createFilm, { tmdbId })
+      if (isOpenRef.current) {
+        hasUnreportedAddRef.current = true
+      } else {
+        onFilmsAdded?.()
+      }
     } catch (err: any) {
       // A 409 means the film is already in the collection, so it is treated like a successful add
       if (err.response?.status !== 409) {
@@ -169,8 +186,7 @@ export default function PersonFilmsModal({
   const loading = currentFilms === null
   const error = currentFilms?.status === "error" ? "Failed to load films" : null
   const films = currentFilms?.status === "loaded" ? currentFilms.films : []
-  const imdbPersonId =
-    currentFilms?.status === "loaded" ? currentFilms.imdbPersonId : person.imdbPersonId
+  const details = currentFilms?.status === "loaded" ? currentFilms.details : person
   const photoPath = person.profilePath !== failedPhotoPath ? person.profilePath : undefined
   const showAllFilms = allFilmsKey !== null && allFilmsKey === requestKey
   const tmdbFilms = requestKey ? tmdbFilmsByKey[requestKey] : undefined
@@ -243,9 +259,6 @@ export default function PersonFilmsModal({
   const renderAddCell = (film: TmdbPersonFilm) => {
     if (film.inCollection || addedTmdbIds.has(film.tmdbId)) {
       return <span className="text-sm text-gray-400">In collection</span>
-    }
-    if (readOnly) {
-      return <span className="text-gray-500 text-sm">-</span>
     }
     const status = addStatusByTmdbId[film.tmdbId]
     return (
@@ -374,9 +387,9 @@ export default function PersonFilmsModal({
           <div className="min-w-0">
             <h2 className="text-2xl font-bold mb-2">{person.displayName}</h2>
             <p className="text-gray-400 text-sm">
-              {person.totalFilms} films · {person.seenFilms} seen
-              {person.averageRating &&
-                ` · ${person.averageRating.toFixed(2)} avg rating`}
+              {details.totalFilms} films · {details.seenFilms} seen
+              {details.averageRating &&
+                ` · ${details.averageRating.toFixed(2)} avg rating`}
             </p>
             <div className="flex items-center gap-3 text-sm mt-2">
               <a
@@ -387,11 +400,11 @@ export default function PersonFilmsModal({
               >
                 TMDB
               </a>
-              {imdbPersonId && (
+              {details.imdbPersonId && (
                 <>
                   <span className="text-gray-600">|</span>
                   <a
-                    href={`https://www.imdb.com/name/${imdbPersonId}`}
+                    href={`https://www.imdb.com/name/${details.imdbPersonId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-yellow-400 hover:text-yellow-300 font-medium"

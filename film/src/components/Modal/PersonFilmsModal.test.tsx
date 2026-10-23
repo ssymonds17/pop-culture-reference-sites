@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { useState } from 'react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import PersonFilmsModal from './PersonFilmsModal'
@@ -354,6 +355,29 @@ describe('PersonFilmsModal', () => {
     })
   })
 
+  describe('header', () => {
+    it('should show the stats from the loaded person, which are fresher than those passed in', async () => {
+      mockAxiosGet.mockResolvedValueOnce({
+        data: { data: { ...person, totalFilms: 3, seenFilms: 2, averageRating: 8.5, films } },
+      })
+
+      render(renderModal(person))
+
+      expect(await screen.findByText('3 films · 2 seen · 8.50 avg rating')).toBeInTheDocument()
+    })
+
+    it('should link to IMDb from the person passed in before the films load', () => {
+      mockAxiosGet.mockReturnValueOnce(deferred().promise)
+
+      render(renderModal({ ...person, imdbPersonId: 'nm0000244' }))
+
+      expect(screen.getByRole('link', { name: 'IMDB' })).toHaveAttribute(
+        'href',
+        'https://www.imdb.com/name/nm0000244'
+      )
+    })
+  })
+
   describe('role column', () => {
     const roleFilms = [
       { _id: 'film1', title: 'Alien', year: 1979, lead: true },
@@ -416,7 +440,7 @@ describe('PersonFilmsModal', () => {
       mockAxiosCreate.mockReturnValue({ post: mockPost })
     })
 
-    const openAllFilms = async (props: { readOnly?: boolean; kind?: 'actor' | 'director' } = {}) => {
+    const openAllFilms = async (props: { kind?: 'actor' | 'director' } = {}) => {
       const user = userEvent.setup()
       render(
         <PersonFilmsModal
@@ -424,7 +448,6 @@ describe('PersonFilmsModal', () => {
           kind={props.kind ?? 'actor'}
           isOpen
           onClose={jest.fn()}
-          readOnly={props.readOnly}
         />
       )
       await screen.findByText('Galaxy Quest')
@@ -565,14 +588,86 @@ describe('PersonFilmsModal', () => {
       await act(async () => pending.resolve({}))
     })
 
-    it('should not offer Add when read-only', async () => {
-      mockApi([tmdbFilm(), tmdbFilm({ tmdbId: '679', title: 'Aliens', inCollection: true })])
+    // Stands in for the parent page, which owns `isOpen` and closes the modal from `onClose`
+    const ModalOnPage = ({ onFilmsAdded }: { onFilmsAdded: () => void }) => {
+      const [isOpen, setIsOpen] = useState(true)
+      return (
+        <>
+          <button onClick={() => setIsOpen(true)}>Open person</button>
+          <PersonFilmsModal
+            person={person}
+            kind="actor"
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            onFilmsAdded={onFilmsAdded}
+          />
+        </>
+      )
+    }
 
-      await openAllFilms({ readOnly: true })
+    const addAlienOnPage = async (onFilmsAdded: () => void) => {
+      const user = userEvent.setup()
+      const utils = render(<ModalOnPage onFilmsAdded={onFilmsAdded} />)
+      await screen.findByText('Galaxy Quest')
+      await user.click(screen.getByRole('tab', { name: 'All films' }))
+      await user.click(await screen.findByRole('button', { name: 'Add Alien (1979)' }))
+      return { user, ...utils }
+    }
 
-      expect(await screen.findByRole('link', { name: 'Alien' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /^Add / })).not.toBeInTheDocument()
-      expect(screen.getByText('In collection')).toBeInTheDocument()
+    it('should tell the page behind that films were added once it closes, and only once', async () => {
+      mockApi([tmdbFilm()])
+      const onFilmsAdded = jest.fn()
+      const { user } = await addAlienOnPage(onFilmsAdded)
+      await screen.findByText('In collection')
+
+      expect(onFilmsAdded).not.toHaveBeenCalled()
+
+      await user.click(screen.getByRole('button', { name: 'Close' }))
+      expect(onFilmsAdded).toHaveBeenCalledTimes(1)
+
+      await user.click(screen.getByRole('button', { name: 'Open person' }))
+      await user.click(await screen.findByRole('button', { name: 'Close' }))
+      expect(onFilmsAdded).toHaveBeenCalledTimes(1)
+    })
+
+    it('should tell the page behind when closed by clicking the backdrop', async () => {
+      mockApi([tmdbFilm()])
+      const onFilmsAdded = jest.fn()
+      const { user, container } = await addAlienOnPage(onFilmsAdded)
+      await screen.findByText('In collection')
+
+      await user.click(container.querySelector('.fixed.inset-0')!)
+
+      expect(onFilmsAdded).toHaveBeenCalledTimes(1)
+    })
+
+    it('should tell the page behind when an add finishes after the modal closed', async () => {
+      mockApi([tmdbFilm()])
+      const pending = deferred()
+      mockPost.mockReturnValueOnce(pending.promise)
+      const onFilmsAdded = jest.fn()
+      const { user } = await addAlienOnPage(onFilmsAdded)
+
+      await user.click(screen.getByRole('button', { name: 'Close' }))
+      expect(onFilmsAdded).not.toHaveBeenCalled()
+      await act(async () => pending.resolve({}))
+      expect(onFilmsAdded).toHaveBeenCalledTimes(1)
+
+      await user.click(screen.getByRole('button', { name: 'Open person' }))
+      await user.click(await screen.findByRole('button', { name: 'Close' }))
+      expect(onFilmsAdded).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not tell the page behind about a film that already existed', async () => {
+      mockApi([tmdbFilm()])
+      mockPost.mockRejectedValueOnce({ response: { status: 409 } })
+      const onFilmsAdded = jest.fn()
+      const { user } = await addAlienOnPage(onFilmsAdded)
+      await screen.findByText('In collection')
+
+      await user.click(screen.getByRole('button', { name: 'Close' }))
+
+      expect(onFilmsAdded).not.toHaveBeenCalled()
     })
 
     it('should offer to try again when TMDb fails', async () => {

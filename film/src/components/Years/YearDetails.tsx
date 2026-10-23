@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import Skeleton from "react-loading-skeleton"
 import "react-loading-skeleton/dist/skeleton.css"
@@ -14,12 +14,30 @@ import FilmGrid from "@/components/Films/FilmGrid"
 interface YearDetailsProps {
   yearStats: YearStats
   onClose: () => void
+  /** Called after a film is edited, so the year's stats can be refreshed */
+  onFilmUpdated?: () => void
 }
 
-export default function YearDetails({ yearStats, onClose }: YearDetailsProps) {
+export default function YearDetails({ yearStats, onClose, onFilmUpdated }: YearDetailsProps) {
   const [films, setFilms] = useState<Film[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Only the latest refresh may update the films, so an earlier one landing late cannot undo an edit
+  const latestRefreshRef = useRef(0)
+
+  // Quiet, unlike the first load, so the film cards and any open modal stay on screen
+  const handleFilmUpdated = async () => {
+    onFilmUpdated?.()
+    const refreshId = ++latestRefreshRef.current
+    try {
+      const response = await axios.get(API_ENDPOINTS.films, {
+        params: { year: yearStats.year },
+      })
+      if (refreshId === latestRefreshRef.current) setFilms(response.data.data || [])
+    } catch (err) {
+      console.error("Error refreshing year films:", err)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -118,7 +136,7 @@ export default function YearDetails({ yearStats, onClose }: YearDetailsProps) {
         ) : films.length === 0 ? (
           <div className="text-center py-8 text-gray-400">No films found</div>
         ) : (
-          <FilmGrid films={films} readOnly />
+          <FilmGrid films={films} onUpdate={handleFilmUpdated} />
         )}
       </div>
     </div>

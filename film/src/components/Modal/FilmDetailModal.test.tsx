@@ -223,17 +223,6 @@ describe('FilmDetailModal', () => {
     consoleError.mockRestore()
   })
 
-  it('should show the cast but no edit controls when read-only', async () => {
-    mockDetails({ cast: castOf(1) })
-
-    renderModal({ readOnly: true })
-
-    expect(await screen.findByText('Actor 1')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '10' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Owned' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Add review' })).not.toBeInTheDocument()
-  })
-
   describe('lead roles', () => {
     const mockPatch = jest.fn()
 
@@ -459,14 +448,35 @@ describe('FilmDetailModal', () => {
       expect(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
       expect(screen.getByRole('button', { name: 'Save leads' })).toBeInTheDocument()
     })
+  })
 
-    it('should label leads without offering the toggle when read-only', async () => {
-      mockDetails({ cast: castWithLead() })
+  describe('review draft', () => {
+    const startReview = async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: [] })
+      const utils = renderModal()
+      await user.click(screen.getByRole('button', { name: 'Add review' }))
+      await user.type(screen.getByPlaceholderText('Write your review here...'), 'Great fun')
+      return utils
+    }
 
-      renderModal({ readOnly: true })
+    it('should keep an unsaved review when the page refreshes the same film', async () => {
+      const { rerender } = await startReview()
 
-      expect(await screen.findByText('Lead')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /^Lead:/ })).not.toBeInTheDocument()
+      rerender(
+        <FilmDetailModal film={{ ...film, rating: 9 }} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />
+      )
+
+      expect(screen.getByPlaceholderText('Write your review here...')).toHaveValue('Great fun')
+    })
+
+    it('should drop the unsaved review when switching to another film', async () => {
+      const { rerender } = await startReview()
+      mockDetails({ _id: 'film2', cast: [] })
+
+      rerender(<FilmDetailModal film={otherFilm} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />)
+
+      expect(screen.queryByPlaceholderText('Write your review here...')).not.toBeInTheDocument()
     })
   })
 
