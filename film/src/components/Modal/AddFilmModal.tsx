@@ -176,14 +176,23 @@ export const AddFilmModal = ({
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={searching || creating}
             />
-            <input
-              type="text"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="Year"
-              className="w-32 px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={searching || creating}
-            />
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                placeholder="Year"
+                className="w-32 px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={searching || creating}
+              />
+              <button
+                type="submit"
+                disabled={searching || creating}
+                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {searching ? "Searching..." : "Search"}
+              </button>
+            </div>
           </div>
         </form>
 
@@ -302,14 +311,7 @@ export const AddFilmModal = ({
           </div>
         )}
 
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={(e) => handleSearch(e)}
-            disabled={searching || creating}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {searching ? "Searching..." : "Search"}
-          </button>
+        <div className="flex justify-end mt-6">
           <button
             onClick={handleClose}
             disabled={creating}
