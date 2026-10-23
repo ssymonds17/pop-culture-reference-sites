@@ -3,12 +3,11 @@ import FilmCard from "./FilmCard"
 
 interface FilmGridProps {
   films: Film[]
-  onUpdate?: () => void
-  /** Hides all update controls in the detail modal - used on public pages */
-  readOnly?: boolean
+  /** Called after a film is edited, with that film's ID */
+  onUpdate?: (filmId: string) => void
 }
 
-export default function FilmGrid({ films, onUpdate, readOnly = false }: FilmGridProps) {
+export default function FilmGrid({ films, onUpdate }: FilmGridProps) {
   if (films.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400">
@@ -23,8 +22,7 @@ export default function FilmGrid({ films, onUpdate, readOnly = false }: FilmGrid
         <FilmCard
           key={film._id}
           film={film}
-          onUpdate={onUpdate}
-          readOnly={readOnly}
+          onUpdate={onUpdate && (() => onUpdate(film._id))}
         />
       ))}
     </div>

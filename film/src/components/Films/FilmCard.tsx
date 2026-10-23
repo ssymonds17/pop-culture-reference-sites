@@ -10,11 +10,9 @@ import PersonFilmsModal from "../Modal/PersonFilmsModal"
 interface FilmCardProps {
   film: Film
   onUpdate?: () => void
-  /** Hides all update controls in the detail modal - used on public pages */
-  readOnly?: boolean
 }
 
-export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardProps) {
+export default function FilmCard({ film, onUpdate }: FilmCardProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
   const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false)
@@ -107,7 +105,6 @@ export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardP
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onUpdate={() => onUpdate?.()}
-        readOnly={readOnly}
       />
 
       <PersonFilmsModal
@@ -115,7 +112,7 @@ export default function FilmCard({ film, onUpdate, readOnly = false }: FilmCardP
         kind="director"
         isOpen={isDirectorModalOpen}
         onClose={handleCloseDirectorModal}
-        readOnly={readOnly}
+        onFilmsAdded={onUpdate}
       />
     </>
   )

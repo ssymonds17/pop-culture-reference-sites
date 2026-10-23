@@ -54,8 +54,8 @@ Pages marked **Sign-in** show a sign-in prompt until you are signed in.
 - **Top Films** (`/top-films`) - Ranked list of films rated 8 to 10 (Sign-in)
 - **Directors** (`/directors`) - Director rankings and statistics (Sign-in)
 - **Actors** (`/actors`) - Actor rankings and statistics (Sign-in)
-- **Years** (`/years`) - Year-based analysis and scoring
-- **Random** (`/random`) - Pick random films from the ones you own
+- **Years** (`/years`) - Year-based analysis and scoring (Sign-in)
+- **Random** (`/random`) - Pick random films from the ones you own (Sign-in)
 
 ## Project Structure
 

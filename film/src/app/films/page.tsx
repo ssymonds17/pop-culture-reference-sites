@@ -20,10 +20,15 @@ export default function FilmsPage() {
   // edit or an add re-run the same query.
   const [activeFilters, setActiveFilters] = useState<FilmFilterValues>({})
   const resultsRef = useRef<HTMLDivElement>(null)
+  // Only the latest request may update the page, so a slow refresh cannot overwrite a newer search
+  const latestRequestRef = useRef(0)
 
-  const fetchFilms = async (filters: FilmFilterValues) => {
+  // A quiet fetch keeps the film cards on screen, so a modal open on one of them stays open
+  const fetchFilms = async (filters: FilmFilterValues, { quiet = false } = {}) => {
+    const requestId = ++latestRequestRef.current
+    const isLatest = () => requestId === latestRequestRef.current
     try {
-      setLoading(true)
+      if (!quiet) setLoading(true)
       setActiveFilters(filters)
       const params = new URLSearchParams()
 
@@ -75,6 +80,7 @@ export default function FilmsPage() {
           }
         }
 
+        if (!isLatest()) return
         setFilms(filteredFilms)
         setError(null)
       } else {
@@ -109,14 +115,15 @@ export default function FilmsPage() {
 
         const url = `${API_ENDPOINTS.films}?${params.toString()}`
         const response = await axios.get(url)
+        if (!isLatest()) return
         setFilms(response.data.data)
         setError(null)
       }
     } catch (err) {
       console.error('Error fetching films:', err)
-      setError('Failed to load films')
+      if (isLatest()) setError('Failed to load films')
     } finally {
-      setLoading(false)
+      if (isLatest()) setLoading(false)
     }
   }
 
@@ -130,6 +137,9 @@ export default function FilmsPage() {
   }
 
   const handleReset = () => {
+    // Supersedes any request in flight, so a late refresh cannot refill the cleared list
+    latestRequestRef.current++
+    setLoading(false)
     setActiveFilters({})
     setFilms([])
     setError(null)
@@ -183,7 +193,7 @@ export default function FilmsPage() {
             <div className="mb-4 text-gray-400">
               Showing {films.length} film{films.length !== 1 ? 's' : ''}
             </div>
-            <FilmGrid films={films} onUpdate={() => fetchFilms(activeFilters)} />
+            <FilmGrid films={films} onUpdate={() => fetchFilms(activeFilters, { quiet: true })} />
           </div>
         )}
       </div>

@@ -8,7 +8,7 @@ import { Director, Film } from '@/types'
 // A factory avoids loading axios's ESM browser build, which Jest cannot parse.
 jest.mock('axios', () => ({
   __esModule: true,
-  default: { get: jest.fn() },
+  default: { get: jest.fn(), create: jest.fn() },
 }))
 jest.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: jest.fn() }),
@@ -19,6 +19,7 @@ jest.mock('../Modal/FilmDetailModal', () => ({
 }))
 
 const mockAxiosGet = axios.get as jest.Mock
+const mockAxiosCreate = axios.create as jest.Mock
 
 const director: Director = {
   _id: 'director1',
@@ -75,11 +76,11 @@ describe('FilmCard', () => {
     expect(screen.queryByText('Film detail modal')).not.toBeInTheDocument()
   })
 
-  it.each([
-    [true, 'hide'],
-    [false, 'offer'],
-  ])("when readOnly is %p, should %s Add in the director's All films tab", async (readOnly) => {
+  it("should refresh the page after closing the director's modal having added a film", async () => {
     const user = userEvent.setup()
+    const onUpdate = jest.fn()
+    const mockPost = jest.fn().mockResolvedValue({})
+    mockAxiosCreate.mockReturnValue({ post: mockPost })
     mockAxiosGet.mockImplementation(async (url: string) =>
       url === API_ENDPOINTS.tmdbPersonFilms('956')
         ? {
@@ -98,13 +99,19 @@ describe('FilmCard', () => {
           }
         : { data: { data: { ...director, films: [] } } }
     )
-    render(<FilmCard film={film} readOnly={readOnly} />)
+    render(<FilmCard film={film} onUpdate={onUpdate} />)
 
     await user.click(screen.getByRole('button', { name: 'Guy Ritchie' }))
     await user.click(await screen.findByRole('tab', { name: 'All films' }))
+    await user.click(await screen.findByRole('button', { name: 'Add Revolver (2005)' }))
+    await screen.findByText('In collection')
 
-    expect(await screen.findByRole('link', { name: 'Revolver' })).toBeInTheDocument()
-    expect(screen.queryAllByRole('button', { name: 'Add Revolver (2005)' })).toHaveLength(readOnly ? 0 : 1)
+    expect(mockPost).toHaveBeenCalledWith(API_ENDPOINTS.createFilm, { tmdbId: '10' })
+    expect(onUpdate).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(onUpdate).toHaveBeenCalledTimes(1)
   })
 
   it('should open the film details from the poster', async () => {
