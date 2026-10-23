@@ -50,6 +50,9 @@ const IMDB_RATINGS_BATCH_SIZE = 100
 // Below this many IMDb votes a film is hidden from "All films" unless it's in the collection
 const MIN_IMDB_VOTES = 100
 
+// The API stops starting lookups after 20 seconds and answers within about 25
+const IMDB_RATINGS_TIMEOUT_MS = 35000
+
 const HEADER_CELL_CLASS = "px-4 py-3 text-xs font-medium text-gray-400 uppercase"
 
 const tabClass = (selected: boolean) =>
@@ -87,8 +90,9 @@ export default function PersonFilmsModal({
   const isOpenRef = useRef(isOpen)
   // Kept per film rather than per person, as one film appears in several filmographies
   const [imdbRatingsByTmdbId, setImdbRatingsByTmdbId] = useState<Record<string, ImdbRatingEntry>>({})
-  // Films requested or loaded, so overlapping loads never ask OMDb for the same film twice
-  const requestedImdbIdsRef = useRef<Set<string>>(new Set())
+  // The request each film's rating came, or is coming, from. Overlapping loads wait on it rather
+  // than asking OMDb twice or showing a list before a shared film's rating has arrived.
+  const imdbRequestsRef = useRef<Map<string, Promise<string[]>>>(new Map())
   // The person and kind whose failed IMDb ratings are being retried, so the banner stays during it
   const [retryingImdbKey, setRetryingImdbKey] = useState<string | null>(null)
   // How the last retry ended, read out by a status region that outlives the banner
@@ -155,7 +159,7 @@ export default function PersonFilmsModal({
   // Failed films are forgotten as requested, so a retry can ask for them again
   const updateImdbRatings = (entries: Record<string, ImdbRatingEntry>) => {
     for (const [tmdbId, entry] of Object.entries(entries)) {
-      if (entry.status === "error") requestedImdbIdsRef.current.delete(tmdbId)
+      if (entry.status === "error") imdbRequestsRef.current.delete(tmdbId)
     }
     setImdbRatingsByTmdbId((previous) => ({ ...previous, ...entries }))
   }
@@ -163,15 +167,34 @@ export default function PersonFilmsModal({
   const buildEntries = (tmdbIds: string[], entry: ImdbRatingEntry) =>
     Object.fromEntries(tmdbIds.map((tmdbId) => [tmdbId, entry]))
 
-  // Resolves with the films that still have no rating, failed or not reached
+  // Resolves once every film has a result, with the films that still have no rating
   const loadImdbRatings = async (tmdbIds: string[]): Promise<string[]> => {
-    const toRequest = tmdbIds.filter((tmdbId) => !requestedImdbIdsRef.current.has(tmdbId))
-    if (toRequest.length === 0) return []
-    toRequest.forEach((tmdbId) => requestedImdbIdsRef.current.add(tmdbId))
+    const requests = new Set<Promise<string[]>>()
+    const toRequest: string[] = []
+    for (const tmdbId of tmdbIds) {
+      const existing = imdbRequestsRef.current.get(tmdbId)
+      if (existing) {
+        requests.add(existing)
+      } else {
+        toRequest.push(tmdbId)
+      }
+    }
+    if (toRequest.length > 0) {
+      const request = requestImdbRatings(toRequest)
+      toRequest.forEach((tmdbId) => imdbRequestsRef.current.set(tmdbId, request))
+      requests.add(request)
+    }
+    const wanted = new Set(tmdbIds)
+    const results = await Promise.all(requests)
+    return results.flat().filter((tmdbId) => wanted.has(tmdbId))
+  }
+
+  // Resolves with the films that failed or weren't reached
+  const requestImdbRatings = async (toRequest: string[]): Promise<string[]> => {
     updateImdbRatings(buildEntries(toRequest, { status: "loading" }))
 
     const failed: string[] = []
-    // One batch at a time, so a long filmography fills in gradually within the route's rate limit
+    // One batch at a time, to stay within the route's rate limit
     for (let start = 0; start < toRequest.length; start += IMDB_RATINGS_BATCH_SIZE) {
       const batch = toRequest.slice(start, start + IMDB_RATINGS_BATCH_SIZE)
       try {
@@ -181,7 +204,8 @@ export default function PersonFilmsModal({
           data: Partial<Record<string, ImdbRating | null>>
         }>(
           API_ENDPOINTS.imdbRatings,
-          { params: { tmdbIds: batch.join(",") } }
+          // Above the API's own time budget, so only a stalled request is cut off
+          { params: { tmdbIds: batch.join(",") }, timeout: IMDB_RATINGS_TIMEOUT_MS }
         )
         const entries: Record<string, ImdbRatingEntry> = {}
         for (const tmdbId of batch) {
@@ -232,7 +256,7 @@ export default function PersonFilmsModal({
         API_ENDPOINTS.tmdbPersonFilms(personId),
         { params: { kind } }
       )
-      // Held until the ratings settle, so the vote filter never drops rows while you look at them
+      // Held until the ratings settle, so the first list you see is already filtered
       await loadImdbRatings(response.data.data.map((film) => film.tmdbId))
       setTmdbFilmsByKey((previous) => ({
         ...previous,
@@ -448,12 +472,12 @@ export default function PersonFilmsModal({
       .filter((tmdbId) => imdbRatingsByTmdbId[tmdbId]?.status === "error")
     const isRetryingImdb = retryingImdbKey !== null && retryingImdbKey === requestKey
     const showLowVoteFilms = lowVoteFilmsKey !== null && lowVoteFilmsKey === requestKey
-    // Collection films always show, as do films whose votes are unknown because the lookup failed
+    // Collection films always show; films with no rating, or whose lookup failed, are hidden with
+    // the low-vote ones, and Show all or a retry can bring them back
     const hasEnoughVotes = (film: TmdbPersonFilm) => {
       if (film.inCollection || addedTmdbIds.has(film.tmdbId)) return true
       const entry = imdbRatingsByTmdbId[film.tmdbId]
-      if (entry?.status !== "loaded") return true
-      return (entry.rating.imdbVotes ?? 0) >= MIN_IMDB_VOTES
+      return entry?.status === "loaded" && (entry.rating.imdbVotes ?? 0) >= MIN_IMDB_VOTES
     }
     const lowVoteCount = tmdbFilms.films.filter((film) => !hasEnoughVotes(film)).length
     const visibleFilms = showLowVoteFilms ? tmdbFilms.films : tmdbFilms.films.filter(hasEnoughVotes)
@@ -464,6 +488,11 @@ export default function PersonFilmsModal({
         className="text-blue-400 hover:text-blue-300 transition-colors"
       >
         {showLowVoteFilms ? "Hide them" : "Show all"}
+        <span className="sr-only">
+          {showLowVoteFilms
+            ? `: films with fewer than ${MIN_IMDB_VOTES} IMDb votes or no rating`
+            : ` films, including those with fewer than ${MIN_IMDB_VOTES} IMDb votes or no rating`}
+        </span>
       </button>
     )
     return (
@@ -490,17 +519,16 @@ export default function PersonFilmsModal({
               ? imdbRetryOutcome.message
               : ""}
         </p>
-        {lowVoteCount > 0 && visibleFilms.length > 0 && (
+        {/* One line in both cases, so the toggle stays in place and keeps focus */}
+        {lowVoteCount > 0 && (
           <p className="mb-3 text-sm text-gray-400">
-            {lowVoteCount} {lowVoteCount === 1 ? "film" : "films"} with fewer than {MIN_IMDB_VOTES}{" "}
-            IMDb votes {showLowVoteFilms ? "shown" : "hidden"} · {lowVoteToggle}
+            {visibleFilms.length === 0
+              ? `No films with ${MIN_IMDB_VOTES} or more IMDb votes`
+              : `${lowVoteCount} ${lowVoteCount === 1 ? "film" : "films"} with fewer than ${MIN_IMDB_VOTES} IMDb votes or no rating ${showLowVoteFilms ? "shown" : "hidden"}`}{" "}
+            · {lowVoteToggle}
           </p>
         )}
-        {visibleFilms.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            No films with {MIN_IMDB_VOTES} or more IMDb votes · {lowVoteToggle}
-          </div>
-        ) : (
+        {visibleFilms.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-800 border-b border-gray-700">

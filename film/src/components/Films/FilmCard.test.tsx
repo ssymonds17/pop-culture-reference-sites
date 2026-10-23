@@ -82,7 +82,9 @@ describe('FilmCard', () => {
     const mockPost = jest.fn().mockResolvedValue({})
     mockAxiosCreate.mockReturnValue({
       post: mockPost,
-      get: jest.fn().mockResolvedValue({ data: { data: {} } }),
+      get: jest.fn().mockResolvedValue({
+        data: { data: { '10': { imdbId: 'tt0365686', imdbRating: 6.5, imdbVotes: 90000 } } },
+      }),
     })
     mockAxiosGet.mockImplementation(async (url: string) =>
       url === API_ENDPOINTS.tmdbPersonFilms('956')

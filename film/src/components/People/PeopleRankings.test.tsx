@@ -113,7 +113,9 @@ describe('PeopleRankings', () => {
     let searches = 0
     mockAxiosCreate.mockReturnValue({
       post: jest.fn().mockResolvedValue({}),
-      get: jest.fn().mockResolvedValue({ data: { data: {} } }),
+      get: jest.fn().mockResolvedValue({
+        data: { data: { '348': { imdbId: 'tt0078748', imdbRating: 8.5, imdbVotes: 900000 } } },
+      }),
     })
     mockAxiosGet.mockImplementation(async (url: string) => {
       if (url === searchUrl) {
