@@ -22,7 +22,7 @@ body:json {
 }
 
 docs {
-  Updates a film's rating, owned status and/or review.
+  Updates a film's rating, owned status, review and/or lead actors.
 
   Requires CLERK_TOKEN (returns 401 without it).
 
@@ -30,6 +30,9 @@ docs {
   - rating: whole number (1-10) or null to clear rating
   - owned: boolean
   - review: string, or null or "" to clear the review
+  - leadActorIds: the full set of lead actor IDs (Actor _id values from GET /film/{id}).
+    Every other cast member becomes a supporting role; [] clears all leads.
+    Each ID must be in the film's cast.
 
   Watched status is automatically derived from rating:
   - If rating has a value (1-10) → watched = true
@@ -40,6 +43,8 @@ docs {
   2. Year statistics for the film's release year
   3. The top films list, when the film moves into, out of or between the 8-10 tiers
   4. The statistics of every actor in the film's cast
+
+  If only leadActorIds is included, just the cast's actor statistics are recalculated.
 
   Set the FILM_ID environment variable to test this endpoint.
 }

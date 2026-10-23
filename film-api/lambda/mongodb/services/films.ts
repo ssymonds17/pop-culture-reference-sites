@@ -91,11 +91,16 @@ export const getFilmByTmdbId = async (tmdbId: string) => {
   return Film.findOne({ tmdbId }).exec()
 }
 
+export interface FilmUpdates {
+  rating?: number | null
+  owned?: boolean
+  review?: string | null
+  leadActorIds?: string[]
+}
+
 export const updateFilm = async (
   id: string,
-  rating?: number | null,
-  owned?: boolean,
-  review?: string | null,
+  { rating, owned, review, leadActorIds }: FilmUpdates,
 ) => {
   const updates: any = {}
   const unsets: any = {}
@@ -127,6 +132,17 @@ export const updateFilm = async (
     }
   }
 
+  // The full set of leads is sent each time, so every other cast member is marked as support.
+  const arrayFilters: Record<string, unknown>[] = []
+  if (leadActorIds !== undefined) {
+    updates["cast.$[lead].lead"] = true
+    updates["cast.$[support].lead"] = false
+    arrayFilters.push(
+      { "lead.actor": { $in: leadActorIds } },
+      { "support.actor": { $nin: leadActorIds } },
+    )
+  }
+
   const updateQuery: any = {}
   if (Object.keys(updates).length > 0) {
     updateQuery.$set = updates
@@ -135,7 +151,10 @@ export const updateFilm = async (
     updateQuery.$unset = unsets
   }
 
-  return Film.findByIdAndUpdate(id, updateQuery, { new: true }).exec()
+  return Film.findByIdAndUpdate(id, updateQuery, {
+    new: true,
+    ...(arrayFilters.length > 0 && { arrayFilters }),
+  }).exec()
 }
 
 export const deleteFilm = async (id: string) => {

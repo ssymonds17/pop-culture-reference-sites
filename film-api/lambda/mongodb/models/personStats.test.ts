@@ -46,6 +46,40 @@ describe("calculatePersonStats", () => {
     expect(stats.totalPoints).toBe(35)
   })
 
+  it("should scale each film's points by its weight", () => {
+    const stats = calculatePersonStats([
+      { watched: true, rating: 10, pointsWeight: 1 },
+      { watched: true, rating: 8, pointsWeight: 0.5 },
+    ])
+
+    expect(stats.totalPoints).toBe(18)
+  })
+
+  it("should round weighted points to one decimal place", () => {
+    const stats = calculatePersonStats([
+      { watched: true, rating: 7, pointsWeight: 0.4 },
+      { watched: true, rating: 7, pointsWeight: 0.4 },
+      { watched: true, rating: 7, pointsWeight: 0.4 },
+    ])
+
+    expect(stats.totalPoints).toBe(3.6)
+  })
+
+  it("should leave the counts, score and average unweighted", () => {
+    const stats = calculatePersonStats([
+      { watched: true, rating: 9, pointsWeight: 0.4 },
+    ])
+
+    expect(stats).toEqual({
+      totalFilms: 1,
+      seenFilms: 1,
+      averageRating: 9,
+      totalScore: 9,
+      ratingCounts: { ...emptyRatingCounts, rating9: 1 },
+      totalPoints: 4,
+    })
+  })
+
   it("should give no points for ratings of 5 or below", () => {
     const stats = calculatePersonStats(
       [1, 2, 3, 4, 5].map((rating) => ({ watched: true, rating })),

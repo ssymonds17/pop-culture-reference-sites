@@ -5,6 +5,7 @@ import {
   findActorsByName,
   updateActorStats,
   updateCastActorStats,
+  SUPPORTING_ROLE_WEIGHT,
 } from "./actors"
 import Actor from "../models/actor"
 import Film from "../models/film"
@@ -182,26 +183,31 @@ describe("actors service", () => {
       )
     })
 
-    it("should save stats calculated from the films the actor is cast in", async () => {
+    const mockActorWithFilms = (films: unknown[]) => {
       const save = jest.fn().mockResolvedValue(undefined)
       const actor: any = { _id: "actor1", averageRating: 5, save }
       mockActor.findById = jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue(actor),
       }) as any
       mockFilm.find = jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue([
-          { watched: true, rating: 9 },
-          { watched: false },
-        ]),
+        exec: jest.fn().mockResolvedValue(films),
       }) as any
+      return actor
+    }
+
+    it("should save stats calculated from the films the actor is cast in", async () => {
+      const actor = mockActorWithFilms([
+        { watched: true, rating: 9, cast: [{ actor: "actor1", lead: true }] },
+        { watched: false, cast: [{ actor: "actor1" }] },
+      ])
 
       await updateActorStats("actor1")
 
       expect(mockFilm.find).toHaveBeenCalledWith(
         { "cast.actor": "actor1" },
-        "watched rating",
+        "watched rating cast.actor cast.lead",
       )
-      expect(save).toHaveBeenCalledTimes(1)
+      expect(actor.save).toHaveBeenCalledTimes(1)
       expect(actor).toMatchObject({
         totalFilms: 2,
         seenFilms: 1,
@@ -209,6 +215,40 @@ describe("actors service", () => {
         totalScore: 9,
         totalPoints: 10,
       })
+    })
+
+    it("should give a supporting role a share of the points", async () => {
+      const actor = mockActorWithFilms([
+        {
+          watched: true,
+          rating: 9,
+          cast: [
+            { actor: "actor2", lead: true },
+            { actor: "actor1" },
+          ],
+        },
+      ])
+
+      await updateActorStats("actor1")
+
+      expect(actor.totalPoints).toBe(10 * SUPPORTING_ROLE_WEIGHT)
+    })
+
+    it("should give full points when any of the actor's roles in a film is a lead", async () => {
+      const actor = mockActorWithFilms([
+        {
+          watched: true,
+          rating: 9,
+          cast: [
+            { actor: "actor1", lead: false },
+            { actor: "actor1", lead: true },
+          ],
+        },
+      ])
+
+      await updateActorStats("actor1")
+
+      expect(actor.totalPoints).toBe(10)
     })
   })
 

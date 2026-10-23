@@ -17,7 +17,7 @@ export interface PersonStats {
   averageRating?: number // Average of watched films
   totalScore: number // Sum of ratings
   ratingCounts: RatingCounts
-  totalPoints: number // Weighted score (6=1pt, 7=3pt, 8=6pt, 9=10pt, 10=15pt)
+  totalPoints: number // Weighted score (6=1pt, 7=3pt, 8=6pt, 9=10pt, 10=15pt), scaled per film by pointsWeight
 }
 
 export const personStatsSchemaFields = {
@@ -40,8 +40,10 @@ export const personStatsSchemaFields = {
   totalPoints: { type: Number, default: 0 },
 }
 
+const POINTS_BY_RATING: Record<number, number> = { 6: 1, 7: 3, 8: 6, 9: 10, 10: 15 }
+
 export const calculatePersonStats = (
-  films: Array<{ watched?: boolean; rating?: number }>,
+  films: Array<{ watched?: boolean; rating?: number; pointsWeight?: number }>,
 ): PersonStats => {
   const totalFilms = films.length
   const watchedFilms = films.filter((f) => f.watched && f.rating)
@@ -72,12 +74,12 @@ export const calculatePersonStats = (
     }
   })
 
-  const totalPoints =
-    ratingCounts.rating6 * 1 +
-    ratingCounts.rating7 * 3 +
-    ratingCounts.rating8 * 6 +
-    ratingCounts.rating9 * 10 +
-    ratingCounts.rating10 * 15
+  const weightedPoints = watchedFilms.reduce(
+    (sum, f) => sum + (POINTS_BY_RATING[f.rating as number] ?? 0) * (f.pointsWeight ?? 1),
+    0,
+  )
+  // Fractional weights leave float noise (0.4 * 3 = 1.2000000000000002), so keep one decimal place.
+  const totalPoints = Math.round(weightedPoints * 10) / 10
 
   return {
     totalFilms,

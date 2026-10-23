@@ -5,6 +5,7 @@ export interface CastMember {
   actor: mongoose.Types.ObjectId // Actor reference
   character?: string // Role played (from TMDb)
   order: number // TMDb billing position
+  lead?: boolean // Tagged by hand; unset means a supporting role
 }
 
 export interface ProductionCompany {
@@ -57,6 +58,7 @@ const castMemberSchema = new mongoose.Schema(
     actor: { type: mongoose.Schema.Types.ObjectId, ref: "Actor", required: true },
     character: { type: String },
     order: { type: Number, required: true },
+    lead: { type: Boolean },
   },
   { _id: false },
 )

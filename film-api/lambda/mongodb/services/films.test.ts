@@ -4,6 +4,7 @@ import {
   getFilmDetailsById,
   getFilms,
   getRandomFilms,
+  updateFilm,
 } from "./films"
 import Film from "../models/film"
 
@@ -146,6 +147,72 @@ describe("films service", () => {
         { $sample: { size: 3 } },
         { $project: { cast: 0, productionCompanies: 0, tmdbCollection: 0 } },
       ])
+    })
+  })
+
+  describe("updateFilm", () => {
+    const mockUpdate = () => {
+      const exec = jest.fn().mockResolvedValue({ _id: "film1" })
+      mockFilm.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
+    }
+
+    it("should mark the given actors as leads and the rest of the cast as support", async () => {
+      mockUpdate()
+
+      await updateFilm("film1", { leadActorIds: ["actor1"] })
+
+      expect(mockFilm.findByIdAndUpdate).toHaveBeenCalledWith(
+        "film1",
+        { $set: { "cast.$[lead].lead": true, "cast.$[support].lead": false } },
+        {
+          new: true,
+          arrayFilters: [
+            { "lead.actor": { $in: ["actor1"] } },
+            { "support.actor": { $nin: ["actor1"] } },
+          ],
+        },
+      )
+    })
+
+    it("should mark the whole cast as support when the leads are cleared", async () => {
+      mockUpdate()
+
+      await updateFilm("film1", { leadActorIds: [] })
+
+      const [, , options] = (mockFilm.findByIdAndUpdate as jest.Mock).mock.calls[0]
+      expect(options.arrayFilters).toEqual([
+        { "lead.actor": { $in: [] } },
+        { "support.actor": { $nin: [] } },
+      ])
+    })
+
+    it("should combine a rating change with the lead update", async () => {
+      mockUpdate()
+
+      await updateFilm("film1", { rating: 8, leadActorIds: ["actor1"] })
+
+      const [, update, options] = (mockFilm.findByIdAndUpdate as jest.Mock).mock.calls[0]
+      expect(update).toEqual({
+        $set: {
+          rating: 8,
+          watched: true,
+          "cast.$[lead].lead": true,
+          "cast.$[support].lead": false,
+        },
+      })
+      expect(options.arrayFilters).toHaveLength(2)
+    })
+
+    it("should leave the cast alone when no leads are given", async () => {
+      mockUpdate()
+
+      await updateFilm("film1", { rating: 8 })
+
+      expect(mockFilm.findByIdAndUpdate).toHaveBeenCalledWith(
+        "film1",
+        { $set: { rating: 8, watched: true } },
+        { new: true },
+      )
     })
   })
 })

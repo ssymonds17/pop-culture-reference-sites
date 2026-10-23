@@ -22,7 +22,8 @@ const mockRemoveFilmFromTop = mongodb.removeFilmFromTop as jest.Mock
 const mockCreateApiResponse = utils.createApiResponse as jest.Mock
 const mockLogger = utils.logger as any
 
-const cast = [{ actor: "actor1", character: "Lead", order: 0 }]
+const leadId = "64b7f0c2a1b2c3d4e5f60718"
+const cast = [{ actor: leadId, character: "Lead", order: 0 }]
 
 const currentFilm = (overrides: Record<string, unknown> = {}) => ({
   _id: "film1",
@@ -48,7 +49,7 @@ describe("update-film handler", () => {
     }))
     mockConnectToDatabase.mockResolvedValue(undefined)
     mockGetFilmById.mockResolvedValue(currentFilm())
-    mockUpdateFilm.mockImplementation(async (_id, rating, owned, review) => ({
+    mockUpdateFilm.mockImplementation(async (_id, { rating, owned, review }) => ({
       id: "film1",
       rating: rating ?? undefined,
       watched: rating !== null && rating !== undefined,
@@ -61,7 +62,7 @@ describe("update-film handler", () => {
   it("should update director, actor and year stats when the rating changes", async () => {
     await handler(updateEvent({ rating: 7 }))
 
-    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", 7, undefined, undefined)
+    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", { rating: 7 })
     expect(mockUpdateDirectorStats).toHaveBeenCalledWith("director1")
     expect(mockUpdateCastActorStats).toHaveBeenCalledWith(cast)
     expect(mockUpdateYearStats).toHaveBeenCalledWith(2000)
@@ -91,7 +92,7 @@ describe("update-film handler", () => {
 
     await handler(updateEvent({ rating: null }))
 
-    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", null, undefined, undefined)
+    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", { rating: null })
     expect(mockUpdateCastActorStats).toHaveBeenCalledWith(cast)
     expect(mockUpdateDirectorStats).toHaveBeenCalledWith("director1")
   })
@@ -99,11 +100,63 @@ describe("update-film handler", () => {
   it("should not update stats when only owned or review change", async () => {
     await handler(updateEvent({ owned: true, review: "Great" }))
 
-    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", undefined, true, "Great")
+    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", { owned: true, review: "Great" })
     expect(mockUpdateDirectorStats).not.toHaveBeenCalled()
     expect(mockUpdateCastActorStats).not.toHaveBeenCalled()
     expect(mockUpdateYearStats).not.toHaveBeenCalled()
   })
+
+  it.each([[[leadId]], [[]]])(
+    "should update only actor stats when the leads change to %p",
+    async (leadActorIds) => {
+      await handler(updateEvent({ leadActorIds }))
+
+      expect(mockUpdateFilm).toHaveBeenCalledWith("film1", { leadActorIds })
+      expect(mockUpdateCastActorStats).toHaveBeenCalledWith(cast)
+      expect(mockUpdateDirectorStats).not.toHaveBeenCalled()
+      expect(mockUpdateYearStats).not.toHaveBeenCalled()
+    },
+  )
+
+  it("should update actor stats once when the rating and leads change together", async () => {
+    await handler(updateEvent({ rating: 7, leadActorIds: [leadId] }))
+
+    expect(mockUpdateFilm).toHaveBeenCalledWith("film1", { rating: 7, leadActorIds: [leadId] })
+    expect(mockUpdateDirectorStats).toHaveBeenCalledWith("director1")
+    expect(mockUpdateCastActorStats).toHaveBeenCalledTimes(1)
+  })
+
+  it("should reject a lead who is not in the film's cast", async () => {
+    await handler(updateEvent({ leadActorIds: ["64b7f0c2a1b2c3d4e5f60719"] }))
+
+    expect(mockUpdateFilm).not.toHaveBeenCalled()
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining("leadActorIds must all be actors in the film's cast"),
+    )
+  })
+
+  it("should reject leads for a film with no cast, even when clearing them", async () => {
+    mockGetFilmById.mockResolvedValueOnce(currentFilm({ cast: undefined }))
+
+    await handler(updateEvent({ rating: 7, leadActorIds: [] }))
+
+    expect(mockUpdateFilm).not.toHaveBeenCalled()
+    expect(mockCreateApiResponse).toHaveBeenCalledWith(502, {
+      message: "Could not update film",
+    })
+  })
+
+  it.each([[["actor1"]], [leadId], [[1]], [null]])(
+    "should reject leadActorIds of %p",
+    async (leadActorIds) => {
+      await handler(updateEvent({ leadActorIds }))
+
+      expect(mockUpdateFilm).not.toHaveBeenCalled()
+      expect(mockCreateApiResponse).toHaveBeenCalledWith(502, {
+        message: "Could not update film",
+      })
+    },
+  )
 
   it("should add the film to the top films when it moves into a top tier", async () => {
     mockGetFilmById.mockResolvedValueOnce(currentFilm({ rating: 7 }))

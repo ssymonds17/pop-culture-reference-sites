@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
 import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, removeFilmFromTop, isEligibleRating, updateCastActorStats } from "./mongodb"
@@ -6,7 +7,7 @@ const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
 
   try {
-    const { rating, owned, review } = JSON.parse(event.body)
+    const { rating, owned, review, leadActorIds } = JSON.parse(event.body)
 
     if (!filmId) {
       throw new Error("Film ID is missing")
@@ -14,6 +15,14 @@ const handlerImpl = async (event: any, _userId: string) => {
 
     if (rating !== undefined && rating !== null && (!Number.isInteger(rating) || rating < 1 || rating > 10)) {
       throw new Error("Rating must be a whole number between 1 and 10")
+    }
+
+    if (
+      leadActorIds !== undefined &&
+      (!Array.isArray(leadActorIds) ||
+        !leadActorIds.every((id: unknown) => typeof id === "string" && mongoose.isValidObjectId(id)))
+    ) {
+      throw new Error("leadActorIds must be an array of actor IDs")
     }
 
     await connectToDatabase()
@@ -24,7 +33,15 @@ const handlerImpl = async (event: any, _userId: string) => {
       throw new Error("Film not found")
     }
 
-    const updatedFilm = await updateFilm(filmId, rating, owned, review)
+    if (leadActorIds !== undefined) {
+      const castActorIds = new Set((currentFilm.cast ?? []).map((member) => member.actor.toString()))
+      // The cast array must exist for the lead update, even when clearing every lead.
+      if (castActorIds.size === 0 || !leadActorIds.every((id: string) => castActorIds.has(id))) {
+        throw new Error("leadActorIds must all be actors in the film's cast")
+      }
+    }
+
+    const updatedFilm = await updateFilm(filmId, { rating, owned, review, leadActorIds })
 
     if (!updatedFilm) {
       throw new Error("Failed to update film")
@@ -57,8 +74,10 @@ const handlerImpl = async (event: any, _userId: string) => {
           logger.info(`Added film ${filmId} to top films at bottom of tier ${newTier}`)
         }
       }
+    }
 
-      // Last, so a failing actor lookup cannot skip the year and top-film updates.
+    // Last, so a failing actor lookup cannot skip the year and top-film updates.
+    if (rating !== undefined || leadActorIds !== undefined) {
       await updateCastActorStats(currentFilm.cast)
     }
 

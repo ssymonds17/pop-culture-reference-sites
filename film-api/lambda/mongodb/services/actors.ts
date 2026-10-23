@@ -60,6 +60,10 @@ export const findActorsByName = async (name: string) => {
   ).exec()
 }
 
+// A supporting role earns this share of a film's points; a lead earns all of them.
+// Keep it to one decimal place: totalPoints is rounded to one, and the backfill sums in a different order.
+export const SUPPORTING_ROLE_WEIGHT = 0.4
+
 export const updateActorStats = async (actorId: string) => {
   const actor = await Actor.findById(actorId).exec()
 
@@ -67,8 +71,20 @@ export const updateActorStats = async (actorId: string) => {
     throw new Error("Actor not found")
   }
 
-  const films = await Film.find({ "cast.actor": actor._id }, "watched rating").exec()
-  Object.assign(actor, calculatePersonStats(films))
+  const films = await Film.find(
+    { "cast.actor": actor._id },
+    "watched rating cast.actor cast.lead",
+  ).exec()
+  const weightedFilms = films.map((film) => ({
+    watched: film.watched,
+    rating: film.rating,
+    pointsWeight: (film.cast ?? []).some(
+      (member) => member.lead && member.actor.toString() === actor._id.toString(),
+    )
+      ? 1
+      : SUPPORTING_ROLE_WEIGHT,
+  }))
+  Object.assign(actor, calculatePersonStats(weightedFilms))
 
   return actor.save()
 }
