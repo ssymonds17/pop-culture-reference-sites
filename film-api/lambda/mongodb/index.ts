@@ -8,6 +8,7 @@ export {
   getFilmDetailsById,
   getFilmByTmdbId,
   findCollectedTmdbIds,
+  findStoredImdbIds,
   updateFilm,
   deleteFilm,
   findFilmsByTitle,

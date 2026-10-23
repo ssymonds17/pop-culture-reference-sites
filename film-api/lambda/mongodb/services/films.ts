@@ -107,6 +107,19 @@ export const findCollectedTmdbIds = async (tmdbIds: string[]) => {
   return new Set(films.map((film) => film.tmdbId))
 }
 
+// Films added before IMDb IDs were stored have none, so they are left out
+export const findStoredImdbIds = async (tmdbIds: string[]) => {
+  if (tmdbIds.length === 0) {
+    return new Map<string, string>()
+  }
+
+  const films = await Film.find(
+    { tmdbId: { $in: tmdbIds }, imdbId: { $ne: null } },
+    { tmdbId: 1, imdbId: 1 },
+  ).exec()
+  return new Map(films.flatMap((film) => (film.imdbId ? [[film.tmdbId, film.imdbId] as const] : [])))
+}
+
 export const updateFilm = async (
   id: string,
   { rating, owned, review, leadActorIds }: FilmUpdates,

@@ -1,0 +1,49 @@
+meta {
+  name: Get IMDb Ratings
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{API_URL}}/tmdb/imdb-ratings?tmdbIds=348,679
+  body: none
+  auth: bearer
+}
+
+params:query {
+  tmdbIds: 348,679
+}
+
+auth:bearer {
+  token: {{CLERK_TOKEN}}
+}
+
+docs {
+  Get IMDb ratings and vote counts for several films at once, keyed by TMDb ID.
+
+  Requires CLERK_TOKEN (returns 401 without it).
+
+  Query Parameters:
+  - tmdbIds: up to 100 comma-separated TMDb movie IDs - REQUIRED
+
+  For each film, the IMDb ID comes from the database when the film is in the
+  collection, otherwise from TMDb. The rating and votes come live from OMDb
+  (www.omdbapi.com), which is unofficial, so figures can differ slightly from
+  imdb.com. Nothing is stored.
+
+  Each value in data is one of:
+  - { imdbId, imdbRating, imdbVotes }: the figures, with imdbRating and
+    imdbVotes null when IMDb has none, and imdbId null when TMDb has no IMDb ID
+  - null: that film's lookup failed or ran out of time; the others are unaffected
+
+  Lookups run 10 at a time within a 20-second budget. Returns 400 for missing,
+  invalid or more than 100 IDs.
+
+  Example Response:
+  {
+    "data": {
+      "348": { "imdbId": "tt0078748", "imdbRating": 8.5, "imdbVotes": 1012345 },
+      "679": null
+    }
+  }
+}

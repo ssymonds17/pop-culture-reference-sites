@@ -56,9 +56,10 @@ Create a `.env` file in `film-api/`:
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
 TMDB_API_KEY=your-tmdb-api-key
 CLERK_SECRET_KEY=your-clerk-secret-key
+OMDB_API_KEY=your-omdb-api-key
 ```
 
-The CDK stack refuses to synth if any of the three is missing, and passes them to every Lambda.
+The CDK stack refuses to synth if any of the four is missing. It passes the first three to every Lambda, and `OMDB_API_KEY` only to the IMDb ratings Lambda. Get an OMDb key from [omdbapi.com](https://www.omdbapi.com/).
 
 ### Deployment Steps
 
@@ -131,6 +132,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/search/tmdb` | | Search TMDb for films to add |
 | `GET` | `/tmdb/{tmdbId}` | | Preview a film's TMDb details without saving it |
 | `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | | A person's TMDb filmography with TMDb scores, marking films already in the collection |
+| `GET` | `/tmdb/imdb-ratings?tmdbIds=348,679` | Auth | IMDb ratings and vote counts from OMDb for up to 100 films |
 
 ## Keeping Stats in Step
 
