@@ -23,8 +23,8 @@ const hasActor = (member: CastMember): member is CastMember & { actor: Actor } =
 const getLeadIds = (cast: CastMember[] = []) =>
   new Set(cast.filter(hasActor).filter((member) => member.lead).map((member) => member.actor._id))
 
-const haveSameIds = (a: Set<string>, b: Set<string>) =>
-  a.size === b.size && [...a].every((id) => b.has(id))
+const haveSameIds = (saved: Set<string>, draft: Set<string>) =>
+  saved.size === draft.size && [...saved].every((id) => draft.has(id))
 
 const Spinner = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg
@@ -86,8 +86,8 @@ export default function FilmDetailModal({
   // Lead toggles collect here until saved together; keyed by film so a switch discards them
   const [draftLeads, setDraftLeads] = useState<{ filmId: string; actorIds: Set<string> } | null>(null)
   const [savingLeadsFilmId, setSavingLeadsFilmId] = useState<string | null>(null)
-  // Lets a lead save that settles after a close or switch tell whether its film is still shown
-  const openFilmIdRef = useRef<string | null>(null)
+  // Keyed by film so a save that fails after a switch never shows its error on another film
+  const [leadsError, setLeadsError] = useState<{ filmId: string; message: string } | null>(null)
   const castHeadingId = useId()
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function FilmDetailModal({
     setPendingRating(undefined)
     setRatingSaved(false)
     setDraftLeads(null)
-    openFilmIdRef.current = isOpen ? film?._id ?? null : null
+    setLeadsError(null)
   }, [isOpen, film?._id])
 
   // Drop the optimistic value once the refetched film reports the new rating
@@ -193,6 +193,7 @@ export default function FilmDetailModal({
     if (!film || detailsState?.filmId !== film._id || detailsState.status !== "loaded") return
     const toggledFilmId = film._id
     const savedCast = detailsState.data.cast
+    setLeadsError(null)
     setDraftLeads((previous) => {
       const actorIds = new Set(
         previous?.filmId === toggledFilmId ? previous.actorIds : getLeadIds(savedCast)
@@ -212,7 +213,7 @@ export default function FilmDetailModal({
     const leadActorIds = draftLeads.actorIds
     try {
       setSavingLeadsFilmId(savingFilmId)
-      setError(null)
+      setLeadsError(null)
       const client = await createAuthenticatedClient(getToken)
       // Skips patchFilm's onUpdate refetch, as nothing in the film lists shows leads
       await client.patch(API_ENDPOINTS.film(savingFilmId), { leadActorIds: [...leadActorIds] })
@@ -233,12 +234,15 @@ export default function FilmDetailModal({
       setDraftLeads((previous) => (previous?.filmId === savingFilmId ? null : previous))
     } catch (err) {
       console.error("Error saving lead roles:", err)
-      if (openFilmIdRef.current === savingFilmId) {
-        setError("Failed to save lead roles. Please try again.")
-      }
+      setLeadsError({ filmId: savingFilmId, message: "Failed to save lead roles. Please try again." })
     } finally {
       setSavingLeadsFilmId((previous) => (previous === savingFilmId ? null : previous))
     }
+  }
+
+  const handleCancelLeads = () => {
+    setDraftLeads(null)
+    setLeadsError(null)
   }
 
   const handleSaveReview = async () => {
@@ -302,6 +306,7 @@ export default function FilmDetailModal({
   const leadIds = draftLeadIds ?? savedLeadIds
   const hasUnsavedLeads = draftLeadIds !== null && !haveSameIds(draftLeadIds, savedLeadIds)
   const isSavingLeads = savingLeadsFilmId === film._id
+  const currentLeadsError = leadsError?.filmId === film._id ? leadsError.message : null
 
   return (
     <div
@@ -559,10 +564,15 @@ export default function FilmDetailModal({
                   </button>
                 )}
                 {!readOnly && hasUnsavedLeads && (
-                  <div className="flex justify-end gap-3 mt-3">
+                  <div className="flex items-center justify-end gap-3 mt-3">
+                    {currentLeadsError && (
+                      <p role="alert" className="mr-auto text-sm text-red-400">
+                        {currentLeadsError}
+                      </p>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setDraftLeads(null)}
+                      onClick={handleCancelLeads}
                       disabled={isSavingLeads}
                       aria-label="Cancel lead changes"
                       className="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

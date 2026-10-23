@@ -64,7 +64,16 @@ describe('AddFilmModal', () => {
     expect(screen.getByText('Edward Norton, Brad Pitt')).toBeInTheDocument()
   })
 
-  it('omits the cast line when TMDb has no credited cast', async () => {
+  it('searches when Enter is pressed in the year field', async () => {
+    const user = userEvent.setup()
+    render(<AddFilmModal isOpen onClose={jest.fn()} onFilmAdded={jest.fn()} />)
+
+    await user.type(screen.getByPlaceholderText('Year'), '1999{Enter}')
+
+    expect(await screen.findByText('Please enter a search query')).toBeInTheDocument()
+  })
+
+    it('omits the cast line when TMDb has no credited cast', async () => {
     await expandFirstResult(details({ cast: [] }))
 
     expect(screen.queryByText('Cast:')).not.toBeInTheDocument()
