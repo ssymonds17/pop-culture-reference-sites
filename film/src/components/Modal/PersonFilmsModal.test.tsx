@@ -1,10 +1,10 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import userEvent from '@testing-library/user-event'
 import axios from 'axios'
 import PersonFilmsModal from './PersonFilmsModal'
 import { API_ENDPOINTS } from '@/lib/api'
-import { Person, TmdbPersonFilm } from '@/types'
+import { ImdbRating, Person, TmdbPersonFilm } from '@/types'
 
 // A factory avoids loading axios's ESM browser build, which Jest cannot parse.
 jest.mock('axios', () => ({
@@ -432,12 +432,16 @@ describe('PersonFilmsModal', () => {
       mockAxiosGet.mock.calls.filter(([url]) => url === API_ENDPOINTS.tmdbPersonFilms('123'))
 
     const mockPost = jest.fn()
+    // The signed-in client's GET, which loads IMDb ratings; by default every film's lookup fails
+    const mockClientGet = jest.fn()
 
     beforeEach(() => {
       mockAxiosGet.mockReset()
       mockPost.mockReset()
       mockPost.mockResolvedValue({})
-      mockAxiosCreate.mockReturnValue({ post: mockPost })
+      mockClientGet.mockReset()
+      mockClientGet.mockResolvedValue({ data: { data: {} } })
+      mockAxiosCreate.mockReturnValue({ post: mockPost, get: mockClientGet })
     })
 
     const openAllFilms = async (props: { kind?: 'actor' | 'director' } = {}) => {
@@ -786,6 +790,135 @@ describe('PersonFilmsModal', () => {
 
       expect(screen.getByRole('tab', { name: 'Your films' })).toHaveAttribute('aria-selected', 'true')
       expect(await screen.findByText('Galaxy Quest')).toBeInTheDocument()
+    })
+
+    describe('IMDb ratings', () => {
+      const aliens = (overrides: Partial<TmdbPersonFilm> = {}) =>
+        tmdbFilm({ tmdbId: '679', title: 'Aliens', year: 1986, ...overrides })
+
+      const imdbResponse = (ratings: Record<string, ImdbRating | null>) => ({ data: { data: ratings } })
+
+      const rated = (imdbId: string, imdbRating: number, imdbVotes: number): ImdbRating => ({
+        imdbId,
+        imdbRating,
+        imdbVotes,
+      })
+
+      const ratingRequests = () => mockClientGet.mock.calls.map(([, config]) => config.params.tmdbIds)
+
+      const waitForRatingsToSettle = () =>
+        waitFor(() => expect(screen.queryByText('Loading IMDb rating')).not.toBeInTheDocument())
+
+      it('should request the ratings for the whole filmography through the signed-in client', async () => {
+        mockApi([tmdbFilm(), aliens()])
+
+        await openAllFilms()
+
+        await screen.findByRole('link', { name: 'Alien' })
+        expect(mockClientGet).toHaveBeenCalledWith(API_ENDPOINTS.imdbRatings, {
+          params: { tmdbIds: '348,679' },
+        })
+      })
+
+      it('should show the rating linked to IMDb, with its vote count', async () => {
+        mockApi([tmdbFilm()])
+        mockClientGet.mockResolvedValueOnce(imdbResponse({ '348': rated('tt0078748', 8.5, 950000) }))
+
+        await openAllFilms()
+
+        const link = await screen.findByRole('link', { name: '8.5 on IMDb for Alien (1979)' })
+        expect(link).toHaveAttribute('href', 'https://www.imdb.com/title/tt0078748')
+        expect(link).toHaveAttribute('target', '_blank')
+        expect(within(link.closest('td')!).getByText('950K votes')).toBeInTheDocument()
+      })
+
+      it('should show "-" when IMDb has no rating or TMDb has no IMDb ID', async () => {
+        mockApi([tmdbFilm({ tmdbVoteCount: 100 }), aliens()])
+        mockClientGet.mockResolvedValueOnce(
+          imdbResponse({
+            '348': { imdbId: 'tt0078748', imdbRating: null, imdbVotes: null },
+            '679': { imdbId: null, imdbRating: null, imdbVotes: null },
+          })
+        )
+
+        await openAllFilms()
+
+        await waitForRatingsToSettle()
+        expect(screen.queryByRole('link', { name: /on IMDb/ })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: /^Retry/ })).not.toBeInTheDocument()
+      })
+
+      it('should show the ratings as loading until they arrive', async () => {
+        mockApi([tmdbFilm()])
+        const pending = deferred()
+        mockClientGet.mockReturnValueOnce(pending.promise)
+
+        await openAllFilms()
+
+        expect(await screen.findByText('Loading IMDb rating')).toBeInTheDocument()
+        await act(async () => pending.resolve(imdbResponse({ '348': rated('tt0078748', 8.5, 10) })))
+        expect(screen.queryByText('Loading IMDb rating')).not.toBeInTheDocument()
+        expect(screen.getByRole('link', { name: '8.5 on IMDb for Alien (1979)' })).toBeInTheDocument()
+      })
+
+      it('should let a film whose lookup failed be retried on its own', async () => {
+        const user = userEvent.setup()
+        mockApi([tmdbFilm(), aliens()])
+        mockClientGet
+          .mockResolvedValueOnce(imdbResponse({ '348': null, '679': rated('tt0090605', 8.4, 10) }))
+          .mockResolvedValueOnce(imdbResponse({ '348': rated('tt0078748', 8.5, 10) }))
+        await openAllFilms()
+
+        await user.click(await screen.findByRole('button', { name: 'Retry IMDb rating for Alien (1979)' }))
+
+        expect(await screen.findByRole('link', { name: '8.5 on IMDb for Alien (1979)' })).toBeInTheDocument()
+        expect(ratingRequests()).toEqual(['348,679', '348'])
+      })
+
+      it('should offer a retry on every film when the request fails', async () => {
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mockApi([tmdbFilm(), aliens()])
+        mockClientGet.mockRejectedValueOnce(new Error('502'))
+
+        await openAllFilms()
+
+        expect(await screen.findByRole('button', { name: 'Retry IMDb rating for Alien (1979)' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Retry IMDb rating for Aliens (1986)' })).toBeInTheDocument()
+        consoleError.mockRestore()
+      })
+
+      it('should request a long filmography in batches of 100, one after another', async () => {
+        const films = Array.from({ length: 150 }, (_, i) =>
+          tmdbFilm({ tmdbId: String(i + 1), title: `Film ${i + 1}` })
+        )
+        mockApi(films)
+        const firstBatch = deferred()
+        mockClientGet.mockReturnValueOnce(firstBatch.promise)
+
+        await openAllFilms()
+        await screen.findByRole('link', { name: 'Film 1' })
+
+        expect(ratingRequests()).toHaveLength(1)
+        expect(ratingRequests()[0].split(',')).toHaveLength(100)
+
+        await act(async () => firstBatch.resolve(imdbResponse({})))
+
+        expect(ratingRequests()).toHaveLength(2)
+        expect(ratingRequests()[1].split(',')).toEqual(films.slice(100).map((film) => film.tmdbId))
+      })
+
+      it('should not request the ratings again when switching tabs', async () => {
+        mockApi([tmdbFilm()])
+        mockClientGet.mockResolvedValueOnce(imdbResponse({ '348': rated('tt0078748', 8.5, 10) }))
+        const user = await openAllFilms()
+        await screen.findByRole('link', { name: '8.5 on IMDb for Alien (1979)' })
+
+        await user.click(screen.getByRole('tab', { name: 'Your films' }))
+        await user.click(screen.getByRole('tab', { name: 'All films' }))
+
+        expect(screen.getByRole('link', { name: '8.5 on IMDb for Alien (1979)' })).toBeInTheDocument()
+        expect(mockClientGet).toHaveBeenCalledTimes(1)
+      })
     })
   })
 })

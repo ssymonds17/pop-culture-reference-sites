@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useId, useRef } from "react"
-import { Person, PersonFilm, TmdbPersonFilm } from "@/types"
+import { ImdbRating, Person, PersonFilm, TmdbPersonFilm } from "@/types"
 import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
@@ -39,6 +39,14 @@ type TmdbFilmsEntry =
 
 type AddStatus = "adding" | "error"
 
+type ImdbRatingEntry =
+  | { status: "loading" }
+  | { status: "loaded"; rating: ImdbRating }
+  | { status: "error" }
+
+// Keep in step with MAX_FILMS_PER_REQUEST in film-api/lambda/get-imdb-ratings.ts
+const IMDB_RATINGS_BATCH_SIZE = 100
+
 const HEADER_CELL_CLASS = "px-4 py-3 text-xs font-medium text-gray-400 uppercase"
 
 const tabClass = (selected: boolean) =>
@@ -72,6 +80,10 @@ export default function PersonFilmsModal({
   const hasUnreportedAddRef = useRef(false)
   // Lets an add that finishes after the modal closed report straight away
   const isOpenRef = useRef(isOpen)
+  // Kept per film rather than per person, as one film appears in several filmographies
+  const [imdbRatingsByTmdbId, setImdbRatingsByTmdbId] = useState<Record<string, ImdbRatingEntry>>({})
+  // Films requested or loaded, so overlapping loads never ask OMDb for the same film twice
+  const requestedImdbIdsRef = useRef<Set<string>>(new Set())
   const [addStatusByTmdbId, setAddStatusByTmdbId] = useState<
     Record<string, AddStatus | undefined>
   >({})
@@ -126,6 +138,64 @@ export default function PersonFilmsModal({
     }
   }, [isOpen])
 
+  const setImdbRatingEntries = (
+    tmdbIds: string[],
+    entryFor: (tmdbId: string) => ImdbRatingEntry
+  ) => {
+    setImdbRatingsByTmdbId((previous) => ({
+      ...previous,
+      ...Object.fromEntries(tmdbIds.map((tmdbId) => [tmdbId, entryFor(tmdbId)])),
+    }))
+  }
+
+  const markImdbRatingsFailed = (tmdbIds: string[]) => {
+    tmdbIds.forEach((tmdbId) => requestedImdbIdsRef.current.delete(tmdbId))
+    setImdbRatingEntries(tmdbIds, () => ({ status: "error" }))
+  }
+
+  const loadImdbRatings = async (tmdbIds: string[]) => {
+    const toRequest = tmdbIds.filter((tmdbId) => !requestedImdbIdsRef.current.has(tmdbId))
+    if (toRequest.length === 0) return
+    toRequest.forEach((tmdbId) => requestedImdbIdsRef.current.add(tmdbId))
+    setImdbRatingEntries(toRequest, () => ({ status: "loading" }))
+
+    let client: Awaited<ReturnType<typeof createAuthenticatedClient>>
+    try {
+      client = await createAuthenticatedClient(getToken)
+    } catch (err) {
+      console.error("Error fetching IMDb ratings:", err)
+      markImdbRatingsFailed(toRequest)
+      return
+    }
+
+    // One batch at a time, so a long filmography fills in gradually within the route's rate limit
+    for (let start = 0; start < toRequest.length; start += IMDB_RATINGS_BATCH_SIZE) {
+      const batch = toRequest.slice(start, start + IMDB_RATINGS_BATCH_SIZE)
+      try {
+        const response = await client.get<{ data: Record<string, ImdbRating | null> }>(
+          API_ENDPOINTS.imdbRatings,
+          { params: { tmdbIds: batch.join(",") } }
+        )
+        const loaded: Record<string, ImdbRatingEntry> = {}
+        const failed: string[] = []
+        for (const tmdbId of batch) {
+          const rating = response.data.data[tmdbId]
+          // A null or missing film is one whose lookup failed, so it can be retried on its own
+          if (rating) {
+            loaded[tmdbId] = { status: "loaded", rating }
+          } else {
+            failed.push(tmdbId)
+          }
+        }
+        setImdbRatingsByTmdbId((previous) => ({ ...previous, ...loaded }))
+        markImdbRatingsFailed(failed)
+      } catch (err) {
+        console.error("Error fetching IMDb ratings:", err)
+        markImdbRatingsFailed(batch)
+      }
+    }
+  }
+
   const loadAllFilms = async (key: string, personId: string) => {
     setTmdbFilmsByKey((previous) => ({ ...previous, [key]: { status: "loading" } }))
     try {
@@ -137,6 +207,7 @@ export default function PersonFilmsModal({
         ...previous,
         [key]: { status: "loaded", films: response.data.data },
       }))
+      loadImdbRatings(response.data.data.map((film) => film.tmdbId))
     } catch (err) {
       console.error(`Error fetching ${PERSON_KINDS[kind].singular} films from TMDb:`, err)
       setTmdbFilmsByKey((previous) => ({ ...previous, [key]: { status: "error" } }))
@@ -284,6 +355,51 @@ export default function PersonFilmsModal({
     )
   }
 
+  const renderImdbCell = (film: TmdbPersonFilm) => {
+    const entry = imdbRatingsByTmdbId[film.tmdbId]
+    const filmName = `${film.title}${film.year !== null ? ` (${film.year})` : ""}`
+    if (!entry || entry.status === "loading") {
+      return (
+        <span className="text-gray-400">
+          <span aria-hidden="true">…</span>
+          <span className="sr-only">Loading IMDb rating</span>
+        </span>
+      )
+    }
+    if (entry.status === "error") {
+      return (
+        <button
+          type="button"
+          onClick={() => loadImdbRatings([film.tmdbId])}
+          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          Retry
+          <span className="sr-only">{` IMDb rating for ${filmName}`}</span>
+        </button>
+      )
+    }
+    const { imdbId, imdbRating, imdbVotes } = entry.rating
+    if (!imdbId || imdbRating === null) {
+      return <span className="text-gray-300">-</span>
+    }
+    return (
+      <>
+        <a
+          href={`https://www.imdb.com/title/${imdbId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-yellow-400 hover:text-yellow-300 transition-colors"
+        >
+          {imdbRating.toFixed(1)}
+          <span className="sr-only">{` on IMDb for ${filmName}`}</span>
+        </a>
+        {imdbVotes !== null && (
+          <div className="text-xs text-gray-400">{formatVoteCount(imdbVotes)}</div>
+        )}
+      </>
+    )
+  }
+
   const renderAllFilms = () => {
     if (!tmdbFilms || tmdbFilms.status === "loading") {
       return <div className="text-center py-12 text-gray-400">Loading films from TMDb...</div>
@@ -316,6 +432,7 @@ export default function PersonFilmsModal({
               <th className={`${HEADER_CELL_CLASS} text-left`}>Title</th>
               <th className={`${HEADER_CELL_CLASS} text-center`}>Year</th>
               <th className={`${HEADER_CELL_CLASS} text-center`}>TMDb</th>
+              <th className={`${HEADER_CELL_CLASS} text-center`}>IMDb</th>
               <th className={`${HEADER_CELL_CLASS} text-center`}>
                 <span className="sr-only">Collection</span>
               </th>
@@ -350,6 +467,7 @@ export default function PersonFilmsModal({
                     "-"
                   )}
                 </td>
+                <td className="px-4 py-3 text-center">{renderImdbCell(film)}</td>
                 <td className="px-4 py-3 text-center">{renderAddCell(film)}</td>
               </tr>
             ))}

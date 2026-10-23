@@ -80,7 +80,10 @@ describe('FilmCard', () => {
     const user = userEvent.setup()
     const onUpdate = jest.fn()
     const mockPost = jest.fn().mockResolvedValue({})
-    mockAxiosCreate.mockReturnValue({ post: mockPost })
+    mockAxiosCreate.mockReturnValue({
+      post: mockPost,
+      get: jest.fn().mockResolvedValue({ data: { data: {} } }),
+    })
     mockAxiosGet.mockImplementation(async (url: string) =>
       url === API_ENDPOINTS.tmdbPersonFilms('956')
         ? {

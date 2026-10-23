@@ -80,6 +80,13 @@ export interface TmdbPersonFilm {
   inCollection: boolean
 }
 
+// From OMDb via GET /tmdb/imdb-ratings; nulls mean IMDb has no figure, or TMDb has no IMDb ID
+export interface ImdbRating {
+  imdbId: string | null
+  imdbRating: number | null
+  imdbVotes: number | null
+}
+
 export interface Director extends Person {
   films: Film[]
 }

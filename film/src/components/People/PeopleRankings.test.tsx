@@ -111,7 +111,10 @@ describe('PeopleRankings', () => {
     const searchUrl = `${API_ENDPOINTS.search}?searchString=weaver&itemType=actor`
     const refresh = deferred()
     let searches = 0
-    mockAxiosCreate.mockReturnValue({ post: jest.fn().mockResolvedValue({}) })
+    mockAxiosCreate.mockReturnValue({
+      post: jest.fn().mockResolvedValue({}),
+      get: jest.fn().mockResolvedValue({ data: { data: {} } }),
+    })
     mockAxiosGet.mockImplementation(async (url: string) => {
       if (url === searchUrl) {
         searches++
