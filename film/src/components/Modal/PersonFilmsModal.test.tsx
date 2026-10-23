@@ -432,15 +432,25 @@ describe('PersonFilmsModal', () => {
       mockAxiosGet.mock.calls.filter(([url]) => url === API_ENDPOINTS.tmdbPersonFilms('123'))
 
     const mockPost = jest.fn()
-    // The signed-in client's GET, which loads IMDb ratings; by default every film's lookup fails
+    // The signed-in client's GET, which loads IMDb ratings; by default no film has a rating
     const mockClientGet = jest.fn()
+    const noRatingsFor = (_url: string, config: { params: { tmdbIds: string } }) =>
+      Promise.resolve({
+        data: {
+          data: Object.fromEntries(
+            config.params.tmdbIds
+              .split(',')
+              .map((tmdbId) => [tmdbId, { imdbId: null, imdbRating: null, imdbVotes: null }])
+          ),
+        },
+      })
 
     beforeEach(() => {
       mockAxiosGet.mockReset()
       mockPost.mockReset()
       mockPost.mockResolvedValue({})
       mockClientGet.mockReset()
-      mockClientGet.mockResolvedValue({ data: { data: {} } })
+      mockClientGet.mockImplementation(noRatingsFor)
       mockAxiosCreate.mockReturnValue({ post: mockPost, get: mockClientGet })
     })
 
@@ -500,8 +510,10 @@ describe('PersonFilmsModal', () => {
       await openAllFilms()
 
       const row = (await screen.findByRole('link', { name: 'Alien' })).closest('tr')!
-      expect(within(row).getAllByText('-')).toHaveLength(2)
-      expect(within(row).queryByText(/votes?$/)).not.toBeInTheDocument()
+      const [, yearCell, tmdbCell] = within(row).getAllByRole('cell')
+      expect(yearCell).toHaveTextContent(/^-$/)
+      expect(tmdbCell).toHaveTextContent(/^-$/)
+      expect(within(tmdbCell).queryByText(/votes?$/)).not.toBeInTheDocument()
       expect(within(row).queryByText(/^as /)).not.toBeInTheDocument()
     })
 
@@ -806,6 +818,9 @@ describe('PersonFilmsModal', () => {
 
       const ratingRequests = () => mockClientGet.mock.calls.map(([, config]) => config.params.tmdbIds)
 
+      const imdbCell = (title: string) =>
+        within(screen.getByRole('link', { name: title }).closest('tr')!).getAllByRole('cell')[3]
+
       const waitForRatingsToSettle = () =>
         waitFor(() => expect(screen.queryByText('Loading IMDb rating')).not.toBeInTheDocument())
 
@@ -833,7 +848,7 @@ describe('PersonFilmsModal', () => {
       })
 
       it('should show "-" when IMDb has no rating or TMDb has no IMDb ID', async () => {
-        mockApi([tmdbFilm({ tmdbVoteCount: 100 }), aliens()])
+        mockApi([tmdbFilm(), aliens()])
         mockClientGet.mockResolvedValueOnce(
           imdbResponse({
             '348': { imdbId: 'tt0078748', imdbRating: null, imdbVotes: null },
@@ -842,10 +857,12 @@ describe('PersonFilmsModal', () => {
         )
 
         await openAllFilms()
-
+        await screen.findByRole('link', { name: 'Alien' })
         await waitForRatingsToSettle()
-        expect(screen.queryByRole('link', { name: /on IMDb/ })).not.toBeInTheDocument()
-        expect(screen.queryByRole('button', { name: /^Retry/ })).not.toBeInTheDocument()
+
+        expect(imdbCell('Alien')).toHaveTextContent(/^-$/)
+        expect(imdbCell('Aliens')).toHaveTextContent(/^-$/)
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
       })
 
       it('should show the ratings as loading until they arrive', async () => {
@@ -861,7 +878,7 @@ describe('PersonFilmsModal', () => {
         expect(screen.getByRole('link', { name: '8.5 on IMDb for Alien (1979)' })).toBeInTheDocument()
       })
 
-      it('should let a film whose lookup failed be retried on its own', async () => {
+      it('should show failed films as "-" under one banner that retries only them', async () => {
         const user = userEvent.setup()
         mockApi([tmdbFilm(), aliens()])
         mockClientGet
@@ -869,25 +886,69 @@ describe('PersonFilmsModal', () => {
           .mockResolvedValueOnce(imdbResponse({ '348': rated('tt0078748', 8.5, 10) }))
         await openAllFilms()
 
-        await user.click(await screen.findByRole('button', { name: 'Retry IMDb rating for Alien (1979)' }))
+        expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load some IMDb ratings")
+        expect(imdbCell('Alien')).toHaveTextContent(/^-$/)
+        expect(screen.getAllByRole('button', { name: /^Retry/ })).toHaveLength(1)
+
+        await user.click(screen.getByRole('button', { name: 'Retry' }))
 
         expect(await screen.findByRole('link', { name: '8.5 on IMDb for Alien (1979)' })).toBeInTheDocument()
         expect(ratingRequests()).toEqual(['348,679', '348'])
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
       })
 
-      it('should offer a retry on every film when the request fails', async () => {
+      it('should keep the Retry button on screen, disabled, while retrying', async () => {
+        const user = userEvent.setup()
+        mockApi([tmdbFilm()])
+        const retry = deferred()
+        mockClientGet
+          .mockResolvedValueOnce(imdbResponse({ '348': null }))
+          .mockReturnValueOnce(retry.promise)
+        await openAllFilms()
+
+        await user.click(await screen.findByRole('button', { name: 'Retry' }))
+
+        expect(screen.getByRole('button', { name: 'Retrying...' })).toBeDisabled()
+        await act(async () => retry.resolve(imdbResponse({ '348': rated('tt0078748', 8.5, 10) })))
+      })
+
+      it('should move focus to the films once a retry leaves nothing to retry', async () => {
+        const user = userEvent.setup()
+        mockApi([tmdbFilm()])
+        mockClientGet
+          .mockResolvedValueOnce(imdbResponse({ '348': null }))
+          .mockResolvedValueOnce(imdbResponse({ '348': rated('tt0078748', 8.5, 10) }))
+        await openAllFilms()
+
+        await user.click(await screen.findByRole('button', { name: 'Retry' }))
+
+        await screen.findByRole('link', { name: '8.5 on IMDb for Alien (1979)' })
+        expect(screen.getByRole('tabpanel')).toHaveFocus()
+      })
+
+      it('should stop at a failed request and leave the rest for the retry', async () => {
+        const user = userEvent.setup()
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
-        mockApi([tmdbFilm(), aliens()])
+        const films = Array.from({ length: 150 }, (_, i) =>
+          tmdbFilm({ tmdbId: String(i + 1), title: `Film ${i + 1}` })
+        )
+        mockApi(films)
         mockClientGet.mockRejectedValueOnce(new Error('502'))
 
         await openAllFilms()
 
-        expect(await screen.findByRole('button', { name: 'Retry IMDb rating for Alien (1979)' })).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: 'Retry IMDb rating for Aliens (1986)' })).toBeInTheDocument()
+        expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load some IMDb ratings")
+        expect(ratingRequests()).toHaveLength(1)
+
+        await user.click(screen.getByRole('button', { name: 'Retry' }))
+
+        await waitFor(() => expect(ratingRequests()).toHaveLength(3))
+        expect(ratingRequests()[1].split(',')).toHaveLength(100)
+        expect(ratingRequests()[2].split(',')).toHaveLength(50)
         consoleError.mockRestore()
       })
 
-      it('should request a long filmography in batches of 100, one after another', async () => {
+      it('should request a long filmography in batches of 100, one after another, each with a fresh token', async () => {
         const films = Array.from({ length: 150 }, (_, i) =>
           tmdbFilm({ tmdbId: String(i + 1), title: `Film ${i + 1}` })
         )
@@ -900,11 +961,36 @@ describe('PersonFilmsModal', () => {
 
         expect(ratingRequests()).toHaveLength(1)
         expect(ratingRequests()[0].split(',')).toHaveLength(100)
+        const clientsBefore = mockAxiosCreate.mock.calls.length
 
         await act(async () => firstBatch.resolve(imdbResponse({})))
 
         expect(ratingRequests()).toHaveLength(2)
         expect(ratingRequests()[1].split(',')).toEqual(films.slice(100).map((film) => film.tmdbId))
+        expect(mockAxiosCreate.mock.calls.length).toBe(clientsBefore + 1)
+      })
+
+      it('should not request a film again when another person shares it', async () => {
+        const user = userEvent.setup()
+        mockAxiosGet.mockImplementation(async (url: string) => {
+          if (url === API_ENDPOINTS.tmdbPersonFilms('123')) return { data: { data: [tmdbFilm()] } }
+          if (url === API_ENDPOINTS.tmdbPersonFilms('456')) {
+            return { data: { data: [tmdbFilm(), tmdbFilm({ tmdbId: '11', title: 'Twister' })] } }
+          }
+          return { data: { data: { ...person, films } } }
+        })
+        const { rerender } = render(renderModal(person))
+        await screen.findByText('Galaxy Quest')
+        await user.click(screen.getByRole('tab', { name: 'All films' }))
+        await screen.findByRole('link', { name: 'Alien' })
+        await waitForRatingsToSettle()
+
+        rerender(renderModal(otherPerson))
+        await user.click(await screen.findByRole('tab', { name: 'All films' }))
+        await screen.findByRole('link', { name: 'Twister' })
+        await waitForRatingsToSettle()
+
+        expect(ratingRequests()).toEqual(['348', '11'])
       })
 
       it('should not request the ratings again when switching tabs', async () => {

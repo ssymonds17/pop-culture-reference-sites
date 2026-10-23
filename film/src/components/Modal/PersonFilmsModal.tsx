@@ -84,6 +84,10 @@ export default function PersonFilmsModal({
   const [imdbRatingsByTmdbId, setImdbRatingsByTmdbId] = useState<Record<string, ImdbRatingEntry>>({})
   // Films requested or loaded, so overlapping loads never ask OMDb for the same film twice
   const requestedImdbIdsRef = useRef<Set<string>>(new Set())
+  // The person and kind whose failed IMDb ratings are being retried, so the banner stays during it
+  const [retryingImdbKey, setRetryingImdbKey] = useState<string | null>(null)
+  const imdbRetryButtonRef = useRef<HTMLButtonElement>(null)
+  const filmsPanelRef = useRef<HTMLDivElement>(null)
   const [addStatusByTmdbId, setAddStatusByTmdbId] = useState<
     Record<string, AddStatus | undefined>
   >({})
@@ -138,61 +142,66 @@ export default function PersonFilmsModal({
     }
   }, [isOpen])
 
-  const setImdbRatingEntries = (
-    tmdbIds: string[],
-    entryFor: (tmdbId: string) => ImdbRatingEntry
-  ) => {
-    setImdbRatingsByTmdbId((previous) => ({
-      ...previous,
-      ...Object.fromEntries(tmdbIds.map((tmdbId) => [tmdbId, entryFor(tmdbId)])),
-    }))
-  }
-
-  const markImdbRatingsFailed = (tmdbIds: string[]) => {
-    tmdbIds.forEach((tmdbId) => requestedImdbIdsRef.current.delete(tmdbId))
-    setImdbRatingEntries(tmdbIds, () => ({ status: "error" }))
-  }
-
-  const loadImdbRatings = async (tmdbIds: string[]) => {
-    const toRequest = tmdbIds.filter((tmdbId) => !requestedImdbIdsRef.current.has(tmdbId))
-    if (toRequest.length === 0) return
-    toRequest.forEach((tmdbId) => requestedImdbIdsRef.current.add(tmdbId))
-    setImdbRatingEntries(toRequest, () => ({ status: "loading" }))
-
-    let client: Awaited<ReturnType<typeof createAuthenticatedClient>>
-    try {
-      client = await createAuthenticatedClient(getToken)
-    } catch (err) {
-      console.error("Error fetching IMDb ratings:", err)
-      markImdbRatingsFailed(toRequest)
-      return
+  // Failed films are forgotten as requested, so a retry can ask for them again
+  const updateImdbRatings = (entries: Record<string, ImdbRatingEntry>) => {
+    for (const [tmdbId, entry] of Object.entries(entries)) {
+      if (entry.status === "error") requestedImdbIdsRef.current.delete(tmdbId)
     }
+    setImdbRatingsByTmdbId((previous) => ({ ...previous, ...entries }))
+  }
 
+  const entriesFor = (tmdbIds: string[], entry: ImdbRatingEntry) =>
+    Object.fromEntries(tmdbIds.map((tmdbId) => [tmdbId, entry]))
+
+  // Resolves with the films that still have no rating, failed or not reached
+  const loadImdbRatings = async (tmdbIds: string[]): Promise<string[]> => {
+    const toRequest = tmdbIds.filter((tmdbId) => !requestedImdbIdsRef.current.has(tmdbId))
+    if (toRequest.length === 0) return []
+    toRequest.forEach((tmdbId) => requestedImdbIdsRef.current.add(tmdbId))
+    updateImdbRatings(entriesFor(toRequest, { status: "loading" }))
+
+    const failed: string[] = []
     // One batch at a time, so a long filmography fills in gradually within the route's rate limit
     for (let start = 0; start < toRequest.length; start += IMDB_RATINGS_BATCH_SIZE) {
       const batch = toRequest.slice(start, start + IMDB_RATINGS_BATCH_SIZE)
       try {
+        // A fresh token for each batch, as a long filmography can outlast one
+        const client = await createAuthenticatedClient(getToken)
         const response = await client.get<{ data: Record<string, ImdbRating | null> }>(
           API_ENDPOINTS.imdbRatings,
           { params: { tmdbIds: batch.join(",") } }
         )
-        const loaded: Record<string, ImdbRatingEntry> = {}
-        const failed: string[] = []
+        const entries: Record<string, ImdbRatingEntry> = {}
         for (const tmdbId of batch) {
+          // A null or missing film is one whose lookup failed on its own
           const rating = response.data.data[tmdbId]
-          // A null or missing film is one whose lookup failed, so it can be retried on its own
-          if (rating) {
-            loaded[tmdbId] = { status: "loaded", rating }
-          } else {
-            failed.push(tmdbId)
-          }
+          entries[tmdbId] = rating ? { status: "loaded", rating } : { status: "error" }
+          if (!rating) failed.push(tmdbId)
         }
-        setImdbRatingsByTmdbId((previous) => ({ ...previous, ...loaded }))
-        markImdbRatingsFailed(failed)
+        updateImdbRatings(entries)
       } catch (err) {
+        // The whole request failed (a rejected key, the rate limit, the network), so the
+        // remaining batches are left for one retry rather than sent into the same failure
         console.error("Error fetching IMDb ratings:", err)
-        markImdbRatingsFailed(batch)
+        const unfinished = toRequest.slice(start)
+        failed.push(...unfinished)
+        updateImdbRatings(entriesFor(unfinished, { status: "error" }))
+        break
       }
+    }
+    return failed
+  }
+
+  const handleRetryImdbRatings = async (failedIds: string[]) => {
+    const key = requestKey
+    // Read before the button is disabled, which some browsers treat as losing focus
+    const retryHadFocus = document.activeElement === imdbRetryButtonRef.current
+    setRetryingImdbKey(key)
+    const stillFailed = await loadImdbRatings(failedIds)
+    setRetryingImdbKey((current) => (current === key ? null : current))
+    // With nothing left to retry the banner goes, so focus moves to the films rather than the page
+    if (stillFailed.length === 0 && retryHadFocus) {
+      filmsPanelRef.current?.focus()
     }
   }
 
@@ -366,22 +375,11 @@ export default function PersonFilmsModal({
         </span>
       )
     }
-    if (entry.status === "error") {
-      return (
-        <button
-          type="button"
-          onClick={() => loadImdbRatings([film.tmdbId])}
-          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          Retry
-          <span className="sr-only">{` IMDb rating for ${filmName}`}</span>
-        </button>
-      )
-    }
-    const { imdbId, imdbRating, imdbVotes } = entry.rating
-    if (!imdbId || imdbRating === null) {
+    // A failed lookup reads as no rating here; the banner above the table offers the retry
+    if (entry.status === "error" || !entry.rating.imdbId || entry.rating.imdbRating === null) {
       return <span className="text-gray-300">-</span>
     }
+    const { imdbId, imdbRating, imdbVotes } = entry.rating
     return (
       <>
         <a
@@ -424,56 +422,76 @@ export default function PersonFilmsModal({
     if (tmdbFilms.films.length === 0) {
       return <div className="text-center py-12 text-gray-400">No films found on TMDb</div>
     }
+    const failedImdbIds = tmdbFilms.films
+      .map((film) => film.tmdbId)
+      .filter((tmdbId) => imdbRatingsByTmdbId[tmdbId]?.status === "error")
+    const isRetryingImdb = retryingImdbKey !== null && retryingImdbKey === requestKey
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-800 border-b border-gray-700">
-            <tr>
-              <th className={`${HEADER_CELL_CLASS} text-left`}>Title</th>
-              <th className={`${HEADER_CELL_CLASS} text-center`}>Year</th>
-              <th className={`${HEADER_CELL_CLASS} text-center`}>TMDb</th>
-              <th className={`${HEADER_CELL_CLASS} text-center`}>IMDb</th>
-              <th className={`${HEADER_CELL_CLASS} text-center`}>
-                <span className="sr-only">Collection</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {tmdbFilms.films.map((film) => (
-              <tr key={film.tmdbId} className="hover:bg-gray-800/50 transition-colors">
-                <td className="px-4 py-3">
-                  <a
-                    href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium hover:text-blue-300 transition-colors"
-                  >
-                    {film.title}
-                  </a>
-                  {film.character && (
-                    <div className="text-xs text-gray-400">as {film.character}</div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-center text-gray-300">{film.year ?? "-"}</td>
-                <td className="px-4 py-3 text-center text-gray-300">
-                  {film.tmdbVoteCount > 0 && film.tmdbRating !== null ? (
-                    <>
-                      <div>{film.tmdbRating.toFixed(1)}</div>
-                      <div className="text-xs text-gray-400">
-                        {formatVoteCount(film.tmdbVoteCount)}
-                      </div>
-                    </>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="px-4 py-3 text-center">{renderImdbCell(film)}</td>
-                <td className="px-4 py-3 text-center">{renderAddCell(film)}</td>
+      <>
+        {(failedImdbIds.length > 0 || isRetryingImdb) && (
+          <div className="flex items-center justify-between gap-3 mb-3 bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded text-sm">
+            <span role="alert">Couldn&apos;t load some IMDb ratings</span>
+            <button
+              ref={imdbRetryButtonRef}
+              type="button"
+              onClick={() => handleRetryImdbRatings(failedImdbIds)}
+              disabled={isRetryingImdb}
+              className="text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRetryingImdb ? "Retrying..." : "Retry"}
+            </button>
+          </div>
+        )}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-800 border-b border-gray-700">
+              <tr>
+                <th className={`${HEADER_CELL_CLASS} text-left`}>Title</th>
+                <th className={`${HEADER_CELL_CLASS} text-center`}>Year</th>
+                <th className={`${HEADER_CELL_CLASS} text-center`}>TMDb</th>
+                <th className={`${HEADER_CELL_CLASS} text-center`}>IMDb</th>
+                <th className={`${HEADER_CELL_CLASS} text-center`}>
+                  <span className="sr-only">Collection</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {tmdbFilms.films.map((film) => (
+                <tr key={film.tmdbId} className="hover:bg-gray-800/50 transition-colors">
+                  <td className="px-4 py-3">
+                    <a
+                      href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:text-blue-300 transition-colors"
+                    >
+                      {film.title}
+                    </a>
+                    {film.character && (
+                      <div className="text-xs text-gray-400">as {film.character}</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center text-gray-300">{film.year ?? "-"}</td>
+                  <td className="px-4 py-3 text-center text-gray-300">
+                    {film.tmdbVoteCount > 0 && film.tmdbRating !== null ? (
+                      <>
+                        <div>{film.tmdbRating.toFixed(1)}</div>
+                        <div className="text-xs text-gray-400">
+                          {formatVoteCount(film.tmdbVoteCount)}
+                        </div>
+                      </>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">{renderImdbCell(film)}</td>
+                  <td className="px-4 py-3 text-center">{renderAddCell(film)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
     )
   }
 
@@ -562,6 +580,7 @@ export default function PersonFilmsModal({
 
         <div
           role="tabpanel"
+          ref={filmsPanelRef}
           id={filmsPanelId}
           aria-labelledby={showAllFilms ? allFilmsTabId : yourFilmsTabId}
           tabIndex={0}
