@@ -24,6 +24,7 @@ const personEvent = (kind?: string) => ({
   queryStringParameters: kind === undefined ? null : { kind },
 })
 
+// Includes TMDb's vote fields, which the handler ignores, so the exact matches below prove they're dropped
 const credit = (id: number, overrides: Record<string, unknown> = {}) => ({
   id,
   title: `Film ${id}`,
