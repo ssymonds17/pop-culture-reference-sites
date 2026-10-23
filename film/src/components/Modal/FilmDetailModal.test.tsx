@@ -15,6 +15,7 @@ jest.mock('@clerk/nextjs', () => ({
 }))
 
 const mockAxiosGet = axios.get as jest.Mock
+const mockAxiosCreate = axios.create as jest.Mock
 
 const film: Film = {
   _id: 'film1',
@@ -233,6 +234,211 @@ describe('FilmDetailModal', () => {
     expect(screen.queryByRole('button', { name: 'Add review' })).not.toBeInTheDocument()
   })
 
+  describe('lead roles', () => {
+    const mockPatch = jest.fn()
+
+    beforeEach(() => {
+      mockPatch.mockResolvedValue({})
+      mockAxiosCreate.mockReturnValue({ patch: mockPatch })
+    })
+
+    const savedLeadIds = () => [...mockPatch.mock.calls[0][1].leadActorIds].sort()
+
+    const castWithLead = (): CastMember[] => {
+      const [first, second] = castOf(2)
+      return [{ ...first, lead: true }, second]
+    }
+
+    it('should collect several lead changes and save them in one request', async () => {
+      const user = userEvent.setup()
+      const onUpdate = jest.fn()
+      mockDetails({ cast: [...castWithLead(), ...castOf(3).slice(2)] })
+      renderModal({ onUpdate })
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Lead: Actor 3 as Character 3' }))
+
+      expect(mockPatch).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
+
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(mockPatch).toHaveBeenCalledTimes(1)
+      expect(mockPatch.mock.calls[0][0]).toBe(API_ENDPOINTS.film('film1'))
+      expect(savedLeadIds()).toEqual(['actor1', 'actor2', 'actor3'])
+      expect(onUpdate).not.toHaveBeenCalled()
+      expect(screen.queryByRole('button', { name: 'Save leads' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Lead: Actor 3 as Character 3' })).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('should save after removing the last lead', async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: castWithLead() })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 1 as Character 1' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), { leadActorIds: [] })
+      expect(screen.getByRole('button', { name: 'Lead: Actor 1 as Character 1' })).toHaveAttribute('aria-pressed', 'false')
+    })
+
+    it('should only offer to save when the leads differ from the saved ones', async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: castWithLead() })
+      renderModal()
+
+      expect(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Save leads' })).not.toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      expect(screen.getByRole('button', { name: 'Save leads' })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      expect(screen.queryByRole('button', { name: 'Save leads' })).not.toBeInTheDocument()
+    })
+
+    it('should discard unsaved changes on cancel', async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: castWithLead() })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Cancel lead changes' }))
+
+      expect(mockPatch).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'false')
+    })
+
+    it('should discard unsaved changes when the modal closes', async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: castWithLead() })
+      const { rerender } = renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      rerender(<FilmDetailModal film={film} isOpen={false} onClose={jest.fn()} onUpdate={jest.fn()} />)
+      mockDetails({ cast: castWithLead() })
+      rerender(<FilmDetailModal film={film} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />)
+
+      expect(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.queryByRole('button', { name: 'Save leads' })).not.toBeInTheDocument()
+    })
+
+    it('should keep the unsaved changes and show an error when saving fails', async () => {
+      const user = userEvent.setup()
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+      mockPatch.mockRejectedValueOnce(new Error('Network error'))
+      mockDetails({ cast: castWithLead() })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(await screen.findByText('Failed to save lead roles. Please try again.')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('button', { name: 'Save leads' })).toBeInTheDocument()
+      consoleError.mockRestore()
+    })
+
+    it('should keep leads hidden beyond the cast preview when saving', async () => {
+      const user = userEvent.setup()
+      const cast = castOf(8)
+      cast[7] = { ...cast[7], lead: true }
+      mockDetails({ cast })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(screen.queryByText('Actor 8')).not.toBeInTheDocument()
+      expect(savedLeadIds()).toEqual(['actor2', 'actor8'])
+    })
+
+    it('should tag every role of an actor who plays several, sending them once', async () => {
+      const user = userEvent.setup()
+      mockDetails({
+        cast: [
+          { actor: actor(1), character: 'Role A', order: 0 },
+          { actor: actor(1), character: 'Role B', order: 1 },
+          { actor: actor(2), character: 'Character 2', order: 2 },
+        ],
+      })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 1 as Role A' }))
+
+      expect(screen.getByRole('button', { name: 'Lead: Actor 1 as Role B' })).toHaveAttribute('aria-pressed', 'true')
+
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(savedLeadIds()).toEqual(['actor1'])
+    })
+
+    it('should never send a lead whose actor no longer exists', async () => {
+      const user = userEvent.setup()
+      mockDetails({
+        cast: [
+          { actor: null, character: 'Gone', order: 0, lead: true },
+          { actor: actor(2), character: 'Character 2', order: 1 },
+        ],
+      })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(savedLeadIds()).toEqual(['actor2'])
+    })
+
+    it('should disable the lead controls while saving', async () => {
+      const user = userEvent.setup()
+      const pending = deferred()
+      mockPatch.mockReturnValueOnce(pending.promise)
+      mockDetails({ cast: castWithLead() })
+      renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+
+      expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Cancel lead changes' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Lead: Actor 1 as Character 1' })).toBeDisabled()
+
+      await act(async () => pending.resolve({}))
+
+      expect(screen.getByRole('button', { name: 'Lead: Actor 1 as Character 1' })).toBeEnabled()
+    })
+
+    it('should not show an error for a save that fails after the modal closes', async () => {
+      const user = userEvent.setup()
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
+      let rejectPatch!: (error: Error) => void
+      mockPatch.mockReturnValueOnce(new Promise((_, reject) => { rejectPatch = reject }))
+      mockDetails({ cast: castWithLead() })
+      const { rerender } = renderModal()
+
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+      await user.click(screen.getByRole('button', { name: 'Save leads' }))
+      rerender(<FilmDetailModal film={film} isOpen={false} onClose={jest.fn()} onUpdate={jest.fn()} />)
+      await act(async () => rejectPatch(new Error('Network error')))
+      mockDetails({ cast: castWithLead() })
+      rerender(<FilmDetailModal film={film} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />)
+
+      expect(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toBeEnabled()
+      expect(screen.queryByText('Failed to save lead roles. Please try again.')).not.toBeInTheDocument()
+      consoleError.mockRestore()
+    })
+
+    it('should label leads without offering the toggle when read-only', async () => {
+      mockDetails({ cast: castWithLead() })
+
+      renderModal({ readOnly: true })
+
+      expect(await screen.findByText('Lead')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Lead:/ })).not.toBeInTheDocument()
+    })
+  })
+
   it('should label the cast list with its heading', async () => {
     mockDetails({ cast: castOf(1) })
 
@@ -246,6 +452,22 @@ describe('FilmDetailModal', () => {
       rerender(
         <FilmDetailModal film={current} isOpen={isOpen} onClose={jest.fn()} onUpdate={jest.fn()} />
       )
+
+    it('should discard unsaved lead changes', async () => {
+      const user = userEvent.setup()
+      mockDetails({ cast: castOf(2) })
+      const { rerender } = renderModal()
+      await user.click(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' }))
+
+      mockDetails({ _id: 'film2', cast: castOf(2) })
+      renderFilm(rerender, otherFilm)
+
+      expect(await screen.findByRole('button', { name: 'Lead: Actor 2 as Character 2' })).toHaveAttribute(
+        'aria-pressed',
+        'false'
+      )
+      expect(screen.queryByRole('button', { name: 'Save leads' })).not.toBeInTheDocument()
+    })
 
     it("should show loading rather than the previous film's cast", async () => {
       mockDetails({ cast: castOf(1) })

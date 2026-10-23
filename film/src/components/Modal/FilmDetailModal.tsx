@@ -20,6 +20,12 @@ type DetailsState =
 const hasActor = (member: CastMember): member is CastMember & { actor: Actor } =>
   member.actor !== null
 
+const getLeadIds = (cast: CastMember[] = []) =>
+  new Set(cast.filter(hasActor).filter((member) => member.lead).map((member) => member.actor._id))
+
+const haveSameIds = (a: Set<string>, b: Set<string>) =>
+  a.size === b.size && [...a].every((id) => b.has(id))
+
 const Spinner = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg
     className={`animate-spin ${className}`}
@@ -48,7 +54,7 @@ interface FilmDetailModalProps {
   isOpen: boolean
   onClose: () => void
   onUpdate: () => void
-  /** Hides all update controls (rating, owned, review) - used on public pages */
+  /** Hides all update controls (rating, owned, review, lead roles) - used on public pages */
   readOnly?: boolean
 }
 
@@ -77,6 +83,11 @@ export default function FilmDetailModal({
   // Keyed by film so switching film never shows the previous film's cast while the new one loads
   const [detailsState, setDetailsState] = useState<DetailsState | null>(null)
   const [expandedCastFilmId, setExpandedCastFilmId] = useState<string | null>(null)
+  // Lead toggles collect here until saved together; keyed by film so a switch discards them
+  const [draftLeads, setDraftLeads] = useState<{ filmId: string; actorIds: Set<string> } | null>(null)
+  const [savingLeadsFilmId, setSavingLeadsFilmId] = useState<string | null>(null)
+  // Lets a lead save that settles after a close or switch tell whether its film is still shown
+  const openFilmIdRef = useRef<string | null>(null)
   const castHeadingId = useId()
 
   useEffect(() => {
@@ -87,10 +98,12 @@ export default function FilmDetailModal({
     }
   }, [isOpen, film])
 
-  // Reset the rating feedback whenever the modal opens or switches film
+  // Reset the rating feedback and unsaved leads whenever the modal opens or switches film
   useEffect(() => {
     setPendingRating(undefined)
     setRatingSaved(false)
+    setDraftLeads(null)
+    openFilmIdRef.current = isOpen ? film?._id ?? null : null
   }, [isOpen, film?._id])
 
   // Drop the optimistic value once the refetched film reports the new rating
@@ -176,6 +189,58 @@ export default function FilmDetailModal({
     }
   }
 
+  const handleToggleLead = (actorId: string) => {
+    if (!film || detailsState?.filmId !== film._id || detailsState.status !== "loaded") return
+    const toggledFilmId = film._id
+    const savedCast = detailsState.data.cast
+    setDraftLeads((previous) => {
+      const actorIds = new Set(
+        previous?.filmId === toggledFilmId ? previous.actorIds : getLeadIds(savedCast)
+      )
+      if (actorIds.has(actorId)) {
+        actorIds.delete(actorId)
+      } else {
+        actorIds.add(actorId)
+      }
+      return { filmId: toggledFilmId, actorIds }
+    })
+  }
+
+  const handleSaveLeads = async () => {
+    if (!film || draftLeads?.filmId !== film._id || savingLeadsFilmId === film._id) return
+    const savingFilmId = film._id
+    const leadActorIds = draftLeads.actorIds
+    try {
+      setSavingLeadsFilmId(savingFilmId)
+      setError(null)
+      const client = await createAuthenticatedClient(getToken)
+      // Skips patchFilm's onUpdate refetch, as nothing in the film lists shows leads
+      await client.patch(API_ENDPOINTS.film(savingFilmId), { leadActorIds: [...leadActorIds] })
+      // Details are only fetched when the modal opens, so apply the change locally
+      setDetailsState((previous) =>
+        previous?.filmId === savingFilmId && previous.status === "loaded"
+          ? {
+              ...previous,
+              data: {
+                ...previous.data,
+                cast: previous.data.cast?.map((member) =>
+                  hasActor(member) ? { ...member, lead: leadActorIds.has(member.actor._id) } : member
+                ),
+              },
+            }
+          : previous
+      )
+      setDraftLeads((previous) => (previous?.filmId === savingFilmId ? null : previous))
+    } catch (err) {
+      console.error("Error saving lead roles:", err)
+      if (openFilmIdRef.current === savingFilmId) {
+        setError("Failed to save lead roles. Please try again.")
+      }
+    } finally {
+      setSavingLeadsFilmId((previous) => (previous === savingFilmId ? null : previous))
+    }
+  }
+
   const handleSaveReview = async () => {
     if (!film) return
     try {
@@ -232,6 +297,11 @@ export default function FilmDetailModal({
   const showFullCast = expandedCastFilmId === film._id
   const visibleCast = showFullCast ? cast : cast.slice(0, CAST_PREVIEW_SIZE)
   const productionCompanies = loadedDetails?.productionCompanies ?? []
+  const savedLeadIds = getLeadIds(loadedDetails?.cast)
+  const draftLeadIds = draftLeads?.filmId === film._id ? draftLeads.actorIds : null
+  const leadIds = draftLeadIds ?? savedLeadIds
+  const hasUnsavedLeads = draftLeadIds !== null && !haveSameIds(draftLeadIds, savedLeadIds)
+  const isSavingLeads = savingLeadsFilmId === film._id
 
   return (
     <div
@@ -443,10 +513,37 @@ export default function FilmDetailModal({
               <>
                 <ul aria-labelledby={castHeadingId} className="space-y-1 text-sm">
                   {visibleCast.map((member) => (
-                    <li key={`${member.actor._id}-${member.order}`} className="text-gray-300">
-                      {member.actor.displayName}
-                      {member.character && (
-                        <span className="text-gray-500"> as {member.character}</span>
+                    <li
+                      key={`${member.actor._id}-${member.order}`}
+                      className="flex items-center justify-between gap-3 text-gray-300"
+                    >
+                      <span>
+                        {member.actor.displayName}
+                        {member.character && (
+                          <span className="text-gray-500"> as {member.character}</span>
+                        )}
+                      </span>
+                      {readOnly ? (
+                        leadIds.has(member.actor._id) && (
+                          <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400">
+                            Lead
+                          </span>
+                        )
+                      ) : (
+                        <button
+                          type="button"
+                          aria-pressed={leadIds.has(member.actor._id)}
+                          aria-label={`Lead: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
+                          onClick={() => handleToggleLead(member.actor._id)}
+                          disabled={isSavingLeads}
+                          className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                            leadIds.has(member.actor._id)
+                              ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+                              : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+                          }`}
+                        >
+                          Lead
+                        </button>
                       )}
                     </li>
                   ))}
@@ -460,6 +557,27 @@ export default function FilmDetailModal({
                   >
                     {showFullCast ? "Show less" : `Show full cast (${cast.length})`}
                   </button>
+                )}
+                {!readOnly && hasUnsavedLeads && (
+                  <div className="flex justify-end gap-3 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setDraftLeads(null)}
+                      disabled={isSavingLeads}
+                      aria-label="Cancel lead changes"
+                      className="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveLeads}
+                      disabled={isSavingLeads}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSavingLeads ? "Saving..." : "Save leads"}
+                    </button>
+                  </div>
                 )}
               </>
             )}

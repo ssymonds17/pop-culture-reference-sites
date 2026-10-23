@@ -25,6 +25,7 @@ export interface CastMember {
   actor: Actor | null // null when the actor document no longer exists
   character?: string
   order: number
+  lead?: boolean // Unset means a supporting role
 }
 
 export interface ProductionCompany {
