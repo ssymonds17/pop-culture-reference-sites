@@ -2,6 +2,7 @@
  * Backfill: fetch cast, production companies and collection from TMDb for every
  * film that has never had them (no `cast` field), then recompute every actor's
  * stats from the films they are cast in and report or fix any that have drifted.
+ * Also the way to apply a change to SUPPORTING_ROLE_WEIGHT to stored stats.
  *
  * Safe to run repeatedly: films that already have `cast` are skipped, actors are
  * upserted by TMDb person ID, and actor stats are only written when they differ.
@@ -60,6 +61,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const normalizeForSearch = (value) =>
   value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim()
 
+// Keep this identical to SUPPORTING_ROLE_WEIGHT in lambda/mongodb/services/actors.ts, one decimal place at most.
+const SUPPORTING_ROLE_WEIGHT = 0.4
+
+const POINTS_BY_RATING = { 6: 1, 7: 3, 8: 6, 9: 10, 10: 15 }
+
 // Keep this identical to calculatePersonStats in lambda/mongodb/models/personStats.ts.
 const calculatePersonStats = (films) => {
   const watchedFilms = films.filter((f) => f.watched && f.rating)
@@ -81,11 +87,12 @@ const calculatePersonStats = (films) => {
     totalScore,
     ratingCounts,
     totalPoints:
-      ratingCounts.rating6 * 1 +
-      ratingCounts.rating7 * 3 +
-      ratingCounts.rating8 * 6 +
-      ratingCounts.rating9 * 10 +
-      ratingCounts.rating10 * 15,
+      Math.round(
+        watchedFilms.reduce(
+          (sum, f) => sum + (POINTS_BY_RATING[f.rating] ?? 0) * (f.pointsWeight ?? 1),
+          0
+        ) * 10
+      ) / 10,
   }
 }
 
@@ -263,14 +270,32 @@ const sameStats = (actor, expected) =>
   )
 
 async function recomputeActorStats(db) {
-  // An actor playing several roles in one film must count that film once.
+  // An actor playing several roles in one film counts that film once, as a lead if any role is.
   const filmsByActor = await db
     .collection("films")
     .aggregate([
       { $match: { cast: { $exists: true, $ne: [] } } },
-      { $project: { watched: 1, rating: 1, actorIds: { $setUnion: ["$cast.actor", []] } } },
-      { $unwind: "$actorIds" },
-      { $group: { _id: "$actorIds", films: { $push: { watched: "$watched", rating: "$rating" } } } },
+      { $unwind: "$cast" },
+      {
+        $group: {
+          _id: { film: "$_id", actor: "$cast.actor" },
+          watched: { $first: "$watched" },
+          rating: { $first: "$rating" },
+          lead: { $max: { $eq: ["$cast.lead", true] } },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.actor",
+          films: {
+            $push: {
+              watched: "$watched",
+              rating: "$rating",
+              pointsWeight: { $cond: ["$lead", 1, SUPPORTING_ROLE_WEIGHT] },
+            },
+          },
+        },
+      },
     ])
     .toArray()
     .then((rows) => new Map(rows.map((row) => [String(row._id), row.films])))
