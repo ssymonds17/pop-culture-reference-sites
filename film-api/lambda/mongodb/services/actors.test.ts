@@ -1,4 +1,5 @@
 import {
+  findActorsMissingImdbId,
   findOrCreateActor,
   getActors,
   getActorByTmdbPersonId,
@@ -65,6 +66,55 @@ describe("actors service", () => {
     )
   })
 
+  describe("findOrCreateActor IMDb IDs", () => {
+    const mockUpsert = () => {
+      mockActor.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ _id: "actor1" }),
+      }) as any
+    }
+
+    it.each(["nm0000093", null])("should store an IMDb ID of %p", async (imdbPersonId) => {
+      mockUpsert()
+
+      await findOrCreateActor("287", "Brad Pitt", "/pitt.jpg", imdbPersonId)
+
+      const [, update] = (mockActor.findOneAndUpdate as jest.Mock).mock.calls[0]
+      expect(update.$set).toEqual({ profilePath: "/pitt.jpg", imdbPersonId })
+    })
+
+    it("should leave the IMDb ID alone when none is given", async () => {
+      mockUpsert()
+
+      await findOrCreateActor("287", "Brad Pitt", "/pitt.jpg")
+
+      const [, update] = (mockActor.findOneAndUpdate as jest.Mock).mock.calls[0]
+      expect(update.$set).toEqual({ profilePath: "/pitt.jpg" })
+    })
+  })
+
+  describe("findActorsMissingImdbId", () => {
+    it("should return the people with no IMDb ID field, keeping their order", async () => {
+      mockActor.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([{ tmdbPersonId: "2" }]),
+      }) as any
+
+      const result = await findActorsMissingImdbId(["1", "2", "3"])
+
+      expect(result).toEqual(["1", "3"])
+      expect(mockActor.find).toHaveBeenCalledWith(
+        { tmdbPersonId: { $in: ["1", "2", "3"] }, imdbPersonId: { $exists: true } },
+        { tmdbPersonId: 1 },
+      )
+    })
+
+    it("should not query for an empty list", async () => {
+      mockActor.find = jest.fn() as any
+
+      expect(await findActorsMissingImdbId([])).toEqual([])
+      expect(mockActor.find).not.toHaveBeenCalled()
+    })
+  })
+
   describe("getActors", () => {
     it("should return actors with films, sorted and limited to 200", async () => {
       const actors = [{ _id: "actor1" }]
@@ -108,7 +158,7 @@ describe("actors service", () => {
       expect(mockFilm.find).not.toHaveBeenCalled()
     })
 
-    it("should return the actor with their films, newest first", async () => {
+    const mockActorFilms = (films: unknown[]) => {
       const actor = {
         _id: "actor1",
         toObject: () => ({ _id: "actor1", displayName: "Actor One" }),
@@ -117,21 +167,71 @@ describe("actors service", () => {
         exec: jest.fn().mockResolvedValue(actor),
       }) as any
 
-      const films = [{ _id: "film1" }]
-      const filmExec = jest.fn().mockResolvedValue(films)
+      const filmExec = jest.fn().mockResolvedValue(
+        films.map((film) => ({ toObject: () => film })),
+      )
       const populate = jest.fn().mockReturnValue({ exec: filmExec })
       const sort = jest.fn().mockReturnValue({ populate })
       const select = jest.fn().mockReturnValue({ sort })
       mockFilm.find = jest.fn().mockReturnValue({ select }) as any
+      return { select, sort, populate }
+    }
+
+    it("should return the actor with their films, newest first", async () => {
+      const { select, sort, populate } = mockActorFilms([{ _id: "film1", cast: [] }])
 
       const result = await getActorByTmdbPersonId("123")
 
       expect(mockActor.findOne).toHaveBeenCalledWith({ tmdbPersonId: "123" })
       expect(mockFilm.find).toHaveBeenCalledWith({ "cast.actor": "actor1" })
-      expect(select).toHaveBeenCalledWith("-cast -productionCompanies -tmdbCollection")
+      expect(select).toHaveBeenCalledWith("-productionCompanies -tmdbCollection")
       expect(sort).toHaveBeenCalledWith({ year: -1, title: 1 })
       expect(populate).toHaveBeenCalledWith("directors")
-      expect(result).toEqual({ _id: "actor1", displayName: "Actor One", films })
+      expect(result).toEqual({
+        _id: "actor1",
+        displayName: "Actor One",
+        films: [{ _id: "film1", lead: false }],
+      })
+    })
+
+    it("should mark each film as a lead or supporting role for the actor", async () => {
+      mockActorFilms([
+        { _id: "lead", cast: [{ actor: "actor1", lead: true }] },
+        { _id: "support", cast: [{ actor: "actor1" }, { actor: "actor2", lead: true }] },
+        { _id: "untagged", cast: [{ actor: "actor1", lead: false }] },
+      ])
+
+      const result = await getActorByTmdbPersonId("123")
+
+      expect(result?.films.map((film: any) => [film._id, film.lead])).toEqual([
+        ["lead", true],
+        ["support", false],
+        ["untagged", false],
+      ])
+    })
+
+    it("should count the actor as the lead when any of their roles in a film is", async () => {
+      mockActorFilms([
+        {
+          _id: "film1",
+          cast: [
+            { actor: "actor1", lead: false },
+            { actor: "actor1", lead: true },
+          ],
+        },
+      ])
+
+      const result = await getActorByTmdbPersonId("123")
+
+      expect(result?.films[0]).toMatchObject({ lead: true })
+    })
+
+    it("should leave the cast out of the films it returns", async () => {
+      mockActorFilms([{ _id: "film1", cast: [{ actor: "actor1", lead: true }] }])
+
+      const result = await getActorByTmdbPersonId("123")
+
+      expect(result?.films[0]).not.toHaveProperty("cast")
     })
   })
 

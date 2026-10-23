@@ -105,7 +105,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/directors` | | Directors ranked by a stat (up to 200; the average-rating ranking needs 2+ rated films) |
 | `GET` | `/director/{tmdbPersonId}` | | A director with their films |
 | `GET` | `/actors` | | Actors ranked by a stat (up to 200, only actors with films; the average-rating ranking needs 2+ rated films) |
-| `GET` | `/actor/{tmdbPersonId}` | | An actor with the films they are credited in |
+| `GET` | `/actor/{tmdbPersonId}` | | An actor with the films they are credited in, each marked `lead` true or false |
 
 ### Statistics
 
@@ -130,6 +130,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/search` | | Search films, directors and actors in the database |
 | `GET` | `/search/tmdb` | | Search TMDb for films to add |
 | `GET` | `/tmdb/{tmdbId}` | | Preview a film's TMDb details without saving it |
+| `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | | A person's TMDb filmography with TMDb scores, marking films already in the collection |
 
 ## Keeping Stats in Step
 
@@ -144,6 +145,7 @@ Run from `film-api/` with `.env` in place. Each supports `--dry-run`, skips reco
 - **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Run it after changing `SUPPORTING_ROLE_WEIGHT` to apply the new weight to stored points. Also accepts `--limit=N` for a spot check. Needs `TMDB_API_KEY`.
 - **`scripts/backfill-film-search-titles.mjs`**: Sets each film's accent-folded `searchTitle` from its title.
 - **`scripts/trim-film-cast.mjs`**: One-off that trims every film's cast to the top 10 by billing order and deletes actors left in no film. Run `backfill-tmdb-credits.mjs` straight after it to recalculate actor stats.
+- **`scripts/backfill-person-imdb-ids.mjs`**: Fetches the IMDb person ID from TMDb for every actor and director never looked up, saving null when TMDb has none. New films look these up when they're created, so this covers people added before that and any lookup that failed. Also accepts `--limit=N` (per collection). Needs `TMDB_API_KEY`.
 - **`scripts/backfill-director-photos.mjs`**: Fetches a TMDb profile photo for every director without one. Also accepts `--limit=N`. Needs `TMDB_API_KEY`.
 
 ```bash

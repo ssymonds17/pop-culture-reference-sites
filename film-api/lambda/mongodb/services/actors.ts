@@ -1,5 +1,6 @@
 import Actor from "../models/actor"
-import Film, { CastMember, EXCLUDE_DETAIL_FIELDS } from "../models/film"
+import type mongoose from "mongoose"
+import Film, { CastMember } from "../models/film"
 import { calculatePersonStats, personStatsFilter, personStatsSort } from "../models/personStats"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
@@ -7,7 +8,14 @@ export const findOrCreateActor = async (
   tmdbPersonId: string,
   displayName: string,
   profilePath?: string,
+  imdbPersonId?: string | null,
 ) => {
+  const updates = {
+    // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
+    ...(profilePath && { profilePath }),
+    ...(imdbPersonId !== undefined && { imdbPersonId }),
+  }
+
   return Actor.findOneAndUpdate(
     { tmdbPersonId },
     {
@@ -16,12 +24,30 @@ export const findOrCreateActor = async (
         name: normalizeForSearch(displayName),
         displayName,
       },
-      // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
-      ...(profilePath && { $set: { profilePath } }),
+      ...(Object.keys(updates).length > 0 && { $set: updates }),
     },
     { upsert: true, new: true },
   ).exec()
 }
+
+// An IMDb ID of null means TMDb had none, so only people without the field need looking up.
+export const findActorsMissingImdbId = async (tmdbPersonIds: string[]) => {
+  if (tmdbPersonIds.length === 0) {
+    return []
+  }
+
+  const checked = await Actor.find(
+    { tmdbPersonId: { $in: tmdbPersonIds }, imdbPersonId: { $exists: true } },
+    { tmdbPersonId: 1 },
+  ).exec()
+  const checkedIds = new Set(checked.map((actor) => actor.tmdbPersonId))
+
+  return tmdbPersonIds.filter((tmdbPersonId) => !checkedIds.has(tmdbPersonId))
+}
+
+// An actor with several roles in a film is its lead when any of those roles is.
+const isLeadIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  (cast ?? []).some((member) => member.lead && member.actor.toString() === actorId.toString())
 
 export const getActors = async (sortBy?: string) => {
   return Actor.find({ totalFilms: { $gt: 0 }, ...personStatsFilter(sortBy) })
@@ -37,13 +63,20 @@ export const getActorByTmdbPersonId = async (tmdbPersonId: string) => {
     return null
   }
 
+  // Loads `cast` only to work out the actor's role, then drops it to keep the response small.
   const films = await Film.find({ "cast.actor": actor._id })
-    .select(EXCLUDE_DETAIL_FIELDS)
+    .select("-productionCompanies -tmdbCollection")
     .sort({ year: -1, title: 1 })
     .populate("directors")
     .exec()
 
-  return { ...actor.toObject(), films }
+  return {
+    ...actor.toObject(),
+    films: films.map((film) => {
+      const { cast, ...rest } = film.toObject()
+      return { ...rest, lead: isLeadIn(cast, actor._id) }
+    }),
+  }
 }
 
 export const findActorsByName = async (name: string) => {
@@ -78,11 +111,7 @@ export const updateActorStats = async (actorId: string) => {
   const weightedFilms = films.map((film) => ({
     watched: film.watched,
     rating: film.rating,
-    pointsWeight: (film.cast ?? []).some(
-      (member) => member.lead && member.actor.toString() === actor._id.toString(),
-    )
-      ? 1
-      : SUPPORTING_ROLE_WEIGHT,
+    pointsWeight: isLeadIn(film.cast, actor._id) ? 1 : SUPPORTING_ROLE_WEIGHT,
   }))
   Object.assign(actor, calculatePersonStats(weightedFilms))
 

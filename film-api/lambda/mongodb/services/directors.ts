@@ -7,16 +7,37 @@ export const findOrCreateDirector = async (
   tmdbPersonId: string,
   displayName: string,
   profilePath?: string,
+  imdbPersonId?: string | null,
 ) => {
+  const updates = {
+    // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
+    ...(profilePath && { profilePath }),
+    ...(imdbPersonId !== undefined && { imdbPersonId }),
+  }
+
   return Director.findOneAndUpdate(
     { tmdbPersonId },
     {
       $setOnInsert: { tmdbPersonId, name: displayName.toLowerCase(), displayName },
-      // Only overwrite with a photo TMDb has, so a gap on TMDb's side never removes one we hold.
-      ...(profilePath && { $set: { profilePath } }),
+      ...(Object.keys(updates).length > 0 && { $set: updates }),
     },
     { upsert: true, new: true },
   ).exec()
+}
+
+// An IMDb ID of null means TMDb had none, so only people without the field need looking up.
+export const findDirectorsMissingImdbId = async (tmdbPersonIds: string[]) => {
+  if (tmdbPersonIds.length === 0) {
+    return []
+  }
+
+  const checked = await Director.find(
+    { tmdbPersonId: { $in: tmdbPersonIds }, imdbPersonId: { $exists: true } },
+    { tmdbPersonId: 1 },
+  ).exec()
+  const checkedIds = new Set(checked.map((director) => director.tmdbPersonId))
+
+  return tmdbPersonIds.filter((tmdbPersonId) => !checkedIds.has(tmdbPersonId))
 }
 
 export const getDirectors = async (sortBy?: string) => {

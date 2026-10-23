@@ -25,6 +25,8 @@ const mockFindOrCreateDirector = mongodb.findOrCreateDirector as jest.Mock
 const mockUpdateDirectorStats = mongodb.updateDirectorStats as jest.Mock
 const mockFindOrCreateActor = mongodb.findOrCreateActor as jest.Mock
 const mockUpdateCastActorStats = mongodb.updateCastActorStats as jest.Mock
+const mockFindActorsMissingImdbId = mongodb.findActorsMissingImdbId as jest.Mock
+const mockFindDirectorsMissingImdbId = mongodb.findDirectorsMissingImdbId as jest.Mock
 const mockUpdateYearStats = mongodb.updateYearStats as jest.Mock
 const mockIsEligibleRating = mongodb.isEligibleRating as unknown as jest.Mock
 const mockAddFilmToTopAtTierBottom = mongodb.addFilmToTopAtTierBottom as jest.Mock
@@ -72,6 +74,10 @@ describe("create-film handler", () => {
     jest.clearAllMocks()
     mockLogger.error = jest.fn()
     mockLogger.info = jest.fn()
+    mockLogger.warn = jest.fn()
+    mockAxiosGet.mockReset()
+    mockFindActorsMissingImdbId.mockResolvedValue([])
+    mockFindDirectorsMissingImdbId.mockResolvedValue([])
     mockCreateApiResponse.mockImplementation((status, body) => ({
       statusCode: status,
       body: JSON.stringify(body),
@@ -116,6 +122,7 @@ describe("create-film handler", () => {
         "7467",
         "David Fincher",
         "/fincher.jpg",
+        undefined,
       )
       expect(mockDirectorFindByIdAndUpdate).toHaveBeenCalledWith("director1", {
         $push: { films: "film1" },
@@ -153,7 +160,7 @@ describe("create-film handler", () => {
 
       await handler(tmdbEvent)
 
-      expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1", "Unknown Director", undefined)
+      expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1", "Unknown Director", undefined, undefined)
     })
 
     it("should keep the top 10 credited cast members in billing order", async () => {
@@ -178,12 +185,8 @@ describe("create-film handler", () => {
         order: 1,
       })
       expect(mockFindOrCreateActor).toHaveBeenCalledTimes(10)
-      expect(mockFindOrCreateActor).not.toHaveBeenCalledWith(
-        "1000",
-        expect.anything(),
-        expect.anything(),
-      )
-      expect(mockFindOrCreateActor).toHaveBeenCalledWith("1001", "Actor 1", "/profile-1.jpg")
+      expect(mockFindOrCreateActor.mock.calls.map(([tmdbPersonId]) => tmdbPersonId)).not.toContain("1000")
+      expect(mockFindOrCreateActor).toHaveBeenCalledWith("1001", "Actor 1", "/profile-1.jpg", undefined)
       expect(mockUpdateCastActorStats).toHaveBeenCalledWith(storedCast)
     })
 
@@ -199,7 +202,7 @@ describe("create-film handler", () => {
 
       await handler(tmdbEvent)
 
-      expect(mockFindOrCreateActor).toHaveBeenCalledWith("1000", "Actor 0", undefined)
+      expect(mockFindOrCreateActor).toHaveBeenCalledWith("1000", "Actor 0", undefined, undefined)
       expect(createdFilmData().cast).toEqual([
         { actor: "actor-1000", character: undefined, order: 0 },
       ])
@@ -289,6 +292,96 @@ describe("create-film handler", () => {
       expect(mockCreateApiResponse).toHaveBeenCalledWith(502, {
         message: "Could not create film",
         error: "Actor not found",
+      })
+    })
+
+    describe("IMDb person IDs", () => {
+      const mockTmdb = (film: Record<string, unknown>, externalIds: Record<string, unknown>) => {
+        mockAxiosGet.mockImplementation(async (url: string) => {
+          if (url.endsWith("/movie/550")) {
+            return { data: film }
+          }
+          const tmdbPersonId = url.match(/person\/(\d+)\/external_ids$/)?.[1] as string
+          const result = externalIds[tmdbPersonId]
+          if (result instanceof Error) {
+            throw result
+          }
+          return { data: { imdb_id: result } }
+        })
+      }
+
+      const externalIdCalls = () =>
+        mockAxiosGet.mock.calls.map(([url]) => url).filter((url) => url.includes("/external_ids"))
+
+      const filmWithCast = tmdbFilm({
+        credits: {
+          cast: [castMember(0), castMember(1)],
+          crew: [{ id: 7467, name: "David Fincher", job: "Director", profile_path: "/fincher.jpg" }],
+        },
+      })
+
+      it("should only look up people with no IMDb ID yet, storing null when TMDb has none", async () => {
+        mockFindDirectorsMissingImdbId.mockResolvedValueOnce(["7467"])
+        mockFindActorsMissingImdbId.mockResolvedValueOnce(["1001"])
+        mockTmdb(filmWithCast, { "7467": "nm0000399", "1001": null })
+
+        await handler(tmdbEvent)
+
+        expect(mockFindDirectorsMissingImdbId).toHaveBeenCalledWith(["7467"])
+        expect(mockFindActorsMissingImdbId).toHaveBeenCalledWith(["1000", "1001"])
+        expect(externalIdCalls().sort()).toEqual([
+          "https://api.themoviedb.org/3/person/1001/external_ids",
+          "https://api.themoviedb.org/3/person/7467/external_ids",
+        ])
+        expect(mockAxiosGet).toHaveBeenCalledWith(
+          "https://api.themoviedb.org/3/person/7467/external_ids",
+          { params: { api_key: "test-key" }, timeout: 3000 },
+        )
+        expect(mockFindOrCreateDirector).toHaveBeenCalledWith("7467", "David Fincher", "/fincher.jpg", "nm0000399")
+        expect(mockFindOrCreateActor).toHaveBeenCalledWith("1000", "Actor 0", "/profile-0.jpg", undefined)
+        expect(mockFindOrCreateActor).toHaveBeenCalledWith("1001", "Actor 1", "/profile-1.jpg", null)
+      })
+
+      it("should not call TMDb for IMDb IDs when everyone has been looked up", async () => {
+        mockTmdb(filmWithCast, {})
+
+        await handler(tmdbEvent)
+
+        expect(mockFindDirectorsMissingImdbId).toHaveBeenCalledWith(["7467"])
+        expect(mockFindActorsMissingImdbId).toHaveBeenCalledWith(["1000", "1001"])
+        expect(externalIdCalls()).toEqual([])
+        expect(mockFindOrCreateActor).toHaveBeenCalledWith("1000", "Actor 0", "/profile-0.jpg", undefined)
+      })
+
+      it("should create the film without the IMDb ID when its lookup fails", async () => {
+        mockFindDirectorsMissingImdbId.mockResolvedValueOnce(["7467"])
+        mockTmdb(filmWithCast, { "7467": new Error("TMDb down") })
+
+        await handler(tmdbEvent)
+
+        expect(mockFindOrCreateDirector).toHaveBeenCalledWith("7467", "David Fincher", "/fincher.jpg", undefined)
+        expect(mockLogger.warn).toHaveBeenCalled()
+        expect(mockCreateApiResponse).toHaveBeenCalledWith(201, expect.anything())
+      })
+
+      it("should look up someone who directs and acts in the film once", async () => {
+        mockFindDirectorsMissingImdbId.mockResolvedValueOnce(["1000"])
+        mockFindActorsMissingImdbId.mockResolvedValueOnce(["1000"])
+        mockTmdb(
+          tmdbFilm({
+            credits: {
+              cast: [castMember(0)],
+              crew: [{ id: 1000, name: "Actor 0", job: "Director", profile_path: null }],
+            },
+          }),
+          { "1000": "nm0000001" },
+        )
+
+        await handler(tmdbEvent)
+
+        expect(externalIdCalls()).toEqual(["https://api.themoviedb.org/3/person/1000/external_ids"])
+        expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1000", "Actor 0", undefined, "nm0000001")
+        expect(mockFindOrCreateActor).toHaveBeenCalledWith("1000", "Actor 0", "/profile-0.jpg", "nm0000001")
       })
     })
 

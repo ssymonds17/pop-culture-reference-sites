@@ -7,6 +7,7 @@ export interface ActorDocument extends mongoose.Document, PersonStats {
   name: string // Lowercased and accent-folded for searching
   displayName: string // Display format (from TMDb)
   profilePath?: string // TMDb profile image
+  imdbPersonId?: string | null // IMDb "nm" ID from TMDb; null when TMDb has none
 }
 
 const actorSchema = new mongoose.Schema({
@@ -14,6 +15,7 @@ const actorSchema = new mongoose.Schema({
   name: { type: String, required: true },
   displayName: { type: String, required: true },
   profilePath: { type: String },
+  imdbPersonId: { type: String },
   ...personStatsSchemaFields,
 })
 

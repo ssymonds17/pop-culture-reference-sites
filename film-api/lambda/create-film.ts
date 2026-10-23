@@ -1,6 +1,6 @@
 import { createApiResponse, logger } from "./utils"
 import { requireAuth } from "./auth"
-import { connectToDatabase, createFilm, getFilmByTmdbId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating, findOrCreateActor, findOrCreateDirector, updateCastActorStats } from "./mongodb"
+import { connectToDatabase, createFilm, getFilmByTmdbId, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, isEligibleRating, findOrCreateActor, findOrCreateDirector, updateCastActorStats, findActorsMissingImdbId, findDirectorsMissingImdbId } from "./mongodb"
 import { CastMember, FilmData } from "./mongodb/models/film"
 import axios from "axios"
 import Director from "./mongodb/models/director"
@@ -45,13 +45,56 @@ const getTmdbFilmDetails = async (tmdbId: string): Promise<TmdbFilmDetails> => {
   return response.data
 }
 
-const buildCast = async (tmdbCast?: TmdbCastMember[]): Promise<CastMember[]> => {
+// Undefined when the lookup fails, so the person is left for backfill-person-imdb-ids.mjs.
+const fetchImdbPersonId = async (tmdbPersonId: string): Promise<string | null | undefined> => {
+  try {
+    const response = await axios.get<{ imdb_id?: string | null }>(
+      `${TMDB_BASE_URL}/person/${tmdbPersonId}/external_ids`,
+      // Short, so a hung lookup cannot hold the film's creation until the Lambda times out.
+      { params: { api_key: TMDB_API_KEY }, timeout: 3000 }
+    )
+    return response.data.imdb_id || null
+  } catch (error) {
+    logger.warn(`Could not fetch the IMDb ID for TMDb person ${tmdbPersonId}: ${error}`)
+    return undefined
+  }
+}
+
+// Only people never looked up are fetched, so this is usually a few calls per film or none.
+const lookUpImdbPersonIds = async (
+  directorIds: string[],
+  castIds: string[]
+): Promise<Map<string, string | null>> => {
+  const [directorsMissing, actorsMissing] = await Promise.all([
+    findDirectorsMissingImdbId(directorIds),
+    findActorsMissingImdbId(castIds),
+  ])
+  const missing = [...new Set([...directorsMissing, ...actorsMissing])]
+  const results = await Promise.all(
+    missing.map(async (tmdbPersonId) => [tmdbPersonId, await fetchImdbPersonId(tmdbPersonId)] as const)
+  )
+
+  const imdbPersonIds = new Map<string, string | null>()
+  for (const [tmdbPersonId, imdbPersonId] of results) {
+    if (imdbPersonId !== undefined) {
+      imdbPersonIds.set(tmdbPersonId, imdbPersonId)
+    }
+  }
+  return imdbPersonIds
+}
+
+const buildCast = async (
+  credited: TmdbCastMember[],
+  imdbPersonIds: Map<string, string | null>
+): Promise<CastMember[]> => {
   const cast: CastMember[] = []
-  for (const member of creditedCast(tmdbCast)) {
+  for (const member of credited) {
+    const tmdbPersonId = member.id.toString()
     const actor = await findOrCreateActor(
-      member.id.toString(),
+      tmdbPersonId,
       member.name,
-      member.profile_path ?? undefined
+      member.profile_path ?? undefined,
+      imdbPersonIds.get(tmdbPersonId)
     )
     cast.push({
       actor: actor._id,
@@ -90,22 +133,26 @@ const handlerImpl = async (event: any, _userId: string) => {
       // Fetch film details from TMDB
       const tmdbDetails = await getTmdbFilmDetails(tmdbId)
 
-      // Extract directors from crew
-      const directorIds = []
-      if (tmdbDetails.credits?.crew) {
-        const directorCrew = tmdbDetails.credits.crew.filter((c) => c.job === "Director")
+      const directorCrew = (tmdbDetails.credits?.crew ?? []).filter((c) => c.job === "Director")
+      const credited = creditedCast(tmdbDetails.credits?.cast)
+      const imdbPersonIds = await lookUpImdbPersonIds(
+        directorCrew.map((directorData) => directorData.id.toString()),
+        credited.map((member) => member.id.toString())
+      )
 
-        for (const directorData of directorCrew) {
-          const director = await findOrCreateDirector(
-            directorData.id.toString(),
-            directorData.name,
-            directorData.profile_path ?? undefined
-          )
-          directorIds.push(director._id)
-        }
+      const directorIds = []
+      for (const directorData of directorCrew) {
+        const tmdbPersonId = directorData.id.toString()
+        const director = await findOrCreateDirector(
+          tmdbPersonId,
+          directorData.name,
+          directorData.profile_path ?? undefined,
+          imdbPersonIds.get(tmdbPersonId)
+        )
+        directorIds.push(director._id)
       }
 
-      const cast = await buildCast(tmdbDetails.credits?.cast)
+      const cast = await buildCast(credited, imdbPersonIds)
 
       // Extract year from release_date
       const year = tmdbDetails.release_date

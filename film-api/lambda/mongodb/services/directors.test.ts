@@ -1,4 +1,5 @@
 import {
+  findDirectorsMissingImdbId,
   findOrCreateDirector,
   getDirectorById,
   getDirectorByTmdbPersonId,
@@ -69,6 +70,55 @@ describe("directors service", () => {
         })
       },
     )
+  })
+
+  describe("findOrCreateDirector IMDb IDs", () => {
+    const mockUpsert = () => {
+      mockDirector.findOneAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ _id: "director1" }),
+      }) as any
+    }
+
+    it.each(["nm0000399", null])("should store an IMDb ID of %p", async (imdbPersonId) => {
+      mockUpsert()
+
+      await findOrCreateDirector("7467", "David Fincher", undefined, imdbPersonId)
+
+      const [, update] = (mockDirector.findOneAndUpdate as jest.Mock).mock.calls[0]
+      expect(update.$set).toEqual({ imdbPersonId })
+    })
+
+    it("should leave the IMDb ID alone when none is given", async () => {
+      mockUpsert()
+
+      await findOrCreateDirector("7467", "David Fincher", "/fincher.jpg")
+
+      const [, update] = (mockDirector.findOneAndUpdate as jest.Mock).mock.calls[0]
+      expect(update.$set).toEqual({ profilePath: "/fincher.jpg" })
+    })
+  })
+
+  describe("findDirectorsMissingImdbId", () => {
+    it("should return the people with no IMDb ID field, keeping their order", async () => {
+      mockDirector.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([{ tmdbPersonId: "2" }]),
+      }) as any
+
+      const result = await findDirectorsMissingImdbId(["1", "2", "3"])
+
+      expect(result).toEqual(["1", "3"])
+      expect(mockDirector.find).toHaveBeenCalledWith(
+        { tmdbPersonId: { $in: ["1", "2", "3"] }, imdbPersonId: { $exists: true } },
+        { tmdbPersonId: 1 },
+      )
+    })
+
+    it("should not query for an empty list", async () => {
+      mockDirector.find = jest.fn() as any
+
+      expect(await findDirectorsMissingImdbId([])).toEqual([])
+      expect(mockDirector.find).not.toHaveBeenCalled()
+    })
   })
 
   describe("getDirectors", () => {

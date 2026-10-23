@@ -7,6 +7,7 @@ export {
   getFilmById,
   getFilmDetailsById,
   getFilmByTmdbId,
+  findCollectedTmdbIds,
   updateFilm,
   deleteFilm,
   findFilmsByTitle,
@@ -17,6 +18,7 @@ export {
 // Director services
 export {
   findOrCreateDirector,
+  findDirectorsMissingImdbId,
   getDirectors,
   getDirectorById,
   getDirectorByTmdbPersonId,
@@ -27,6 +29,7 @@ export {
 // Actor services
 export {
   findOrCreateActor,
+  findActorsMissingImdbId,
   getActors,
   getActorByTmdbPersonId,
   findActorsByName,

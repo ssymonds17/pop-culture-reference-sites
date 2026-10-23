@@ -6,6 +6,7 @@ export interface DirectorDocument extends mongoose.Document, PersonStats {
   name: string // Lowercase for searching
   displayName: string // Display format (from TMDb)
   profilePath?: string // TMDb profile image
+  imdbPersonId?: string | null // IMDb "nm" ID from TMDb; null when TMDb has none
   films: mongoose.Types.ObjectId[] // Film references
 }
 
@@ -14,6 +15,7 @@ const directorSchema = new mongoose.Schema({
   name: { type: String, required: true },
   displayName: { type: String, required: true },
   profilePath: { type: String },
+  imdbPersonId: { type: String },
   films: [
     {
       type: mongoose.Schema.Types.ObjectId,
