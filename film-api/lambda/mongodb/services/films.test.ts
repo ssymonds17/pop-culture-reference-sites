@@ -1,7 +1,6 @@
 import {
   findCollectedTmdbIds,
   findFilmsByTitle,
-  findStoredImdbIds,
   getFilmById,
   getFilmDetailsById,
   getFilms,
@@ -168,29 +167,6 @@ describe("films service", () => {
       mockFilm.find = jest.fn() as any
 
       expect(await findCollectedTmdbIds([])).toEqual(new Set())
-      expect(mockFilm.find).not.toHaveBeenCalled()
-    })
-  })
-
-  describe("findStoredImdbIds", () => {
-    it("should map each stored film's TMDb ID to its IMDb ID", async () => {
-      mockFilm.find = jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue([{ tmdbId: "348", imdbId: "tt0078748" }]),
-      }) as any
-
-      const result = await findStoredImdbIds(["348", "679"])
-
-      expect(result).toEqual(new Map([["348", "tt0078748"]]))
-      expect(mockFilm.find).toHaveBeenCalledWith(
-        { tmdbId: { $in: ["348", "679"] }, imdbId: { $ne: null } },
-        { tmdbId: 1, imdbId: 1 },
-      )
-    })
-
-    it("should not query for an empty list", async () => {
-      mockFilm.find = jest.fn() as any
-
-      expect(await findStoredImdbIds([])).toEqual(new Map())
       expect(mockFilm.find).not.toHaveBeenCalled()
     })
   })

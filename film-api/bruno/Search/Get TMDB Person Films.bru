@@ -7,15 +7,21 @@ meta {
 get {
   url: {{API_URL}}/tmdb/person/287?kind=actor
   body: none
-  auth: none
+  auth: bearer
 }
 
 params:query {
   kind: actor
 }
 
+auth:bearer {
+  token: {{CLERK_TOKEN}}
+}
+
 docs {
-  Get a person's full filmography from TMDB, marking the films already in the collection.
+  Get a person's released films with their IMDb ratings, filtered for the person modal.
+
+  Requires CLERK_TOKEN (returns 401 without it), as each film costs an OMDb request.
 
   Path Parameters:
   - tmdbPersonId: TMDB person ID - REQUIRED
@@ -25,26 +31,41 @@ docs {
     - actor: credited acting roles (roles marked "(uncredited)" are left out)
     - director: films where the person's job is Director
 
-  Returns { data: [...] }, newest first with undated films last. Each film has:
+  Films already in the collection are left out, as the modal lists those from the
+  database. Any other film is left out when it:
+  - has no release date, or one in the future
+  - doesn't have the status "Released" on TMDB
+  - has no IMDb ID or no IMDb rating
+  - has fewer than 1,000 IMDb votes
+  - fails its lookup, or isn't reached within the 20-second time budget
+
+  Returns { data: { films: [...], hiddenCount } }, newest first. hiddenCount is
+  how many films outside the collection were left out. Each film has:
   - tmdbId: TMDB movie ID
   - title: Film title
-  - year: Release year, or null when TMDB has no date
+  - year: Release year
   - character: Role played, joined with " / " for several roles; actors only, null when unknown
-  - inCollection: Whether the film is already in the database
+  - imdbId, imdbRating, imdbVotes: from OMDb (www.omdbapi.com), which is unofficial,
+    so figures can differ slightly from imdb.com
 
-  Returns 400 for a missing or unknown kind and 404 when TMDB has no such person.
-  Reads from TMDB and the database but saves nothing.
+  Returns 400 for a bad ID or kind, 404 when TMDB has no such person, and 502
+  when OMDb rejects the API key or every film lookup fails. Saves nothing.
 
   Example Response:
   {
-    "data": [
-      {
-        "tmdbId": "550",
-        "title": "Fight Club",
-        "year": 1999,
-        "character": "Tyler Durden",
-        "inCollection": true
-      }
-    ]
+    "data": {
+      "films": [
+        {
+          "tmdbId": "550",
+          "title": "Fight Club",
+          "year": 1999,
+          "character": "Tyler Durden",
+          "imdbId": "tt0137523",
+          "imdbRating": 8.8,
+          "imdbVotes": 2400000
+        }
+      ],
+      "hiddenCount": 12
+    }
   }
 }

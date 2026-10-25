@@ -204,14 +204,6 @@ export class ApiStack extends core.Stack {
     )
 
     // The only Lambda that calls OMDb, so the only one given its key
-    const getImdbRatingsLambda = new LambdaConstruct(this, "GetImdbRatings", {
-      functionName: "film-get-imdb-ratings-handler",
-      code: lambda.Code.fromAsset("build/apps/get-imdb-ratings"),
-      handler: "index.handler",
-      timeout: core.Duration.seconds(30),
-      environment: { ...lambdaEnvironment, OMDB_API_KEY: omdbApiKey },
-    })
-
     const getTmdbPersonFilmsLambda = new LambdaConstruct(
       this,
       "GetTmdbPersonFilms",
@@ -220,7 +212,7 @@ export class ApiStack extends core.Stack {
         code: lambda.Code.fromAsset("build/apps/get-tmdb-person-films"),
         handler: "index.handler",
         timeout: core.Duration.seconds(30),
-        environment: lambdaEnvironment,
+        environment: { ...lambdaEnvironment, OMDB_API_KEY: omdbApiKey },
       }
     )
 
@@ -241,8 +233,8 @@ export class ApiStack extends core.Stack {
       environment: lambdaEnvironment,
     })
 
-    // API Gateway applies these to each route separately. Routes that call TMDb or OMDb for every
-    // request get a lower limit to protect those keys; one IMDb ratings request can make 200 calls.
+    // API Gateway applies these per route. Routes calling TMDb or OMDb on every request get a lower
+    // limit to protect those keys, as one filmography request makes up to two upstream calls per film.
     const upstreamThrottle = { throttlingRateLimit: 2, throttlingBurstLimit: 5 }
 
     // Define the API Gateway resource
@@ -255,7 +247,6 @@ export class ApiStack extends core.Stack {
           "/search/tmdb/GET": upstreamThrottle,
           "/tmdb/{tmdbId}/GET": upstreamThrottle,
           "/tmdb/person/{tmdbPersonId}/GET": upstreamThrottle,
-          "/tmdb/imdb-ratings/GET": upstreamThrottle,
         },
       },
     })
@@ -437,16 +428,6 @@ export class ApiStack extends core.Stack {
       new apigateway.LambdaIntegration(getTmdbFilmDetailsLambda.function)
     )
     tmdbFilmDetails.addCorsPreflight({
-      allowOrigins: ["*"],
-      allowMethods: ["GET"],
-    })
-
-    const imdbRatings = tmdb.addResource("imdb-ratings")
-    imdbRatings.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getImdbRatingsLambda.function)
-    )
-    imdbRatings.addCorsPreflight({
       allowOrigins: ["*"],
       allowMethods: ["GET"],
     })

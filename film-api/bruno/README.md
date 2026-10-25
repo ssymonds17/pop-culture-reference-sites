@@ -26,14 +26,14 @@ Bruno requires you to manually set these environment variables in the **Producti
 
 | Variable         | Description                           | Example                   | Used By                                                                    |
 | ---------------- | ------------------------------------- | ------------------------- | -------------------------------------------------------------------------- |
-| `CLERK_TOKEN`    | Clerk session token (see below)       | `eyJhbGciOi...`           | Create Film, Update Film, Delete Film, Update Year Stats, Update Top Films, Get IMDb Ratings |
+| `CLERK_TOKEN`    | Clerk session token (see below)       | `eyJhbGciOi...`           | Create Film, Update Film, Delete Film, Update Year Stats, Update Top Films, Get TMDB Person Films |
 | `FILM_ID`        | MongoDB ObjectId of a film            | `65abc123def456789012345` | Get Film By Id, Update Film, Delete Film                                   |
 | `TMDB_PERSON_ID` | TMDb person ID of a director or actor | `5602` (Buster Keaton)    | Get Director By Person Id, Get Actor By Person Id                          |
 | `YEAR`           | Release year for testing              | `2020`                    | Get Year, Update Year Stats                                                |
 
 ### Getting a Clerk Token
 
-Requests that change data, and Get IMDb Ratings, send `CLERK_TOKEN` as a bearer token. Without a valid one they return 401.
+Requests that change data, and Get TMDB Person Films, send `CLERK_TOKEN` as a bearer token. Without a valid one they return 401.
 
 1. Sign in to the film app in your browser
 2. Open the developer console and run `await window.Clerk.session.getToken()`
@@ -83,13 +83,12 @@ Clerk session tokens are short-lived, so fetch a fresh one just before sending t
 - **Get Top Films** - GET /top-films
 - **Update Top Films** - PUT /top-films (auth)
 
-### Search (5 requests)
+### Search (4 requests)
 
 - **Search** - GET /search
 - **Search TMDB** - GET /search/tmdb
 - **Get TMDB Film Details** - GET /tmdb/{tmdbId}
-- **Get TMDB Person Films** - GET /tmdb/person/{tmdbPersonId}
-- **Get IMDb Ratings** - GET /tmdb/imdb-ratings (auth)
+- **Get TMDB Person Films** - GET /tmdb/person/{tmdbPersonId} (auth)
 
 ## Testing Workflow
 
