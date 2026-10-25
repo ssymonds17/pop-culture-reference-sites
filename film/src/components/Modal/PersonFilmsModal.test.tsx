@@ -585,7 +585,7 @@ describe("PersonFilmsModal", () => {
       return { user, ...utils }
     }
 
-    it("should show your films first, with your rating and no IMDb figures, without requesting other films", async () => {
+    it("should show your films first, with your rating badge and no IMDb figures, without requesting other films", async () => {
       mockApi([otherFilm()])
 
       render(renderModal(person))
@@ -598,7 +598,10 @@ describe("PersonFilmsModal", () => {
           name: "Your rating",
         }),
       ).toBeInTheDocument()
-      expect(within(alienRow).getByText("9")).toBeInTheDocument()
+      expect(within(alienRow).getByText("9")).toHaveClass(
+        "rounded-full",
+        "bg-violet-400",
+      )
       expect(
         screen.queryByRole("columnheader", { name: "IMDb" }),
       ).not.toBeInTheDocument()

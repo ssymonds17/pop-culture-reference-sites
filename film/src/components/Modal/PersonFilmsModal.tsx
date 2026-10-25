@@ -9,6 +9,7 @@ import { createAuthenticatedClient } from "@/lib/auth-api"
 import { PERSON_KINDS, PersonKind } from "@/lib/personKinds"
 import { getTmdbPosterUrl } from "@/lib/utils"
 import ImdbRatingBox from "../Rating/ImdbRatingBox"
+import RatingBadge from "../Rating/RatingBadge"
 
 interface PersonFilmsModalProps {
   person: Person | null
@@ -284,9 +285,7 @@ export default function PersonFilmsModal({
                 )}
                 <td className="px-4 py-3 text-center">
                   {film.rating ? (
-                    <span className="font-semibold text-film-400">
-                      {film.rating}
-                    </span>
+                    <RatingBadge rating={film.rating} />
                   ) : (
                     <span className="text-gray-500">-</span>
                   )}

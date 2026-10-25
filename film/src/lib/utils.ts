@@ -1,34 +1,19 @@
-export const getRatingColor = (rating: number): string => {
-  const colors: Record<number, string> = {
-    1: 'bg-rating-1',
-    2: 'bg-rating-2',
-    3: 'bg-rating-3',
-    4: 'bg-rating-4',
-    5: 'bg-rating-5',
-    6: 'bg-rating-6',
-    7: 'bg-rating-7',
-    8: 'bg-rating-8',
-    9: 'bg-rating-9',
-    10: 'bg-rating-10',
-  }
-  return colors[rating] || 'bg-gray-400'
+// Every pairing keeps the number at 4.5:1 contrast or more, hence dark text on the lighter colours
+const RATING_COLORS: Record<number, string> = {
+  1: 'bg-red-800 text-white',
+  2: 'bg-red-600 text-white',
+  3: 'bg-orange-600 text-gray-900',
+  4: 'bg-orange-400 text-gray-900',
+  5: 'bg-yellow-800 text-white',
+  6: 'bg-yellow-400 text-gray-900',
+  7: 'bg-lime-400 text-gray-900',
+  8: 'bg-green-700 text-white',
+  9: 'bg-violet-400 text-gray-900',
+  10: 'bg-purple-700 text-white',
 }
 
-export const getRatingTextColor = (rating: number): string => {
-  const colors: Record<number, string> = {
-    1: 'text-rating-1',
-    2: 'text-rating-2',
-    3: 'text-rating-3',
-    4: 'text-rating-4',
-    5: 'text-rating-5',
-    6: 'text-rating-6',
-    7: 'text-rating-7',
-    8: 'text-rating-8',
-    9: 'text-rating-9',
-    10: 'text-rating-10',
-  }
-  return colors[rating] || 'text-gray-400'
-}
+export const getRatingColor = (rating: number): string =>
+  RATING_COLORS[rating] || 'bg-gray-400 text-gray-900'
 
 export const formatDirectorNames = (
   directors: Array<{ displayName?: string; name?: string }>

@@ -3,27 +3,27 @@ import {
   formatDuration,
   formatVoteCount,
   getRatingColor,
-  getRatingTextColor,
   getTmdbPosterUrl,
 } from './utils'
 
 describe('getRatingColor', () => {
-  it('should return the background class for a rating', () => {
-    expect(getRatingColor(7)).toBe('bg-rating-7')
+  it.each([
+    [1, 'bg-red-800 text-white'],
+    [2, 'bg-red-600 text-white'],
+    [3, 'bg-orange-600 text-gray-900'],
+    [4, 'bg-orange-400 text-gray-900'],
+    [5, 'bg-yellow-800 text-white'],
+    [6, 'bg-yellow-400 text-gray-900'],
+    [7, 'bg-lime-400 text-gray-900'],
+    [8, 'bg-green-700 text-white'],
+    [9, 'bg-violet-400 text-gray-900'],
+    [10, 'bg-purple-700 text-white'],
+  ])('should give a rating of %p its own colour, %p', (rating, classes) => {
+    expect(getRatingColor(rating)).toBe(classes)
   })
 
-  it('should fall back to grey for an unknown rating', () => {
-    expect(getRatingColor(11)).toBe('bg-gray-400')
-  })
-})
-
-describe('getRatingTextColor', () => {
-  it('should return the text class for a rating', () => {
-    expect(getRatingTextColor(10)).toBe('text-rating-10')
-  })
-
-  it('should fall back to grey for an unknown rating', () => {
-    expect(getRatingTextColor(0)).toBe('text-gray-400')
+  it.each([0, 11])('should fall back to grey for a rating of %p', (rating) => {
+    expect(getRatingColor(rating)).toBe('bg-gray-400 text-gray-900')
   })
 })
 

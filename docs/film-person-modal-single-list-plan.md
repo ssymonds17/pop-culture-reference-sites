@@ -25,13 +25,13 @@ Changed on 25-10-2026: your films show your rating only, with no IMDb figures, s
   - Title, without a character, as the actor endpoint doesn't return the cast
   - Year
   - Role (Lead or Support, actors only)
-  - Your rating (renamed from "Rating")
+  - Your rating (renamed from "Rating"), as the round `RatingBadge` used on film cards
   - Owned
 - **The button:** under an "Other films" heading below your films, "Load other films and IMDb ratings". Clicking it makes one API request, and the list replaces the button. Nothing already on screen moves.
 - **Other films:** the person's filmography minus your collection. Columns:
   - Title, with "as <character>" for actors
   - Year
-  - IMDb: a coloured box (`film/src/components/Rating/ImdbRatingBox.tsx`) holding the rating and vote count, linking to IMDb. It's red below 5.0, brown 5.0 to 5.9, yellow 6.0 to 6.9, green 7.0 to 7.9 and purple from 8.0. "Your rating" stays plain text.
+  - IMDb: a coloured box (`film/src/components/Rating/ImdbRatingBox.tsx`) holding the rating and vote count, linking to IMDb. It's red below 5.0, brown 5.0 to 5.9, yellow 6.0 to 6.9, green 7.0 to 7.9 and purple from 8.0. It stays square so it reads apart from the round "Your rating" badges.
   - Add. After an Add, the row stays and reads "In collection", and your films refresh.
 - **Caching:** the result is kept per person and kind while the modal is mounted, so reopening the same person doesn't request again.
 - **Hidden count:** a line under "Other films", for example "23 films hidden: unreleased, no IMDb data, fewer than 1,000 IMDb votes or couldn't be checked". There's no Show all, because the API never sends those films.
