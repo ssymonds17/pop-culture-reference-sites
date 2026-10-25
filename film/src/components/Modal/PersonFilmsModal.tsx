@@ -7,7 +7,8 @@ import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
 import { createAuthenticatedClient } from "@/lib/auth-api"
 import { PERSON_KINDS, PersonKind } from "@/lib/personKinds"
-import { formatVoteCount, getTmdbPosterUrl } from "@/lib/utils"
+import { getTmdbPosterUrl } from "@/lib/utils"
+import ImdbRatingBox from "../Rating/ImdbRatingBox"
 
 interface PersonFilmsModalProps {
   person: Person | null
@@ -408,20 +409,12 @@ export default function PersonFilmsModal({
                     {film.year}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <a
-                      href={`https://www.imdb.com/title/${film.imdbId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-yellow-400 hover:text-yellow-300 transition-colors"
-                    >
-                      {film.imdbRating.toFixed(1)}
-                      <span className="sr-only">
-                        {` on IMDb for ${film.title} (${film.year})`}
-                      </span>
-                    </a>
-                    <div className="text-xs text-gray-400">
-                      {formatVoteCount(film.imdbVotes)}
-                    </div>
+                    <ImdbRatingBox
+                      imdbId={film.imdbId}
+                      rating={film.imdbRating}
+                      votes={film.imdbVotes}
+                      filmName={`${film.title} (${film.year})`}
+                    />
                   </td>
                   <td className="px-4 py-3 text-center">
                     {renderAddCell(film)}

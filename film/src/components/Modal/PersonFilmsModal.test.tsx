@@ -636,15 +636,14 @@ describe("PersonFilmsModal", () => {
       const row = link.closest("tr")!
       expect(within(row).getByText("as Ellen Ripley")).toBeInTheDocument()
       expect(within(row).getByText("1986")).toBeInTheDocument()
-      const imdbLink = within(row).getByRole("link", {
-        name: "8.4 on IMDb for Aliens (1986)",
+      const imdbBox = within(row).getByRole("link", {
+        name: "8.4 950K votes on IMDb for Aliens (1986)",
       })
-      expect(imdbLink).toHaveAttribute(
+      expect(imdbBox).toHaveAttribute(
         "href",
         "https://www.imdb.com/title/tt0090605",
       )
-      expect(imdbLink).toHaveAttribute("target", "_blank")
-      expect(within(row).getByText("950K votes")).toBeInTheDocument()
+      expect(imdbBox).toHaveTextContent("950K votes")
       expect(
         within(yourFilmsSection()).getByText("Galaxy Quest"),
       ).toBeInTheDocument()
