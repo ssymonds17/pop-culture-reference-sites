@@ -65,7 +65,7 @@ export default function PersonFilmsModal({
   const { getToken } = useAuth()
   // Keyed by person and kind so switching never shows the previous person's films while loading
   const [filmsState, setFilmsState] = useState<FilmsState | null>(null)
-  // Bumped after adding a film so "Your films" refetches and includes it
+  // Bumped after adding a film so "Selected films" refetches and includes it
   const [filmsVersion, setFilmsVersion] = useState(0)
   // Remembered by path so a stale TMDb photo falls back to initials, and a different photo still loads
   const [failedPhotoPath, setFailedPhotoPath] = useState<string | null>(null)
@@ -228,6 +228,21 @@ export default function PersonFilmsModal({
   const otherFilms = requestKey ? otherFilmsByKey[requestKey] : undefined
   const showRole = kind === "actor"
 
+  // Films added before IMDb IDs were stored have none, so their title stays plain
+  const renderTitle = (title: string, imdbId?: string) =>
+    imdbId ? (
+      <a
+        href={`https://www.imdb.com/title/${imdbId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium hover:text-blue-300 transition-colors"
+      >
+        {title}
+      </a>
+    ) : (
+      <span className="font-medium">{title}</span>
+    )
+
   const renderYourFilms = () => {
     if (error) {
       return (
@@ -269,7 +284,7 @@ export default function PersonFilmsModal({
                 className="hover:bg-gray-800/50 transition-colors"
               >
                 <td className="px-4 py-3">
-                  <div className="font-medium">{film.title}</div>
+                  {renderTitle(film.title, film.imdbId)}
                 </td>
                 <td className="px-4 py-3 text-center text-gray-300">
                   {film.year}
@@ -390,14 +405,7 @@ export default function PersonFilmsModal({
                   className="hover:bg-gray-800/50 transition-colors"
                 >
                   <td className="px-4 py-3">
-                    <a
-                      href={`https://www.themoviedb.org/movie/${film.tmdbId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:text-blue-300 transition-colors"
-                    >
-                      {film.title}
-                    </a>
+                    {renderTitle(film.title, film.imdbId)}
                     {film.character && (
                       <div className="text-xs text-gray-400">
                         as {film.character}
@@ -487,7 +495,7 @@ export default function PersonFilmsModal({
 
         <section aria-labelledby={yourFilmsHeadingId}>
           <h3 id={yourFilmsHeadingId} className={SECTION_HEADING_CLASS}>
-            Your films
+            Selected films
           </h3>
           {renderYourFilms()}
         </section>
@@ -499,7 +507,7 @@ export default function PersonFilmsModal({
             tabIndex={-1}
             className={SECTION_HEADING_CLASS}
           >
-            Other films
+            Remaining filmography
           </h3>
           {/* A focused button's new label isn't reliably read out, so the loading state is announced here */}
           <p role="status" className="sr-only">

@@ -21,6 +21,8 @@ Checked on 25-10-2026: TMDb's person movie credits have no `status` field. The f
 ## Agreed layout
 Changed on 25-10-2026: your films show your rating only, with no IMDb figures, so the API skips collection films entirely.
 
+The sections are headed "Selected films" (your films) and "Remaining filmography" (other films), renamed on 25-10-2026. In both, a film's title links to its IMDb page, and stays plain for films stored without an IMDb ID.
+
 - **Your films, shown on open** from the database, as today's "Your films" does. No TMDb or OMDb calls are made. Columns:
   - Title, without a character, as the actor endpoint doesn't return the cast
   - Year

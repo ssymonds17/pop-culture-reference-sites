@@ -402,6 +402,33 @@ describe("PersonFilmsModal", () => {
   })
 
   describe("links", () => {
+    it("should link a selected film's title to IMDb, leaving it plain when there's no IMDb ID", async () => {
+      mockAxiosGet.mockResolvedValueOnce({
+        data: {
+          data: {
+            ...person,
+            films: [
+              { _id: "film1", title: "Alien", year: 1979, imdbId: "tt0078748" },
+              { _id: "film2", title: "Galaxy Quest", year: 1999 },
+            ],
+          },
+        },
+      })
+
+      render(renderModal(person))
+
+      const link = await screen.findByRole("link", { name: "Alien" })
+      expect(link).toHaveAttribute(
+        "href",
+        "https://www.imdb.com/title/tt0078748",
+      )
+      expect(link).toHaveAttribute("target", "_blank")
+      expect(screen.getByText("Galaxy Quest")).toBeInTheDocument()
+      expect(
+        screen.queryByRole("link", { name: "Galaxy Quest" }),
+      ).not.toBeInTheDocument()
+    })
+
     it("should link to the person's TMDb page", async () => {
       mockAxiosGet.mockResolvedValueOnce(filmsResponse([]))
 
@@ -521,7 +548,7 @@ describe("PersonFilmsModal", () => {
     })
   })
 
-  describe("other films", () => {
+  describe("remaining filmography", () => {
     const LOAD_OTHER_FILMS = "Load other films and IMDb ratings"
 
     const otherFilm = (
@@ -564,10 +591,10 @@ describe("PersonFilmsModal", () => {
         ([url]) => url === API_ENDPOINTS.tmdbPersonFilms(tmdbPersonId),
       )
 
-    const yourFilmsSection = () =>
-      screen.getByRole("region", { name: "Your films" })
-    const otherFilmsSection = () =>
-      screen.getByRole("region", { name: "Other films" })
+    const selectedFilmsSection = () =>
+      screen.getByRole("region", { name: "Selected films" })
+    const remainingFilmographySection = () =>
+      screen.getByRole("region", { name: "Remaining filmography" })
 
     beforeEach(() => {
       mockAxiosGet.mockReset()
@@ -591,10 +618,10 @@ describe("PersonFilmsModal", () => {
       render(renderModal(person))
 
       const alienRow = (
-        await within(yourFilmsSection()).findByText("Alien")
+        await within(selectedFilmsSection()).findByText("Alien")
       ).closest("tr")!
       expect(
-        within(yourFilmsSection()).getByRole("columnheader", {
+        within(selectedFilmsSection()).getByRole("columnheader", {
           name: "Your rating",
         }),
       ).toBeInTheDocument()
@@ -616,7 +643,7 @@ describe("PersonFilmsModal", () => {
 
       await loadOtherFilms("director")
 
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
       expect(mockClientGet).toHaveBeenCalledWith(
         API_ENDPOINTS.tmdbPersonFilms("123"),
         { params: { kind: "director" }, timeout: 35000 },
@@ -624,18 +651,19 @@ describe("PersonFilmsModal", () => {
       expect(mockAxiosGet).toHaveBeenCalledTimes(1)
     })
 
-    it("should list other films below your films, with each film's character, year, TMDb link and IMDb figures", async () => {
+    it("should list other films below your films, with each film's IMDb title link, character, year and IMDb figures", async () => {
       mockApi([otherFilm()])
 
       await loadOtherFilms()
 
-      const link = await within(otherFilmsSection()).findByRole("link", {
+      const link = await within(remainingFilmographySection()).findByRole("link", {
         name: "Aliens",
       })
       expect(link).toHaveAttribute(
         "href",
-        "https://www.themoviedb.org/movie/679",
+        "https://www.imdb.com/title/tt0090605",
       )
+      expect(link).toHaveAttribute("target", "_blank")
       const row = link.closest("tr")!
       expect(within(row).getByText("as Ellen Ripley")).toBeInTheDocument()
       expect(within(row).getByText("1986")).toBeInTheDocument()
@@ -648,13 +676,13 @@ describe("PersonFilmsModal", () => {
       )
       expect(imdbBox).toHaveTextContent("950K votes")
       expect(
-        within(yourFilmsSection()).getByText("Galaxy Quest"),
+        within(selectedFilmsSection()).getByText("Galaxy Quest"),
       ).toBeInTheDocument()
       expect(
         screen
           .getAllByRole("heading", { level: 3 })
           .map((heading) => heading.textContent),
-      ).toEqual(["Your films", "Other films"])
+      ).toEqual(["Selected films", "Remaining filmography"])
     })
 
     it("should leave out the character when there is none, and never show a Role column", async () => {
@@ -663,13 +691,13 @@ describe("PersonFilmsModal", () => {
       await loadOtherFilms()
 
       const row = (
-        await within(otherFilmsSection()).findByRole("link", {
+        await within(remainingFilmographySection()).findByRole("link", {
           name: "Aliens",
         })
       ).closest("tr")!
       expect(within(row).queryByText(/^as /)).not.toBeInTheDocument()
       expect(
-        within(otherFilmsSection()).queryByRole("columnheader", {
+        within(remainingFilmographySection()).queryByRole("columnheader", {
           name: "Role",
         }),
       ).not.toBeInTheDocument()
@@ -686,7 +714,7 @@ describe("PersonFilmsModal", () => {
         await loadOtherFilms()
 
         expect(
-          await within(otherFilmsSection()).findByText(
+          await within(remainingFilmographySection()).findByText(
             `${prefix}unreleased, no IMDb data, fewer than 1,000 IMDb votes or couldn't be checked`,
           ),
         ).toBeInTheDocument()
@@ -698,7 +726,7 @@ describe("PersonFilmsModal", () => {
 
       await loadOtherFilms()
 
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
       expect(screen.queryByText(/hidden:/)).not.toBeInTheDocument()
     })
 
@@ -708,13 +736,13 @@ describe("PersonFilmsModal", () => {
       await loadOtherFilms()
 
       expect(
-        await within(otherFilmsSection()).findByText("No other films to show"),
+        await within(remainingFilmographySection()).findByText("No other films to show"),
       ).toBeInTheDocument()
       expect(
-        within(otherFilmsSection()).getByText(/^4 films hidden: /),
+        within(remainingFilmographySection()).getByText(/^4 films hidden: /),
       ).toBeInTheDocument()
       expect(
-        within(otherFilmsSection()).queryByRole("table"),
+        within(remainingFilmographySection()).queryByRole("table"),
       ).not.toBeInTheDocument()
     })
 
@@ -730,14 +758,14 @@ describe("PersonFilmsModal", () => {
       })
       expect(loadingButton).toHaveAttribute("aria-disabled", "true")
       expect(loadingButton).toHaveFocus()
-      expect(within(otherFilmsSection()).getByRole("status")).toHaveTextContent(
+      expect(within(remainingFilmographySection()).getByRole("status")).toHaveTextContent(
         "Loading other films",
       )
 
       await user.click(loadingButton)
       expect(mockClientGet).toHaveBeenCalledTimes(1)
       await act(async () => pending.resolve(otherFilmsResponse([otherFilm()])))
-      expect(within(otherFilmsSection()).getByRole("status")).toHaveTextContent(
+      expect(within(remainingFilmographySection()).getByRole("status")).toHaveTextContent(
         /^$/,
       )
     })
@@ -747,9 +775,9 @@ describe("PersonFilmsModal", () => {
 
       await loadOtherFilms()
 
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
       expect(
-        screen.getByRole("heading", { name: "Other films" }),
+        screen.getByRole("heading", { name: "Remaining filmography" }),
       ).toHaveFocus()
     })
 
@@ -783,13 +811,13 @@ describe("PersonFilmsModal", () => {
       await user.click(tryAgain)
 
       expect(
-        await within(otherFilmsSection()).findByRole("link", {
+        await within(remainingFilmographySection()).findByRole("link", {
           name: "Aliens",
         }),
       ).toBeInTheDocument()
       expect(screen.queryByRole("alert")).not.toBeInTheDocument()
       expect(
-        screen.getByRole("heading", { name: "Other films" }),
+        screen.getByRole("heading", { name: "Remaining filmography" }),
       ).toHaveFocus()
       expect(mockClientGet).toHaveBeenCalledTimes(2)
       consoleError.mockRestore()
@@ -798,13 +826,13 @@ describe("PersonFilmsModal", () => {
     it("should not request again when reopened for the same person", async () => {
       mockApi([otherFilm()])
       const { rerender } = await loadOtherFilms()
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
 
       rerender(renderModal(person, false))
       rerender(renderModal(person))
 
       expect(
-        within(otherFilmsSection()).getByRole("link", { name: "Aliens" }),
+        within(remainingFilmographySection()).getByRole("link", { name: "Aliens" }),
       ).toBeInTheDocument()
       expect(mockClientGet).toHaveBeenCalledTimes(1)
     })
@@ -812,15 +840,15 @@ describe("PersonFilmsModal", () => {
     it("should request again when the same person is shown as a different kind", async () => {
       mockApi([otherFilm()])
       const { user, rerender } = await loadOtherFilms("actor")
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
 
       rerender(renderModal(person, true, "director"))
 
       expect(
-        within(otherFilmsSection()).queryByRole("link", { name: "Aliens" }),
+        within(remainingFilmographySection()).queryByRole("link", { name: "Aliens" }),
       ).not.toBeInTheDocument()
       await user.click(screen.getByRole("button", { name: LOAD_OTHER_FILMS }))
-      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      await within(remainingFilmographySection()).findByRole("link", { name: "Aliens" })
       expect(mockClientGet).toHaveBeenCalledTimes(2)
       expect(mockClientGet).toHaveBeenLastCalledWith(
         API_ENDPOINTS.tmdbPersonFilms("123"),
@@ -853,22 +881,22 @@ describe("PersonFilmsModal", () => {
       expect(loadButton).toHaveFocus()
       await user.click(loadButton)
       expect(
-        await within(otherFilmsSection()).findByRole("link", {
+        await within(remainingFilmographySection()).findByRole("link", {
           name: "Twister",
         }),
       ).toBeInTheDocument()
       expect(
-        within(otherFilmsSection()).queryByRole("link", { name: "Aliens" }),
+        within(remainingFilmographySection()).queryByRole("link", { name: "Aliens" }),
       ).not.toBeInTheDocument()
 
       rerender(renderModal(person))
       expect(
-        within(otherFilmsSection()).getByRole("link", { name: "Aliens" }),
+        within(remainingFilmographySection()).getByRole("link", { name: "Aliens" }),
       ).toBeInTheDocument()
       expect(requestsFor("123")).toHaveLength(1)
     })
 
-    it('should add a film, mark it as in the collection and refresh "Your films"', async () => {
+    it('should add a film, mark it as in the collection and refresh "Selected films"', async () => {
       let yourFilms = films
       mockApi([otherFilm()], { yourFilms: () => yourFilms })
       const { user } = await loadOtherFilms()
@@ -883,14 +911,14 @@ describe("PersonFilmsModal", () => {
       })
       expect(await screen.findByText("In collection")).toBeInTheDocument()
       expect(
-        await within(yourFilmsSection()).findByText("Aliens"),
+        await within(selectedFilmsSection()).findByText("Aliens"),
       ).toBeInTheDocument()
       expect(
-        within(otherFilmsSection()).getByRole("link", { name: "Aliens" }),
+        within(remainingFilmographySection()).getByRole("link", { name: "Aliens" }),
       ).toBeInTheDocument()
     })
 
-    it('should refresh "Your films" when the film already exists', async () => {
+    it('should refresh "Selected films" when the film already exists', async () => {
       let yourFilms = films
       mockApi([otherFilm()], { yourFilms: () => yourFilms })
       mockPost.mockRejectedValueOnce({ response: { status: 409 } })
@@ -904,7 +932,7 @@ describe("PersonFilmsModal", () => {
       expect(await screen.findByText("In collection")).toBeInTheDocument()
       expect(screen.queryByText("Could not add")).not.toBeInTheDocument()
       expect(
-        await within(yourFilmsSection()).findByText("Aliens"),
+        await within(selectedFilmsSection()).findByText("Aliens"),
       ).toBeInTheDocument()
     })
 
