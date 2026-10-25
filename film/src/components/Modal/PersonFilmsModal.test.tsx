@@ -716,7 +716,7 @@ describe("PersonFilmsModal", () => {
       ).not.toBeInTheDocument()
     })
 
-    it("should keep the button focused and inert while loading", async () => {
+    it("should keep the button focused and inert while loading, and announce it", async () => {
       mockApi([otherFilm()])
       const pending = deferred()
       mockClientGet.mockReturnValueOnce(pending.promise)
@@ -728,10 +728,16 @@ describe("PersonFilmsModal", () => {
       })
       expect(loadingButton).toHaveAttribute("aria-disabled", "true")
       expect(loadingButton).toHaveFocus()
+      expect(within(otherFilmsSection()).getByRole("status")).toHaveTextContent(
+        "Loading other films",
+      )
 
       await user.click(loadingButton)
       expect(mockClientGet).toHaveBeenCalledTimes(1)
       await act(async () => pending.resolve(otherFilmsResponse([otherFilm()])))
+      expect(within(otherFilmsSection()).getByRole("status")).toHaveTextContent(
+        /^$/,
+      )
     })
 
     it("should move focus to the other films once they load from the focused button", async () => {
@@ -780,6 +786,9 @@ describe("PersonFilmsModal", () => {
         }),
       ).toBeInTheDocument()
       expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+      expect(
+        screen.getByRole("heading", { name: "Other films" }),
+      ).toHaveFocus()
       expect(mockClientGet).toHaveBeenCalledTimes(2)
       consoleError.mockRestore()
     })
@@ -796,6 +805,25 @@ describe("PersonFilmsModal", () => {
         within(otherFilmsSection()).getByRole("link", { name: "Aliens" }),
       ).toBeInTheDocument()
       expect(mockClientGet).toHaveBeenCalledTimes(1)
+    })
+
+    it("should request again when the same person is shown as a different kind", async () => {
+      mockApi([otherFilm()])
+      const { user, rerender } = await loadOtherFilms("actor")
+      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+
+      rerender(renderModal(person, true, "director"))
+
+      expect(
+        within(otherFilmsSection()).queryByRole("link", { name: "Aliens" }),
+      ).not.toBeInTheDocument()
+      await user.click(screen.getByRole("button", { name: LOAD_OTHER_FILMS }))
+      await within(otherFilmsSection()).findByRole("link", { name: "Aliens" })
+      expect(mockClientGet).toHaveBeenCalledTimes(2)
+      expect(mockClientGet).toHaveBeenLastCalledWith(
+        API_ENDPOINTS.tmdbPersonFilms("123"),
+        { params: { kind: "director" }, timeout: 35000 },
+      )
     })
 
     it("should keep a late response with its own person after switching", async () => {
@@ -819,6 +847,8 @@ describe("PersonFilmsModal", () => {
 
       const loadButton = screen.getByRole("button", { name: LOAD_OTHER_FILMS })
       expect(loadButton).not.toHaveAttribute("aria-disabled", "true")
+      // The first person's films arrived while this button had focus, but belong to someone else
+      expect(loadButton).toHaveFocus()
       await user.click(loadButton)
       expect(
         await within(otherFilmsSection()).findByRole("link", {

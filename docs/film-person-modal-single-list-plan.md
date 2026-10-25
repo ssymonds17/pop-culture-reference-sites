@@ -1,15 +1,15 @@
 # Person modal: one list, with the filtering done in the API
 
-Agreed on 25-10-2026. Part 1 (API) is written; Part 2 (frontend) is not started. It replaces the two-tab design from `docs/film-person-links-plan.md` (Part 3) and the client-side vote filter from `docs/film-imdb-vote-filter-plan.md`.
+Agreed on 25-10-2026. Part 1 (API) is committed; Part 2 (frontend) is written. It replaces the two-tab design from `docs/film-person-links-plan.md` (Part 3) and the client-side vote filter from `docs/film-imdb-vote-filter-plan.md`.
 
 ## Context
-- **Today:** the actor and director modal (`film/src/components/Modal/PersonFilmsModal.tsx`) has two tabs.
-  - "All films" fetches the TMDb filmography.
-  - Then it requests IMDb ratings in batches from a second endpoint (`/tmdb/imdb-ratings`).
-  - Then it filters by vote count in the browser.
-- **What's wrong with that:**
-  - Most of the logic sits in the frontend.
-  - Unreleased and obscure films still reach the browser.
+- **Before this plan:** the actor and director modal (`film/src/components/Modal/PersonFilmsModal.tsx`) had two tabs.
+  - "All films" fetched the TMDb filmography.
+  - Then it requested IMDb ratings in batches from a second endpoint (`/tmdb/imdb-ratings`).
+  - Then it filtered by vote count in the browser.
+- **What was wrong with that:**
+  - Most of the logic sat in the frontend.
+  - Unreleased and obscure films still reached the browser.
   - The two tabs split your films from the wider filmography.
 - **The aim:**
   - One list in the modal.
@@ -22,12 +22,12 @@ Checked on 25-10-2026: TMDb's person movie credits have no `status` field. The f
 Changed on 25-10-2026: your films show your rating only, with no IMDb figures, so the API skips collection films entirely.
 
 - **Your films, shown on open** from the database, as today's "Your films" does. No TMDb or OMDb calls are made. Columns:
-  - Title, with "as <character>" for actors
+  - Title, without a character, as the actor endpoint doesn't return the cast
   - Year
   - Role (Lead or Support, actors only)
   - Your rating (renamed from "Rating")
   - Owned
-- **The button:** under your films, "Load other films and IMDb ratings". Clicking it makes one API request, and adds an "Other films" section below. Nothing already on screen moves.
+- **The button:** under an "Other films" heading below your films, "Load other films and IMDb ratings". Clicking it makes one API request, and the list replaces the button. Nothing already on screen moves.
 - **Other films:** the person's filmography minus your collection. Columns:
   - Title, with "as <character>" for actors
   - Year
@@ -113,6 +113,7 @@ Changed on 25-10-2026: your films show your rating only, with no IMDb figures, s
 - **Films you own outside the actor's stored cast:** a film in your collection where the actor was billed below 10th isn't in their "Your films" (only the top 10 are stored), and the API leaves it out of "Other films" too.
 - **Very large filmographies:** someone with more released credits than fit in the 20-second budget will lose the films that weren't reached, though the logs record it. If it becomes a problem, the Lambda could prioritise films by TMDb popularity, which is in the credits.
 - **OMDb cost:** there's no cap on lookups per request beyond the time budget, so one click for a prolific person can use a few hundred OMDb requests. That's acceptable against a limit of 100,000 a day.
+- **The cache is per modal:** each `FilmCard` mounts its own modal, so a director shown on several cards is looked up once per card. Sharing the cache across the page would carry one user's collection over a sign-out and sign-in, so it's left as it is.
 
 ## Commits
 1. API: the reworked filmography endpoint, removing the ratings endpoint, and updating the tests, Bruno and README.
@@ -128,4 +129,4 @@ Deploy the frontend and API together. An old frontend can't read the new respons
 - **In the app:**
   - Opening an actor shows your films straight away, with no network call to `/tmdb/person`.
   - Clicking the button adds "Other films", with none of your films repeated.
-  - Add a film from "Other films", and check it moves to your films.
+  - Add a film from "Other films", and check it appears in your films while its row reads "In collection".

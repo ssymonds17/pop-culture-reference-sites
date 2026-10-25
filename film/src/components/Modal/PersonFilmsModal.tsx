@@ -41,7 +41,6 @@ type OtherFilmsEntry =
 
 type AddStatus = "adding" | "error"
 
-// The API stops starting lookups after 20 seconds and answers within about 25
 const OTHER_FILMS_TIMEOUT_MS = 35000
 
 // Keep in step with the filters in film-api/lambda/get-tmdb-person-films.ts
@@ -51,7 +50,8 @@ const HIDDEN_FILMS_REASON =
 const HEADER_CELL_CLASS =
   "px-4 py-3 text-xs font-medium text-gray-400 uppercase"
 
-const SECTION_HEADING_CLASS = "text-lg font-semibold mb-3 focus:outline-none"
+const SECTION_HEADING_CLASS =
+  "text-lg font-semibold mb-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-film-500"
 
 export default function PersonFilmsModal({
   person,
@@ -155,11 +155,11 @@ export default function PersonFilmsModal({
       const client = await createAuthenticatedClient(getToken)
       const response = await client.get<{ data: OtherFilms }>(
         API_ENDPOINTS.tmdbPersonFilms(personId),
-        // Above the API's own time budget, so only a stalled request is cut off
+        // Above the API's own time budget of about 25 seconds, so only a stalled request is cut off
         { params: { kind }, timeout: OTHER_FILMS_TIMEOUT_MS },
       )
       const { films, hiddenCount } = response.data.data
-      // Checked now, not at the click, so a user who has moved on keeps their focus
+      // Checked when the response arrives, not at the click, so a user who has moved on keeps their focus
       if (document.activeElement === loadOtherFilmsButtonRef.current) {
         focusOtherFilmsKeyRef.current = key
       }
@@ -332,6 +332,12 @@ export default function PersonFilmsModal({
 
   const renderLoadOtherFilms = () => {
     const isLoadingOtherFilms = otherFilms?.status === "loading"
+    let label = "Load other films and IMDb ratings"
+    if (isLoadingOtherFilms) {
+      label = "Loading other films..."
+    } else if (otherFilms?.status === "error") {
+      label = "Try again"
+    }
     return (
       <div className="flex flex-col items-start gap-2">
         {otherFilms?.status === "error" && (
@@ -347,11 +353,7 @@ export default function PersonFilmsModal({
           aria-disabled={isLoadingOtherFilms}
           className="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition-colors aria-disabled:opacity-50 aria-disabled:cursor-not-allowed"
         >
-          {isLoadingOtherFilms
-            ? "Loading other films..."
-            : otherFilms?.status === "error"
-              ? "Try again"
-              : "Load other films and IMDb ratings"}
+          {label}
         </button>
       </div>
     )
@@ -507,6 +509,10 @@ export default function PersonFilmsModal({
           >
             Other films
           </h3>
+          {/* A focused button's new label isn't reliably read out, so the loading state is announced here */}
+          <p role="status" className="sr-only">
+            {otherFilms?.status === "loading" ? "Loading other films" : ""}
+          </p>
           {otherFilms?.status === "loaded"
             ? renderOtherFilms(otherFilms)
             : renderLoadOtherFilms()}

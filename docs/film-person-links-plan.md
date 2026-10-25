@@ -1,5 +1,7 @@
 # Film person links plan
 
+Superseded for the person modal's film lists, IMDb ratings and `/tmdb/imdb-ratings` by `docs/film-person-modal-single-list-plan.md`.
+
 ## Context
 Actors were added recently. The asks are:
 1. TMDb and IMDb links on actors and directors, present immediately (stored, backfilled).

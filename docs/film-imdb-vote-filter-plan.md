@@ -1,5 +1,7 @@
 # IMDb-only "All films" tab with a vote filter
 
+Superseded by `docs/film-person-modal-single-list-plan.md`, which moves the filtering into the API with a threshold of 1,000 votes.
+
 Agreed and implemented on 23-10-2026. It follows Part 4 of `docs/film-person-links-plan.md`, which added the IMDb column.
 
 ## Context
