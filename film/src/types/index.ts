@@ -69,20 +69,15 @@ export interface PersonFilm extends Film {
   lead?: boolean
 }
 
-// A film from a person's TMDb filmography, which may not be in the collection
+// A film from a person's TMDb filmography that isn't in the collection, with its IMDb figures from OMDb
 export interface TmdbPersonFilm {
   tmdbId: string
   title: string
-  year: number | null
+  year: number
   character?: string | null // Actors only; several roles are joined with " / "
-  inCollection: boolean
-}
-
-// From OMDb via GET /tmdb/imdb-ratings; nulls mean IMDb has no figure, or TMDb has no IMDb ID
-export interface ImdbRating {
-  imdbId: string | null
-  imdbRating: number | null
-  imdbVotes: number | null
+  imdbId: string
+  imdbRating: number
+  imdbVotes: number
 }
 
 export interface Director extends Person {

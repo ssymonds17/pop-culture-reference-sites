@@ -114,27 +114,27 @@ describe('PeopleRankings', () => {
     mockAxiosCreate.mockReturnValue({
       post: jest.fn().mockResolvedValue({}),
       get: jest.fn().mockResolvedValue({
-        data: { data: { '348': { imdbId: 'tt0078748', imdbRating: 8.5, imdbVotes: 900000 } } },
+        data: {
+          data: {
+            films: [
+              {
+                tmdbId: '348',
+                title: 'Alien',
+                year: 1979,
+                imdbId: 'tt0078748',
+                imdbRating: 8.5,
+                imdbVotes: 900000,
+              },
+            ],
+            hiddenCount: 0,
+          },
+        },
       }),
     })
     mockAxiosGet.mockImplementation(async (url: string) => {
       if (url === searchUrl) {
         searches++
         return searches === 1 ? { data: { data: [person(1)] } } : refresh.promise
-      }
-      if (url === API_ENDPOINTS.tmdbPersonFilms('1')) {
-        return {
-          data: {
-            data: [
-              {
-                tmdbId: '348',
-                title: 'Alien',
-                year: 1979,
-                inCollection: false,
-              },
-            ],
-          },
-        }
       }
       return { data: { data: { ...person(1), films: [] } } }
     })
@@ -143,7 +143,9 @@ describe('PeopleRankings', () => {
     await screen.findByText('Showing 1 actor')
 
     await user.click(screen.getByRole('heading', { level: 3, name: 'Person 1' }))
-    await user.click(await screen.findByRole('tab', { name: 'All films' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'Load other films and IMDb ratings' })
+    )
     await user.click(await screen.findByRole('button', { name: 'Add Alien (1979)' }))
     await screen.findByText('In collection')
     await user.click(screen.getByRole('button', { name: 'Close' }))

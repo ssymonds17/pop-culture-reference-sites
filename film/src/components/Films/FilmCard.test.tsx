@@ -83,29 +83,30 @@ describe('FilmCard', () => {
     mockAxiosCreate.mockReturnValue({
       post: mockPost,
       get: jest.fn().mockResolvedValue({
-        data: { data: { '10': { imdbId: 'tt0365686', imdbRating: 6.5, imdbVotes: 90000 } } },
+        data: {
+          data: {
+            films: [
+              {
+                tmdbId: '10',
+                title: 'Revolver',
+                year: 2005,
+                imdbId: 'tt0365686',
+                imdbRating: 6.5,
+                imdbVotes: 90000,
+              },
+            ],
+            hiddenCount: 0,
+          },
+        },
       }),
     })
-    mockAxiosGet.mockImplementation(async (url: string) =>
-      url === API_ENDPOINTS.tmdbPersonFilms('956')
-        ? {
-            data: {
-              data: [
-                {
-                  tmdbId: '10',
-                  title: 'Revolver',
-                  year: 2005,
-                  inCollection: false,
-                },
-              ],
-            },
-          }
-        : { data: { data: { ...director, films: [] } } }
-    )
+    mockAxiosGet.mockResolvedValue({ data: { data: { ...director, films: [] } } })
     render(<FilmCard film={film} onUpdate={onUpdate} />)
 
     await user.click(screen.getByRole('button', { name: 'Guy Ritchie' }))
-    await user.click(await screen.findByRole('tab', { name: 'All films' }))
+    await user.click(
+      await screen.findByRole('button', { name: 'Load other films and IMDb ratings' })
+    )
     await user.click(await screen.findByRole('button', { name: 'Add Revolver (2005)' }))
     await screen.findByText('In collection')
 
