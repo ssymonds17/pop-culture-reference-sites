@@ -4,18 +4,17 @@
  * stats from the films they are cast in and report or fix any that have drifted.
  * Also the way to apply a change to SUPPORTING_ROLE_WEIGHT to stored stats.
  *
- * With --extend, also tops up every stored cast shorter than MAX_CAST, for use
- * after raising it. Entries are only appended, so leads tagged by hand are kept,
- * and films TMDb credits fewer people for are fetched again on each --extend run.
- * Run backfill-person-imdb-ids.mjs afterwards for the new actors' IMDb IDs.
+ * With --extend, also appends to stored casts shorter than MAX_CAST, keeping leads tagged
+ * by hand; run backfill-person-imdb-ids.mjs afterwards for the new actors' IMDb IDs.
  *
- * Safe to run repeatedly: films that already have `cast` are skipped, actors are
- * upserted by TMDb person ID, and actor stats are only written when they differ.
- * Film updates are written in batches, so an interrupted run keeps its progress.
+ * Safe to run repeatedly: films that already have `cast` are skipped (or only appended
+ * to with --extend), actors are upserted by TMDb person ID, and actor stats are only
+ * written when they differ. Film updates are written in batches, so an interrupted run
+ * keeps its progress.
  *
  * Usage (from the film-api directory):
  *   node --env-file=.env scripts/backfill-tmdb-credits.mjs --dry-run            # report only
- *   node --env-file=.env scripts/backfill-tmdb-credits.mjs --dry-run --limit=5  # spot-check 5 films
+ *   node --env-file=.env scripts/backfill-tmdb-credits.mjs --dry-run --limit=5  # spot-check 5 films per phase
  *   node --env-file=.env scripts/backfill-tmdb-credits.mjs                      # apply
  *   node --env-file=.env scripts/backfill-tmdb-credits.mjs --extend --dry-run   # report casts to top up
  *   node --env-file=.env scripts/backfill-tmdb-credits.mjs --extend             # apply, topping up casts
@@ -268,33 +267,35 @@ async function backfillFilms(db) {
     console.log(`    ${failures.join("\n    ")}`)
   }
 
-  return pending.length
+  return pending.map((film) => film._id)
 }
 
-async function extendFilms(db) {
+// Skips the films phase 1 just filled, which already hold every credited cast member up to MAX_CAST.
+async function extendFilms(db, backfilledFilmIds) {
   const films = db.collection("films")
   const actors = db.collection("actors")
 
-  let cursor = films.find(
-    {
-      cast: { $exists: true, $ne: [] },
-      [`cast.${MAX_CAST - 1}`]: { $exists: false },
-      tmdbId: { $exists: true, $ne: "" },
-    },
-    { projection: { title: 1, year: 1, tmdbId: 1, "cast.actor": 1 } }
-  )
+  const query = {
+    _id: { $nin: backfilledFilmIds },
+    cast: { $exists: true, $ne: [] },
+    [`cast.${MAX_CAST - 1}`]: { $exists: false },
+    tmdbId: { $exists: true, $ne: "" },
+  }
+  let cursor = films.find(query, { projection: { title: 1, year: 1, tmdbId: 1, "cast.actor": 1 } })
   if (LIMIT > 0) {
     cursor = cursor.limit(LIMIT)
   }
   const pending = await cursor.toArray()
+  const total = await films.countDocuments(query)
   console.log(
-    `films: ${pending.length} with fewer than ${MAX_CAST} cast${LIMIT > 0 ? ` (limited to ${LIMIT})` : ""}\n`
+    `films: ${total} with fewer than ${MAX_CAST} cast${LIMIT > 0 ? `, checking the first ${pending.length}` : ""}\n`
   )
 
   let ops = []
   let extended = 0
   let added = 0
   const failures = []
+  const notFound = []
 
   const flush = async () => {
     if (!DRY_RUN && ops.length > 0) {
@@ -311,6 +312,11 @@ async function extendFilms(db) {
     try {
       details = await fetchTmdbDetails(film.tmdbId)
     } catch (error) {
+      if (error.response?.status === 404) {
+        notFound.push(label)
+        console.log(`  ✗ ${label}: not found on TMDb`)
+        continue
+      }
       const reason = error.response?.status ?? error.message
       failures.push(`${label}: ${reason}`)
       console.log(`  ✗ ${label}: TMDb request failed (${reason})`)
@@ -320,18 +326,15 @@ async function extendFilms(db) {
     }
 
     const credited = creditedCast(details.credits?.cast)
-    const known = await actors
-      .find(
-        { tmdbPersonId: { $in: credited.map((member) => member.id.toString()) } },
-        { projection: { tmdbPersonId: 1 } }
-      )
+    const storedActors = await actors
+      .find({ _id: { $in: film.cast.map((member) => member.actor) } }, { projection: { tmdbPersonId: 1 } })
       .toArray()
-    const actorIdByTmdbId = new Map(known.map((actor) => [actor.tmdbPersonId, String(actor._id)]))
-    const storedActorIds = new Set(film.cast.map((member) => String(member.actor)))
+    const storedTmdbIds = new Set(storedActors.map((actor) => actor.tmdbPersonId))
 
-    // Matching on actor rather than billing order stops a re-billed cast member being added twice.
+    // Matching on the person rather than billing order stops a re-billed cast member being added
+    // twice, at the cost of never adding a second role for someone already stored.
     const toAdd = credited
-      .filter((member) => !storedActorIds.has(actorIdByTmdbId.get(member.id.toString())))
+      .filter((member) => !storedTmdbIds.has(member.id.toString()))
       .slice(0, MAX_CAST - film.cast.length)
 
     const progress = `  [${index + 1}/${pending.length}] ${label}:`
@@ -350,7 +353,7 @@ async function extendFilms(db) {
       updateOne: {
         // Skips a film whose cast grew mid-run, so it is never extended twice.
         filter: { _id: film._id, [`cast.${film.cast.length}`]: { $exists: false } },
-        update: { $push: { cast: { $each: await buildCast(actors, toAdd) } } },
+        update: { $push: { cast: { $each: await buildCast(actors, toAdd), $sort: { order: 1 } } } },
       },
     })
 
@@ -362,6 +365,10 @@ async function extendFilms(db) {
   await flush()
 
   console.log(DRY_RUN ? `\n  ${added} cast members would be added` : `\n  ✓ extended ${extended} films`)
+  if (notFound.length > 0) {
+    console.log(`\n  ${notFound.length} films not found on TMDb were left as they are:`)
+    console.log(`    ${notFound.join("\n    ")}`)
+  }
   if (failures.length > 0) {
     console.log(`\n  ${failures.length} films could not be fetched and were left as they are (re-run to retry):`)
     console.log(`    ${failures.join("\n    ")}`)
@@ -456,12 +463,12 @@ async function run() {
   const db = mongoose.connection.db
 
   console.log("Phase 1: fetch credits from TMDb\n")
-  const pendingFilms = await backfillFilms(db)
+  const backfilledFilmIds = await backfillFilms(db)
 
   let castToAdd = 0
   if (EXTEND) {
     console.log(`\nPhase 1b: top up stored casts to ${MAX_CAST} from TMDb\n`)
-    castToAdd = await extendFilms(db)
+    castToAdd = await extendFilms(db, backfilledFilmIds)
   }
 
   if (rateLimitedCount > 0) {
@@ -469,7 +476,7 @@ async function run() {
   }
 
   console.log("\nPhase 2: recompute actor stats\n")
-  if (DRY_RUN && (pendingFilms > 0 || castToAdd > 0)) {
+  if (DRY_RUN && (backfilledFilmIds.length > 0 || castToAdd > 0)) {
     console.log(
       "  Note: nothing above was written in this dry run, so this reflects current data only.\n" +
         "  A real run will also create actors and update stats for the films above.\n"

@@ -167,7 +167,7 @@ describe("create-film handler", () => {
     it("should keep only the top credited cast members in billing order", async () => {
       const cast = [
         castMember(0, { character: "Narrator (uncredited)" }),
-        ...Array.from({ length: 25 }, (_, i) => castMember(25 - i)),
+        ...Array.from({ length: MAX_CAST + 10 }, (_, i) => castMember(MAX_CAST + 10 - i)),
       ]
       mockAxiosGet.mockResolvedValueOnce({
         data: tmdbFilm({ credits: { cast, crew: [] } }),
