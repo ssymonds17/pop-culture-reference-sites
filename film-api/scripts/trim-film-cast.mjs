@@ -1,9 +1,9 @@
 /**
- * One-off: trim every film's stored cast to its top 10 credited members by
+ * One-off: trim every film's stored cast to its top 15 credited members by
  * billing order, then delete actors who no longer appear in any film. Run
  * backfill-tmdb-credits.mjs afterwards to recalculate the remaining actors' stats.
  *
- * Safe to run repeatedly: films already at 10 or fewer are left alone, and a
+ * Safe to run repeatedly: films already at 15 or fewer are left alone, and a
  * second run finds no orphaned actors to delete.
  *
  * Usage (from the film-api directory):
@@ -17,8 +17,8 @@ import mongoose from "mongoose"
 const MONGODB_URI = process.env.MONGODB_URI
 const DB_NAME = "films"
 
-// Keep this identical to MAX_CAST in lambda/create-film.ts.
-const MAX_CAST = 10
+// Keep this identical to MAX_CAST in lambda/tmdb-cast.ts.
+const MAX_CAST = 15
 
 // Strict so a mistyped flag can never fall through to a write run against the live database.
 const unknownArgs = process.argv.slice(2).filter((arg) => arg !== "--dry-run")
@@ -70,7 +70,7 @@ async function run() {
     .toArray()
     .then((rows) => rows.map((row) => row._id))
 
-  // A later film that bills them in its top 10 recreates them through create-film.
+  // A later film that bills them in its top 15 recreates them through create-film.
   const orphaned = { _id: { $nin: keptActorIds } }
   const orphanCount = await actors.countDocuments(orphaned)
   const examples = await actors

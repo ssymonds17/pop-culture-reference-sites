@@ -1,4 +1,4 @@
-export const MAX_CAST = 10
+export const MAX_CAST = 15
 
 export interface TmdbCastMember {
   id: number

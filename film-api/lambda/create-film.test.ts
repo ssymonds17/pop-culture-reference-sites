@@ -2,6 +2,7 @@ import axios from "axios"
 import * as mongodb from "./mongodb"
 import * as utils from "./utils"
 import Director from "./mongodb/models/director"
+import { MAX_CAST } from "./tmdb-cast"
 
 jest.mock("axios")
 jest.mock("./mongodb")
@@ -163,7 +164,7 @@ describe("create-film handler", () => {
       expect(mockFindOrCreateDirector).toHaveBeenCalledWith("1", "Unknown Director", undefined, undefined)
     })
 
-    it("should keep the top 10 credited cast members in billing order", async () => {
+    it("should keep only the top credited cast members in billing order", async () => {
       const cast = [
         castMember(0, { character: "Narrator (uncredited)" }),
         ...Array.from({ length: 25 }, (_, i) => castMember(25 - i)),
@@ -175,16 +176,16 @@ describe("create-film handler", () => {
       await handler(tmdbEvent)
 
       const storedCast = createdFilmData().cast
-      expect(storedCast).toHaveLength(10)
+      expect(storedCast).toHaveLength(MAX_CAST)
       expect(storedCast.map((member: any) => member.order)).toEqual(
-        Array.from({ length: 10 }, (_, i) => i + 1),
+        Array.from({ length: MAX_CAST }, (_, i) => i + 1),
       )
       expect(storedCast[0]).toEqual({
         actor: "actor-1001",
         character: "Character 1",
         order: 1,
       })
-      expect(mockFindOrCreateActor).toHaveBeenCalledTimes(10)
+      expect(mockFindOrCreateActor).toHaveBeenCalledTimes(MAX_CAST)
       expect(mockFindOrCreateActor.mock.calls.map(([tmdbPersonId]) => tmdbPersonId)).not.toContain("1000")
       expect(mockFindOrCreateActor).toHaveBeenCalledWith("1001", "Actor 1", "/profile-1.jpg", undefined)
       expect(mockUpdateCastActorStats).toHaveBeenCalledWith(storedCast)

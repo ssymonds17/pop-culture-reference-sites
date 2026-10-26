@@ -145,7 +145,7 @@ Run from `film-api/` with `.env` in place. Each supports `--dry-run`, skips reco
 
 - **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Run it after changing `SUPPORTING_ROLE_WEIGHT` to apply the new weight to stored points. Also accepts `--limit=N` for a spot check. Needs `TMDB_API_KEY`.
 - **`scripts/backfill-film-search-titles.mjs`**: Sets each film's accent-folded `searchTitle` from its title.
-- **`scripts/trim-film-cast.mjs`**: One-off that trims every film's cast to the top 10 by billing order and deletes actors left in no film. Run `backfill-tmdb-credits.mjs` straight after it to recalculate actor stats.
+- **`scripts/trim-film-cast.mjs`**: One-off that trims every film's cast to the top 15 by billing order and deletes actors left in no film. Run `backfill-tmdb-credits.mjs` straight after it to recalculate actor stats.
 - **`scripts/backfill-person-imdb-ids.mjs`**: Fetches the IMDb person ID from TMDb for every actor and director never looked up, saving null when TMDb has none. New films look these up when they're created, so this covers people added before that and any lookup that failed. Also accepts `--limit=N` (per collection). Needs `TMDB_API_KEY`.
 - **`scripts/backfill-director-photos.mjs`**: Fetches a TMDb profile photo for every director without one. Also accepts `--limit=N`. Needs `TMDB_API_KEY`.
 
@@ -176,7 +176,7 @@ npm run build:create-film
 
 ## MongoDB Models
 
-- **Film**: Ratings, ownership and review, plus TMDb metadata: directors, cast (top 10 credited, in billing order), production companies, collection, and an accent-folded `searchTitle`
+- **Film**: Ratings, ownership and review, plus TMDb metadata: directors, cast (top 15 credited, in billing order), production companies, collection, and an accent-folded `searchTitle`
 - **Director**: TMDb person with their photo, films and aggregated statistics
 - **Actor**: TMDb person with their photo and aggregated statistics. Their films are found through `Film.cast`
 - **YearStats**: Pre-computed year statistics with weighted scoring

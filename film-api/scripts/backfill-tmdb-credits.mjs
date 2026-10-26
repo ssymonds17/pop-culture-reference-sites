@@ -50,8 +50,8 @@ try {
   process.exit(1)
 }
 
-// Keep this identical to MAX_CAST in lambda/create-film.ts.
-const MAX_CAST = 10
+// Keep this identical to MAX_CAST in lambda/tmdb-cast.ts.
+const MAX_CAST = 15
 const TMDB_REQUEST_DELAY_MS = 100
 const FILM_BATCH_SIZE = 100
 
@@ -96,7 +96,7 @@ const calculatePersonStats = (films) => {
   }
 }
 
-// Keep this identical to buildCast in lambda/create-film.ts.
+// Keep this identical to creditedCast in lambda/tmdb-cast.ts.
 const creditedCast = (tmdbCast = []) =>
   tmdbCast
     .filter((member) => !member.character?.includes("(uncredited)"))
