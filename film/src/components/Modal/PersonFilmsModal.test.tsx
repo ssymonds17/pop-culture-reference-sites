@@ -514,7 +514,7 @@ describe("PersonFilmsModal", () => {
       { _id: "film2", title: "Galaxy Quest", year: 1999, lead: false },
     ]
 
-    it("should show whether an actor is a lead or support in each film", async () => {
+    it("should show whether an actor is main cast or support in each film", async () => {
       mockAxiosGet.mockResolvedValueOnce({
         data: { data: { ...person, films: roleFilms } },
       })
@@ -525,7 +525,7 @@ describe("PersonFilmsModal", () => {
       expect(
         screen.getByRole("columnheader", { name: "Role" }),
       ).toBeInTheDocument()
-      expect(within(alienRow).getByText("Lead")).toBeInTheDocument()
+      expect(within(alienRow).getByText("Main")).toBeInTheDocument()
       expect(
         within(screen.getByText("Galaxy Quest").closest("tr")!).getByText(
           "Support",

@@ -231,8 +231,8 @@ export default function FilmDetailModal({
       )
       setDraftLeads((previous) => (previous?.filmId === savingFilmId ? null : previous))
     } catch (err) {
-      console.error("Error saving lead roles:", err)
-      setLeadsError({ filmId: savingFilmId, message: "Failed to save lead roles. Please try again." })
+      console.error("Error saving main cast:", err)
+      setLeadsError({ filmId: savingFilmId, message: "Failed to save main cast. Please try again." })
     } finally {
       setSavingLeadsFilmId((previous) => (previous === savingFilmId ? null : previous))
     }
@@ -509,7 +509,7 @@ export default function FilmDetailModal({
                       <button
                         type="button"
                         aria-pressed={leadIds.has(member.actor._id)}
-                        aria-label={`Lead: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
+                        aria-label={`Main: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
                         onClick={() => handleToggleLead(member.actor._id)}
                         disabled={isSavingLeads}
                         className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
@@ -518,7 +518,7 @@ export default function FilmDetailModal({
                             : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
                         }`}
                       >
-                        Lead
+                        Main
                       </button>
                     </li>
                   ))}
@@ -544,7 +544,7 @@ export default function FilmDetailModal({
                       type="button"
                       onClick={handleCancelLeads}
                       disabled={isSavingLeads}
-                      aria-label="Cancel lead changes"
+                      aria-label="Cancel main cast changes"
                       className="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
@@ -555,7 +555,7 @@ export default function FilmDetailModal({
                       disabled={isSavingLeads}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isSavingLeads ? "Saving..." : "Save leads"}
+                      {isSavingLeads ? "Saving..." : "Save main cast"}
                     </button>
                   </div>
                 )}

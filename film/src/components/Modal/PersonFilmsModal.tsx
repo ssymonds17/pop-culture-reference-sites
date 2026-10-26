@@ -292,7 +292,7 @@ export default function PersonFilmsModal({
                 {showRole && (
                   <td className="px-4 py-3 text-center text-sm">
                     {film.lead ? (
-                      <span className="text-blue-400">Lead</span>
+                      <span className="text-blue-400">Main</span>
                     ) : (
                       <span className="text-gray-400">Support</span>
                     )}
