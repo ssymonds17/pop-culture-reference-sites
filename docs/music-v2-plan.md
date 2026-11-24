@@ -1,6 +1,8 @@
-# Music project rework: MusicBrainz import, liked songs, listened in full
+# Music project rework: MusicBrainz import, song tiers, album scores
 
 **Status (09-10-2026):** planned, nothing built. The next step is Phase 0 on `main`. Resolve the open item at the end first.
+
+**Scoring revised (23-11-2026):** song tiers and computed album scores replace liked songs, Gold/Silver ratings and Top Albums. See [Scoring](#scoring).
 
 ## Context
 
@@ -8,29 +10,55 @@ Adding music is fully manual today. Values are copied from Rate Your Music into 
 
 Goal: rework `music` + `music-api` around **MusicBrainz**:
 - import an album with all its tracks
-- mark **liked** songs (scores count liked songs only)
-- flag albums **listened in full**.
+- give songs a **tier** (– / B / A / S); scores count tiered songs only
+- flag albums **listened in full**, which unlocks their album score.
 
 There is only production (no dev environment), so v2 is built **alongside** v1 and v1 is never modified until a cut-over you can roll back.
 
-## Decisions (09-10-2026)
+## Decisions (09-10-2026, scoring revised 23-11-2026)
 
 | Topic | Decision |
 |---|---|
 | Approach | Refactor the existing code on a `music-v2` branch. Same stack (CDK, Lambda, Mongo, Next.js on Vercel, Clerk) |
 | Data | New `music_v2` database rebuilt from `music` by a repeatable script. `music` is read-only until it's retired |
-| Data source | MusicBrainz (no key; `User-Agent` with a contact; at most 1 request per second; retry on `503`) |
-| Add flow | Search artist → browse albums → import album with **all** songs (`liked: false`) |
-| Liked songs | All existing songs become `liked: true`. Score = liked songs + gold×15 + silver×5 |
-| Listened in full | Boolean on Album, display only. Existing GOLD/SILVER = true, the rest false |
-| Rating rule | Gold/Silver only allowed when listened in full. Unticking it on a rated album is rejected |
+| Data source | MusicBrainz (no key; `User-Agent` with a contact; at most 1 request per second; retry on `503`, which is frequent) |
+| Add flow | Search artist → browse albums → import album with **all** songs (tier –) |
+| Song tiers | `tier` on Song: – / B / A / S, worth 0 / 1 / 2 / 4. All existing songs become B and are re-tiered by hand |
+| Track length | Stored on Song from MusicBrainz `track.length` (ms). Optional; used only to leave short unrated tracks out of the album score |
+| Listened in full | Boolean on Album. Unlocks the album score and bonus. Existing GOLD/SILVER = true, the rest false. Unticking it just removes the bonus |
+| Scoring | Song points, album score and album bonus. See [Scoring](#scoring) |
+| Removed | Gold/Silver ratings, the rule tying them to listened in full, and Top Albums (the sorted Albums page replaces it) |
 | Stats | Computed at read time with aggregation. No stored artist stats and no `YearStats` |
 | Names | MusicBrainz: canonical name on Artist; release/track **artist credit** as printed on Album/Song `artistDisplayName`. `artists[]` links every credited artist |
 | Singles | A song on any album is an album song. Album-less songs are only non-album singles, linked to their artists |
 | Cover art | Built from the album's `musicBrainzId` at display time (Cover Art Archive). Nothing stored |
 | Genres | MusicBrainz curated `genres`, top few stored on the album, filterable |
-| Pages | Songs → liked songs list. Home → small dashboard |
+| Pages | Songs → tiered songs list. Home → small dashboard |
 | Manual entry | Keep a manual "add song" as a fallback. Retire manual add artist and add album |
+
+## Scoring
+
+```
+song points   = sum of tier weights (– 0, B 1, A 2, S 4) over all the artist's songs, singles included
+counted track = any track except an unrated one shorter than 90 seconds (a track with no length is counted)
+album score   = album's song points ÷ max(counted tracks, 7) × 100        (listened-in-full albums only)
+album bonus   = max(0, album score − 50) ÷ 10                              (no cap)
+artist score  = song points + sum of album bonuses
+```
+
+- Song points count as soon as a tier is saved. The album bonus counts only once the album is listened in full.
+- The bonus is purely additive: a weak album earns its song points and nothing more.
+- The minimum divisor of 7 stops short releases scoring high on a few songs.
+- Year scores use the same formula: songs under their own year, album bonuses under the album's year.
+- The album score is shown as a plain number (e.g. 150). The artist page shows song points and album bonuses as two separate values; the layout is still to be decided.
+
+| Album (listened in full) | Song points | Album score | Bonus |
+|---|---|---|---|
+| 10 tracks, 3 B | 3 | 30 | 0 |
+| 10 tracks, 1 S | 4 | 40 | 0 |
+| 10 tracks, all B | 10 | 100 | 5 |
+| 12 tracks: 4 B, 3 A, 2 S | 18 | 150 | 10 |
+| 10 tracks: 2 B, 4 A, 4 S | 26 | 260 | 21 |
 
 ## Phase 0: on `main`, against v1 (each change is safe on its own)
 - **Owner-only writes:** `lambda/auth.ts` `requireAuth` checks `payload.sub === OWNER_USER_ID` (env var). Today any Clerk account can write.
@@ -46,14 +74,15 @@ Then branch `music-v2` from `main`.
 
 ## Phase 1: model and read-time stats (branch)
 - **Models:**
-  - `Song`: add `liked` and `musicBrainzId`.
-  - `Album`: add `listenedInFull`, `genres` and `musicBrainzId`.
+  - `Song`: add `tier`, `lengthMs` and `musicBrainzId`.
+  - `Album`: add `listenedInFull`, `genres` and `musicBrainzId`; drop `rating`.
   - `Artist`: add `musicBrainzId`; drop the stored stat fields.
-  - Delete the `YearStats` model.
-  - Indexes: sparse unique on `musicBrainzId`; `songs {liked, artists}` and `{liked, year}`.
-- **Services:** replace `updateArtistStats` / `updateYearStats` with aggregations reusing `calculateScore` (`lambda/utils/score.ts`). Remove all cascade calls and the unused `syncTopAlbumsWithGoldRatings`.
-- **`update-album-rating.ts`:** enforce the rating rule. Keep its Top Albums add/remove.
-- **Write lambdas:** retire `create-album.ts` and `create-artist.ts`. `create-song.ts` stays as the fallback, with `liked: true`. Delete `scripts/recompute-artist-stats.mjs`.
+  - Delete the `YearStats` and `TopAlbums` models.
+  - Indexes: sparse unique on `musicBrainzId`; `songs {tier, artists}` and `{tier, year}`.
+- **Scoring:** rewrite `lambda/utils/score.ts` with the [Scoring](#scoring) rules (song points, counted tracks, album score, album bonus).
+- **Services:** replace `updateArtistStats` / `updateYearStats` with aggregations reusing the scoring helpers. Remove all cascade calls, the Top Albums service and the unused `syncTopAlbumsWithGoldRatings`.
+- **Retire:** `update-album-rating.ts`, `get-top-albums.ts` and `update-top-albums.ts` (lambdas, routes in `lib/api-stack.ts`, build scripts, Bruno).
+- **Write lambdas:** retire `create-album.ts` and `create-artist.ts`. `create-song.ts` stays as the fallback, with `tier: B`. Delete `scripts/recompute-artist-stats.mjs`.
 
 ## Phase 2: MusicBrainz integration (branch)
 - **`lambda/utils/musicbrainz.ts`:** a client using `MUSICBRAINZ_CONTACT`, with three helpers:
@@ -66,41 +95,43 @@ Then branch `music-v2` from `main`.
 - **`POST /album/import { releaseGroupId }`** (owner only), following `create-film.ts`:
   - Artists: found by `musicBrainzId`, or created.
   - Album: found by `musicBrainzId`, or created, with genres, `totalSongs` and the credit string.
-  - Tracks: created unliked. **Album-less songs by a credited artist that match a track are attached and stay liked.**
+  - Tracks: created with tier – and `lengthMs` from `track.length`. **Album-less songs by a credited artist that match a track are attached and keep their tier.**
   - Returns `409` if nothing new was added.
 
-## Phase 3: edit, delete, toggles and lists (branch, owner-only writes)
-- `PATCH /song/{id}` `{ liked?, displayTitle? }`
+## Phase 3: edit, delete, tiers and lists (branch, owner-only writes)
+- `PATCH /album/{id}/tiers` `{ [songId]: tier }`: saves every tier change on an album in one request.
+- `PATCH /song/{id}` `{ tier?, displayTitle? }`: used for singles, saved immediately.
 - `PATCH /album/{id}` `{ listenedInFull?, displayTitle?, artistDisplayName?, year? }`
 - `PATCH /artist/{id}` `{ displayName? }`
-- `DELETE /album/{id}` (deletes its songs and removes it from Top Albums) and `DELETE /song/{id}`
+- `DELETE /album/{id}` (deletes its songs) and `DELETE /song/{id}`
 - `normalizeForSearch` is re-applied whenever a display value changes.
-- `GET /songs?liked=true` (paginated) and `GET /dashboard`.
+- `GET /songs?rated=true` (paginated) and `GET /dashboard`.
 
 ## Phase 4: frontend (branch)
 - **Import modal** (`components/Modal/ImportAlbumModal.tsx`, modelled on `AddFilmModal`): artist search → albums with covers, year, type and "in collection" → import → album page.
 - **Album page:**
   - cover and genres
-  - full tracklist with like toggles
-  - listened-in-full toggle
-  - rating selector, disabled until listened in full
-  - progress = liked / totalSongs
+  - full tracklist with a – / B / A / S selector per track
+  - album score recalculated as tiers are clicked, saved with one Update button
+  - a confirm prompt when leaving with unsaved tier changes
+  - listened-in-full toggle (unlocks the album score and bonus)
   - edit and delete.
-- **Artist page:** score computed at read time, album covers, liked songs only.
+- **Artist page:** song points and album bonuses as two values, computed at read time; album covers; tiered songs only.
 - **Artists page:** loads on visit, paginates, hides artists with a score of 0 by default.
-- **Albums page:** covers, plus filters for listened in full and genre.
-- **Songs page:** liked songs, paginated, with links.
+- **Albums page:** covers; a sortable album score column ("–" when not listened in full, sorted last); filters for listened in full and genre.
+- **Songs page:** tiered songs, paginated, with links; singles' tier selector saves immediately.
 - **Home page:** dashboard.
-- **Navbar:** "Import album" + "Add song". Retire the add-artist and add-album modals and the `Table/Blocks/` quick-add.
+- **Navbar:** "Import album" + "Add song". Remove the Top Albums link and page (`app/top-albums/`). Retire the add-artist and add-album modals and the `Table/Blocks/` quick-add.
 - **Tidy-up:** remove or use `DeleteIcon`; fix the `marginitems-center` typo; remove the `console.log`s in `Table/Years.tsx`; move the render-time `router.replace` calls into effects.
 
 ## Phase 5: data migration into `music_v2` (branch, scripts in `music-api/scripts/`)
 
 Rules:
 - Every existing album is kept.
-- Every existing song is kept and becomes **liked**.
-- Tracks pulled in from MusicBrainz are **unliked**.
+- Every existing song is kept and becomes **tier B**.
+- Tracks pulled in from MusicBrainz are **tier –**.
 - An artist is kept only while it is linked to an album or song.
+- Top Albums is not migrated. Its ranking survives only in the final `mongodump` of `music`.
 
 **`link-musicbrainz-propose.mjs`** (reads `music` only, writes `link-review.json`; MusicBrainz responses cached on disk). For each album:
 - Search release groups by title + artist + year, and pick the canonical release.
@@ -116,20 +147,20 @@ For each album-less song, also check for a studio album by that artist that cont
 - map each unmatched song to a track or mark it as an extra
 - for `hidden-album` entries, choose import album or keep as single.
 
-An album with any unmatched liked song stays held until resolved.
+An album with any unmatched tiered song stays held until resolved.
 
 **`build-v2.mjs`** (repeatable; reads `music`, **empties and rebuilds `music_v2`**):
-1. Copy artists, albums, songs and Top Albums, keeping the same `_id`s, so the review decisions still apply.
-2. Set `liked: true` on every song, and `listenedInFull` from the rating.
+1. Copy artists, albums and songs, keeping the same `_id`s, so the review decisions still apply.
+2. Set `tier: B` on every song, and `listenedInFull` from the rating. Drop `rating`.
 3. Apply the accepted review entries from the cache:
    - set the IDs and take the MusicBrainz names and credits
-   - set `totalSongs` and genres
-   - add the remaining tracks unliked
+   - set `totalSongs`, genres and each matched track's `lengthMs`
+   - add the remaining tracks at tier – with their `lengthMs`
    - attach matching album-less songs (they keep their existing year).
 4. Report artists with no album or song (deleted when run with `--prune-orphans`).
-5. Print, for each artist and year, the v1 score next to the v2 score. Steps 1 and 2 alone must give identical scores. Applying the review entries changes no score, because added tracks are unliked.
+5. Print, for each artist and year, the v1 score next to the v2 score for review. They are expected to differ, because medals are replaced by album bonuses and added tracks change album scores.
 
-Anything you add on the v1 site during the build comes across on the next rebuild. Changes made only in v2 are disposable until the cut-over.
+Anything you add on the v1 site during the build comes across on the next rebuild. Changes made only in v2, including tiers above B, are disposable until the cut-over.
 
 ## Environments and cut-over
 - **v2 API:** `MusicApiStack-v2` with `DB_NAME=music_v2` and its own API Gateway URL.
@@ -142,25 +173,26 @@ Anything you add on the v1 site during the build comes across on the next rebuil
   4. Merge `music-v2` → `main`. Set the Production `NEXT_PUBLIC_API_URL` to the v2 API. Vercel deploys.
   5. **Rollback:** revert the merge and restore the URL. `MusicApiStack` and `music` were never modified.
   6. After a settling period, take a final `mongodump` of `music`, then delete `MusicApiStack` and the `music` database.
+- **Re-tiering:** songs above B are set by hand on the v2 site after the cut-over.
 
 ## Commits
 - Small chunks with unit tests for new and changed code.
 - Phase 0 on `main`.
 - Phases 1–5 on `music-v2`.
-- Phase 6 (docs: env vars `DB_NAME`, `OWNER_USER_ID`, `MUSICBRAINZ_CONTACT`; endpoints; migration and cut-over runbook; Bruno requests) on the branch before the merge.
+- Phase 6 (docs: env vars `DB_NAME`, `OWNER_USER_ID`, `MUSICBRAINZ_CONTACT`; endpoints; scoring rules; migration and cut-over runbook; Bruno requests) on the branch before the merge.
 
 ## Verification
 - **Unit tests** (run only on request):
-  - aggregations vs `calculateScore`
-  - rating rule
-  - import (new artist, existing album by ID, album-less song attached, 409)
-  - toggles, edit and delete
+  - scoring helpers: song points, counted tracks (unrated under 90 s left out, tiered or length-less kept), minimum divisor of 7, bonus threshold
+  - aggregations vs the scoring helpers, including the bonus only for listened-in-full albums
+  - import (new artist, existing album by ID, album-less song attached with its tier, `lengthMs` stored, 409)
+  - batch tier update, single tier update, edit and delete
   - MusicBrainz helpers
   - owner-only auth
   - review-entry application.
-- **`build-v2.mjs`:** v1 and v2 scores identical for every artist and year. Counts of albums and liked songs equal v1's.
-- **Bruno against the v2 URL:** import an album, like two songs, and see the artist score, year songs and album progress each rise by 2. Gold before listened in full is rejected.
-- **Vercel preview:** import → like → listened → rate → Top Albums save. Check the dashboard, the Songs page, covers and the genre filter.
+- **`build-v2.mjs`:** counts of albums and of songs at tier B or above equal v1's albums and songs. v1 and v2 scores are printed side by side for review.
+- **Bruno against the v2 URL:** import a 10-track album; set two songs to B and one to S and see artist song points rise by 6 with no bonus; mark it listened in full and see the album score of 60 and a bonus of 1.
+- **Vercel preview:** import → tier → Update → listened in full → check the album score, artist values and Albums page sort. Check the dashboard, the Songs page, covers and the genre filter.
 - **After cut-over:** the production site loads and an owner write succeeds. A sign-in from another account cannot write.
 
 ## Open item
