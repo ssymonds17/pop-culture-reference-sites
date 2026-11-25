@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   castMarkdown,
+  filmFromDocument,
   finalTiers,
   middleTier,
   needsReview,
@@ -48,6 +49,47 @@ describe("castMarkdown", () => {
   it("lists billing from 1 with id, actor and character", () => {
     const film = { cast: [{ billing: 0, tmdbId: 10, actor: "A", character: "Hero" }] }
     assert.equal(castMarkdown(film), "1. 10 | A as Hero\n")
+  })
+
+  it("leaves out the character when there is none", () => {
+    const film = { cast: [{ billing: 0, tmdbId: 10, actor: "A" }] }
+    assert.equal(castMarkdown(film), "1. 10 | A\n")
+  })
+})
+
+describe("filmFromDocument", () => {
+  const actorsById = new Map([
+    ["a1", { tmdbPersonId: "10", displayName: "A" }],
+    ["a2", { tmdbPersonId: "11", displayName: "B" }],
+  ])
+
+  it("orders the cast by billing and resolves actors", () => {
+    const film = filmFromDocument(
+      {
+        tmdbId: "1",
+        title: "Film",
+        year: 2000,
+        cast: [
+          { actor: "a2", character: "Sidekick", order: 1 },
+          { actor: "a1", character: "Hero", order: 0 },
+        ],
+      },
+      actorsById,
+    )
+    assert.deepEqual(film, {
+      filmId: "1",
+      title: "Film",
+      year: "2000",
+      cast: [
+        { billing: 0, tmdbId: 10, actor: "A", character: "Hero" },
+        { billing: 1, tmdbId: 11, actor: "B", character: "Sidekick" },
+      ],
+    })
+  })
+
+  it("names the film when an actor is missing", () => {
+    const film = { tmdbId: "1", title: "Film", year: 2000, cast: [{ actor: "a9", order: 0 }] }
+    assert.throws(() => filmFromDocument(film, actorsById), /Film: actor a9/)
   })
 })
 

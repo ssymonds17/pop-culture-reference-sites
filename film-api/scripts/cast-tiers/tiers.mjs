@@ -65,8 +65,30 @@ export const parseLabels = (csvText) => {
 
 export const castMarkdown = (film) =>
   film.cast
-    .map((member) => `${member.billing + 1}. ${member.tmdbId} | ${member.actor} as ${member.character}`)
+    .map(
+      (member) =>
+        `${member.billing + 1}. ${member.tmdbId} | ${member.actor}` +
+        (member.character ? ` as ${member.character}` : ""),
+    )
     .join("\n") + "\n"
+
+export const filmFromDocument = (film, actorsById) => ({
+  filmId: film.tmdbId,
+  title: film.title,
+  year: String(film.year),
+  cast: [...(film.cast ?? [])]
+    .sort((a, b) => a.order - b.order)
+    .map((member) => {
+      const actor = actorsById.get(String(member.actor))
+      if (!actor) throw new Error(`${film.title}: actor ${member.actor} is not in the actors collection`)
+      return {
+        billing: member.order,
+        tmdbId: Number(actor.tmdbPersonId),
+        actor: actor.displayName,
+        character: member.character,
+      }
+    }),
+})
 
 export const validateJudgement = (judgement, castIds) => {
   if (!Array.isArray(judgement?.cast)) return ["no cast array"]
