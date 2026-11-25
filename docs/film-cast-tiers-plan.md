@@ -54,7 +54,7 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
    - `score.mjs` checks that every cast member comes back exactly once.
 3. **Final tier:**
    - The middle of the three answers, so a majority wins when two agree.
-   - Films where all three differ, or any answer is low confidence, are logged for review.
+   - Cast are logged for review when all three answers differ, or any answer is low confidence and the final tier is above minor. A wrong minor tier moves an actor's points very little.
 
 ## Prompts
 - **Research:** `film-api/scripts/cast-tiers/prompts/research.md`.
