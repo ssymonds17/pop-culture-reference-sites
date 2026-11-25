@@ -128,17 +128,27 @@ describe("middleTier", () => {
 
 describe("needsReview", () => {
   it("flags three different answers", () => {
-    assert.equal(needsReview([{ tier: "lead" }, { tier: "major" }, { tier: "minor" }]), true)
+    assert.equal(needsReview([{ tier: "lead" }, { tier: "major" }, { tier: "minor" }], "major"), true)
   })
 
-  it("flags any low-confidence answer", () => {
+  it("flags three different answers even when the final tier is minor", () => {
+    const entries = [{ tier: "supporting" }, { tier: "minor" }, { tier: "major" }]
+    assert.equal(needsReview(entries, "minor"), true)
+  })
+
+  it("flags a low-confidence answer when the final tier is above minor", () => {
     const entries = [{ tier: "lead" }, { tier: "lead" }, { tier: "lead", confidence: "low" }]
-    assert.equal(needsReview(entries), true)
+    assert.equal(needsReview(entries, "lead"), true)
+  })
+
+  it("passes a low-confidence answer when the final tier is minor", () => {
+    const entries = [{ tier: "minor" }, { tier: "minor", confidence: "low" }, { tier: "minor" }]
+    assert.equal(needsReview(entries, "minor"), false)
   })
 
   it("passes a confident majority", () => {
     const entries = [{ tier: "lead" }, { tier: "lead" }, { tier: "major", confidence: "medium" }]
-    assert.equal(needsReview(entries), false)
+    assert.equal(needsReview(entries, "lead"), false)
   })
 })
 

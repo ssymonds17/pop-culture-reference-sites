@@ -114,19 +114,16 @@ export const middleTier = (tiers) => {
   return sorted[Math.floor(sorted.length / 2)]
 }
 
-export const needsReview = (entries) =>
+// Low confidence on a minor part isn't flagged: a wrong minor tier moves an actor's points very little.
+export const needsReview = (entries, tier) =>
   new Set(entries.map((entry) => entry.tier)).size === entries.length ||
-  entries.some((entry) => entry.confidence === "low")
+  (tier !== "minor" && entries.some((entry) => entry.confidence === "low"))
 
 export const finalTiers = (castIds, judgements) =>
   castIds.map((tmdbId) => {
     const entries = judgements.map((judgement) => judgement.cast.find((entry) => entry.tmdbId === tmdbId))
-    return {
-      tmdbId,
-      tier: middleTier(entries.map((entry) => entry.tier)),
-      review: needsReview(entries),
-      answers: entries,
-    }
+    const tier = middleTier(entries.map((entry) => entry.tier))
+    return { tmdbId, tier, review: needsReview(entries, tier), answers: entries }
   })
 
 export const tierDistance = (a, b) => Math.abs(TIERS.indexOf(a) - TIERS.indexOf(b))
