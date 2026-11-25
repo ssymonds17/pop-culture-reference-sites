@@ -49,7 +49,7 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
    - It writes notes: a plot summary and, for each cast member, their part in the story, how much of the film they're in, any lead or supporting award nominations, and the source URLs.
    - It writes "unknown" rather than guess.
 2. **Judging agents:**
-   - Three agents on the same notes, told not to use the web.
+   - Three Sonnet agents on the same notes, told not to use the web.
    - Each writes JSON to `runs/<film_tmdb_id>/judge-<n>.json`: `{ cast: [{ tmdbId, tier, confidence, reason }] }`.
    - `score.mjs` checks that every cast member comes back exactly once.
 3. **Final tier:**
@@ -83,10 +83,16 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
 - **Iterating:** adjust the tier wording until the bar is met.
 - **Usage:** compare `/usage` before and after the test run and scale by 17 to estimate the full run before starting it.
 
+### Test outcome, 25-11-2026
+- **Result:** the bar wasn't met. Opus judges reached 79.2% agreement and Sonnet judges 79.9%, with no row more than one tier out on Sonnet.
+- **Decision:** accepted for the full run. On review, the labeller agreed with the model's call on every row more than one tier out, so most of the gap is noise in the hand labels.
+- **Judging model:** Sonnet. It agreed with Opus's final tier on 89.4% of rows. Its judges split more often (61 rows against 31), so more cast is flagged for review.
+- **Usage:** Sonnet judging of the 30 films took about 7% of a session and 2% of the week. Research cost is measured on the first full-run batch.
+
 ## Build order
 1. **Agents and scoring:** in `film-api/scripts/cast-tiers/`.
    - `prepare.mjs` writes each test film's cast, without labels, to `runs/<film_tmdb_id>/cast.md`.
-   - A workflow runs one research agent and three judging agents per film.
+   - `classify.workflow.mjs` runs one research agent and three judging agents per film.
    - `score.mjs` validates the answers, writes final tiers to `runs/results.json` and scores them against the labels.
    - Nothing writes to the database.
 2. **Data and app:**
@@ -96,7 +102,10 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
    - Replace the Main toggle with a four-option tier picker.
    - Show the tier name in the person modal.
    - Flag films whose cast has no tiers.
-3. **Full run:** export the watched films' casts from the database read-only, then run the workflow over them.
+3. **Full run:**
+   - `prepare.mjs --all-watched` exports the watched films' casts from the database, read-only, skipping the test films.
+   - The workflow runs in batches of about 50 films, as one workflow is capped at 1,000 agents.
+   - `score.mjs --all-watched` combines the answers into `runs/watched-results.json`.
 4. **Apply:**
    - Review the logged films.
    - Apply the tiers from the file in a separate step.
