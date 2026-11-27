@@ -8,7 +8,6 @@ export interface CastMember {
   actor: mongoose.Types.ObjectId // Actor reference
   character?: string // Role played (from TMDb)
   order: number // TMDb billing position
-  lead?: boolean // Superseded by tier; removed once every film has tiers
   tier?: CastTier // Unset counts as supporting
 }
 
@@ -62,7 +61,6 @@ const castMemberSchema = new mongoose.Schema(
     actor: { type: mongoose.Schema.Types.ObjectId, ref: "Actor", required: true },
     character: { type: String },
     order: { type: Number, required: true },
-    lead: { type: Boolean },
     tier: { type: String, enum: CAST_TIERS },
   },
   { _id: false },
