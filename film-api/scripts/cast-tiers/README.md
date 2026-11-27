@@ -8,7 +8,7 @@ Run from `film-api/`. Agent output goes to `scripts/cast-tiers/runs/`, which is 
 
 1. **`prepare.mjs`** writes each film's cast to `runs/<film_tmdb_id>/cast.md`. By default it covers the 30 hand-labelled films in `test-labels.csv`. With `--all-watched` (needs `.env`), it reads every other watched film with a cast and lists them in `runs/watched-films.json`. It never writes to the database.
 2. **`classify.workflow.mjs`** is a Claude Code workflow. For each film, one research agent writes notes to `research.md` using the web and `prompts/research.md`. Three Sonnet judges then each write `judge-<n>.json` from those notes, using `prompts/judge.md` and no web access.
-3. **`score.mjs`** takes the middle of the three judges' tiers for each cast member. By default it scores the test films against `test-labels.csv`. With `--all-watched`, it writes `runs/watched-results.json` and flags for review any cast where the judges all disagree, or where a low-confidence answer lands above minor.
+3. **`score.mjs`** takes the middle of the three judges' tiers for each cast member. By default it scores the test films against `test-labels.csv`. With `--all-watched`, it writes `runs/watched-results.json` and flags for review any cast where the judges all disagree, or where the combined tier is above minor and any judge had low confidence.
 4. **`review.csv`** records the hand decision for each flagged cast member.
 5. **`apply.mjs`** writes the tiers to the database. It checks every film first and skips casts already up to date. It takes `--dry-run` and `--film=<TMDb id>`.
 6. **`../backfill-tmdb-credits.mjs`** recalculates actor stats afterwards.

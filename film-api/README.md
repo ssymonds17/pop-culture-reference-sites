@@ -133,7 +133,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/tmdb/{tmdbId}` | | Preview a film's TMDb details without saving it |
 | `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | Auth | A person's released films outside the collection, with IMDb ratings from OMDb, leaving out films with fewer than 1,000 IMDb votes or no IMDb data |
 
-The person films lookups share a 20-second budget (`LOOKUP_BUDGET_MS`), so a very large filmography can lose the films not reached in time. A film you own where the person is billed below the stored cast (`MAX_CAST`) is in neither list.
+The person films lookups run newest first within a 20-second budget (`LOOKUP_BUDGET_MS`), so a very large filmography can lose its oldest films. A film in your collection where the actor is billed below the stored cast (`MAX_CAST`) appears in neither `/actor/{tmdbPersonId}` nor `/tmdb/person/{tmdbPersonId}`.
 
 ## Keeping Stats in Step
 
