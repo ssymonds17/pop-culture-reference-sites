@@ -1,8 +1,8 @@
 /**
  * Writes cast[].tier to the watched films: the hand labels for the test films, and the combined
  * judges' tiers from runs/watched-results.json, with review.csv decisions in place of the
- * flagged rows, for the rest. Leaves `lead` and actor stats alone; run backfill-tmdb-credits.mjs
- * afterwards to recalculate the stats.
+ * flagged rows, for the rest. Leaves actor stats alone; run backfill-tmdb-credits.mjs afterwards
+ * to recalculate them.
  *
  * Checks every film before writing any: it stops if a film is missing or its stored cast differs
  * from the tiers. Safe to run again: casts whose tiers already match are skipped.
