@@ -6,6 +6,7 @@ import { Actor, CastMember, Film } from "@/types"
 import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
 import { createAuthenticatedClient } from "@/lib/auth-api"
+import { CAST_TIER_LABELS, CAST_TIERS, CastTier } from "@/lib/castTiers"
 import { formatDirectorNames, formatDuration, getTmdbPosterUrl } from "@/lib/utils"
 import RatingBadge from "../Rating/RatingBadge"
 
@@ -20,11 +21,19 @@ type DetailsState =
 const hasActor = (member: CastMember): member is CastMember & { actor: Actor } =>
   member.actor !== null
 
-const getLeadIds = (cast: CastMember[] = []) =>
-  new Set(cast.filter(hasActor).filter((member) => member.lead).map((member) => member.actor._id))
+type TierDraft = Record<string, CastTier> // Keyed by actor ID
 
-const haveSameIds = (saved: Set<string>, draft: Set<string>) =>
-  saved.size === draft.size && [...saved].every((id) => draft.has(id))
+// An actor with several roles shares one tier across them, so the first role's tier stands for all.
+const getSavedTiers = (cast: CastMember[] = []) => {
+  const tiers: Partial<TierDraft> = {}
+  for (const member of cast.filter(hasActor)) {
+    if (member.tier && !(member.actor._id in tiers)) tiers[member.actor._id] = member.tier
+  }
+  return tiers
+}
+
+const changedTiers = (saved: Partial<TierDraft>, draft: TierDraft) =>
+  Object.fromEntries(Object.entries(draft).filter(([actorId, tier]) => saved[actorId] !== tier))
 
 const Spinner = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg
@@ -80,11 +89,11 @@ export default function FilmDetailModal({
   // Keyed by film so switching film never shows the previous film's cast while the new one loads
   const [detailsState, setDetailsState] = useState<DetailsState | null>(null)
   const [expandedCastFilmId, setExpandedCastFilmId] = useState<string | null>(null)
-  // Lead toggles collect here until saved together; keyed by film so a switch discards them
-  const [draftLeads, setDraftLeads] = useState<{ filmId: string; actorIds: Set<string> } | null>(null)
-  const [savingLeadsFilmId, setSavingLeadsFilmId] = useState<string | null>(null)
+  // Tier picks collect here until saved together; keyed by film so a switch discards them
+  const [draftTiers, setDraftTiers] = useState<{ filmId: string; tiers: TierDraft } | null>(null)
+  const [savingTiersFilmId, setSavingTiersFilmId] = useState<string | null>(null)
   // Keyed by film so a save that fails after a switch never shows its error on another film
-  const [leadsError, setLeadsError] = useState<{ filmId: string; message: string } | null>(null)
+  const [tiersError, setTiersError] = useState<{ filmId: string; message: string } | null>(null)
   const castHeadingId = useId()
 
   // Keyed on the film's ID, as a refresh after an edit passes a new object for the same film
@@ -96,12 +105,12 @@ export default function FilmDetailModal({
     }
   }, [isOpen, film?._id])
 
-  // Reset the rating feedback and unsaved leads whenever the modal opens or switches film
+  // Reset the rating feedback and unsaved tiers whenever the modal opens or switches film
   useEffect(() => {
     setPendingRating(undefined)
     setRatingSaved(false)
-    setDraftLeads(null)
-    setLeadsError(null)
+    setDraftTiers(null)
+    setTiersError(null)
   }, [isOpen, film?._id])
 
   // Drop the optimistic value once the refetched film reports the new rating
@@ -187,34 +196,27 @@ export default function FilmDetailModal({
     }
   }
 
-  const handleToggleLead = (actorId: string) => {
+  const handleSelectTier = (actorId: string, tier: CastTier) => {
     if (!film || detailsState?.filmId !== film._id || detailsState.status !== "loaded") return
-    const toggledFilmId = film._id
-    const savedCast = detailsState.data.cast
-    setLeadsError(null)
-    setDraftLeads((previous) => {
-      const actorIds = new Set(
-        previous?.filmId === toggledFilmId ? previous.actorIds : getLeadIds(savedCast)
-      )
-      if (actorIds.has(actorId)) {
-        actorIds.delete(actorId)
-      } else {
-        actorIds.add(actorId)
-      }
-      return { filmId: toggledFilmId, actorIds }
-    })
+    const selectedFilmId = film._id
+    setTiersError(null)
+    setDraftTiers((previous) => ({
+      filmId: selectedFilmId,
+      tiers: { ...(previous?.filmId === selectedFilmId ? previous.tiers : {}), [actorId]: tier },
+    }))
   }
 
-  const handleSaveLeads = async () => {
-    if (!film || draftLeads?.filmId !== film._id || savingLeadsFilmId === film._id) return
+  const handleSaveTiers = async () => {
+    if (!film || draftTiers?.filmId !== film._id || savingTiersFilmId === film._id) return
+    if (detailsState?.filmId !== film._id || detailsState.status !== "loaded") return
     const savingFilmId = film._id
-    const leadActorIds = draftLeads.actorIds
+    const castTiers = changedTiers(getSavedTiers(detailsState.data.cast), draftTiers.tiers)
     try {
-      setSavingLeadsFilmId(savingFilmId)
-      setLeadsError(null)
+      setSavingTiersFilmId(savingFilmId)
+      setTiersError(null)
       const client = await createAuthenticatedClient(getToken)
-      // Skips patchFilm's onUpdate refetch, as nothing in the film lists shows leads
-      await client.patch(API_ENDPOINTS.film(savingFilmId), { leadActorIds: [...leadActorIds] })
+      // Skips patchFilm's onUpdate refetch, as nothing in the film lists shows tiers
+      await client.patch(API_ENDPOINTS.film(savingFilmId), { castTiers })
       // Details are only fetched when the modal opens, so apply the change locally
       setDetailsState((previous) =>
         previous?.filmId === savingFilmId && previous.status === "loaded"
@@ -223,24 +225,26 @@ export default function FilmDetailModal({
               data: {
                 ...previous.data,
                 cast: previous.data.cast?.map((member) =>
-                  hasActor(member) ? { ...member, lead: leadActorIds.has(member.actor._id) } : member
+                  hasActor(member) && castTiers[member.actor._id]
+                    ? { ...member, tier: castTiers[member.actor._id] }
+                    : member
                 ),
               },
             }
           : previous
       )
-      setDraftLeads((previous) => (previous?.filmId === savingFilmId ? null : previous))
+      setDraftTiers((previous) => (previous?.filmId === savingFilmId ? null : previous))
     } catch (err) {
-      console.error("Error saving main cast:", err)
-      setLeadsError({ filmId: savingFilmId, message: "Failed to save main cast. Please try again." })
+      console.error("Error saving cast tiers:", err)
+      setTiersError({ filmId: savingFilmId, message: "Failed to save cast tiers. Please try again." })
     } finally {
-      setSavingLeadsFilmId((previous) => (previous === savingFilmId ? null : previous))
+      setSavingTiersFilmId((previous) => (previous === savingFilmId ? null : previous))
     }
   }
 
-  const handleCancelLeads = () => {
-    setDraftLeads(null)
-    setLeadsError(null)
+  const handleCancelTiers = () => {
+    setDraftTiers(null)
+    setTiersError(null)
   }
 
   const handleSaveReview = async () => {
@@ -299,12 +303,13 @@ export default function FilmDetailModal({
   const showFullCast = expandedCastFilmId === film._id
   const visibleCast = showFullCast ? cast : cast.slice(0, CAST_PREVIEW_SIZE)
   const productionCompanies = loadedDetails?.productionCompanies ?? []
-  const savedLeadIds = getLeadIds(loadedDetails?.cast)
-  const draftLeadIds = draftLeads?.filmId === film._id ? draftLeads.actorIds : null
-  const leadIds = draftLeadIds ?? savedLeadIds
-  const hasUnsavedLeads = draftLeadIds !== null && !haveSameIds(draftLeadIds, savedLeadIds)
-  const isSavingLeads = savingLeadsFilmId === film._id
-  const currentLeadsError = leadsError?.filmId === film._id ? leadsError.message : null
+  const savedTiers = getSavedTiers(loadedDetails?.cast)
+  const draft = draftTiers?.filmId === film._id ? draftTiers.tiers : {}
+  const tierFor = (actorId: string) => draft[actorId] ?? savedTiers[actorId]
+  const hasUnsavedTiers = Object.keys(changedTiers(savedTiers, draft)).length > 0
+  const untieredCount = cast.filter((member) => !member.tier).length
+  const isSavingTiers = savingTiersFilmId === film._id
+  const currentTiersError = tiersError?.filmId === film._id ? tiersError.message : null
 
   return (
     <div
@@ -494,6 +499,11 @@ export default function FilmDetailModal({
               <p className="text-sm text-gray-500">Could not load cast</p>
             ) : (
               <>
+                {untieredCount > 0 && (
+                  <p className="mb-2 text-sm text-amber-400">
+                    {untieredCount === 1 ? "1 cast member has" : `${untieredCount} cast have`} no tier
+                  </p>
+                )}
                 <ul aria-labelledby={castHeadingId} className="space-y-1 text-sm">
                   {visibleCast.map((member) => (
                     <li
@@ -506,20 +516,28 @@ export default function FilmDetailModal({
                           <span className="text-gray-500"> as {member.character}</span>
                         )}
                       </span>
-                      <button
-                        type="button"
-                        aria-pressed={leadIds.has(member.actor._id)}
-                        aria-label={`Main: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
-                        onClick={() => handleToggleLead(member.actor._id)}
-                        disabled={isSavingLeads}
-                        className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                          leadIds.has(member.actor._id)
-                            ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
-                            : "bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-400"
+                      <select
+                        aria-label={`Tier: ${member.actor.displayName}${member.character ? ` as ${member.character}` : ""}`}
+                        value={tierFor(member.actor._id) ?? ""}
+                        onChange={(event) =>
+                          handleSelectTier(member.actor._id, event.target.value as CastTier)
+                        }
+                        disabled={isSavingTiers}
+                        className={`flex-shrink-0 px-2 py-0.5 rounded bg-gray-800 text-xs font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                          tierFor(member.actor._id) === "lead" ? "text-blue-400" : "text-gray-400"
                         }`}
                       >
-                        Main
-                      </button>
+                        {!tierFor(member.actor._id) && (
+                          <option value="" disabled>
+                            No tier
+                          </option>
+                        )}
+                        {CAST_TIERS.map((tier) => (
+                          <option key={tier} value={tier}>
+                            {CAST_TIER_LABELS[tier]}
+                          </option>
+                        ))}
+                      </select>
                     </li>
                   ))}
                 </ul>
@@ -533,29 +551,29 @@ export default function FilmDetailModal({
                     {showFullCast ? "Show less" : `Show full cast (${cast.length})`}
                   </button>
                 )}
-                {hasUnsavedLeads && (
+                {hasUnsavedTiers && (
                   <div className="flex items-center justify-end gap-3 mt-3">
-                    {currentLeadsError && (
+                    {currentTiersError && (
                       <p role="alert" className="mr-auto text-sm text-red-400">
-                        {currentLeadsError}
+                        {currentTiersError}
                       </p>
                     )}
                     <button
                       type="button"
-                      onClick={handleCancelLeads}
-                      disabled={isSavingLeads}
-                      aria-label="Cancel main cast changes"
+                      onClick={handleCancelTiers}
+                      disabled={isSavingTiers}
+                      aria-label="Cancel cast tier changes"
                       className="px-4 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      onClick={handleSaveLeads}
-                      disabled={isSavingLeads}
+                      onClick={handleSaveTiers}
+                      disabled={isSavingTiers}
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isSavingLeads ? "Saving..." : "Save main cast"}
+                      {isSavingTiers ? "Saving..." : "Save cast tiers"}
                     </button>
                   </div>
                 )}

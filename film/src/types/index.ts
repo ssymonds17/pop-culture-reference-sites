@@ -1,3 +1,5 @@
+import type { CastTier } from '@/lib/castTiers'
+
 export interface Film {
   _id: string
   title: string
@@ -25,7 +27,7 @@ export interface CastMember {
   actor: Actor | null // null when the actor document no longer exists
   character?: string
   order: number
-  lead?: boolean // Unset means a supporting role
+  tier?: CastTier // Unset until tiered; scored as supporting
 }
 
 export interface ProductionCompany {
@@ -64,9 +66,9 @@ export interface Person extends PersonStats {
   imdbPersonId?: string | null // Absent until looked up; null when TMDb has none
 }
 
-// A film from the actor or director endpoint; only the actor endpoint sets `lead`
+// A film from the actor or director endpoint; only the actor endpoint sets `tier`, the actor's highest in the film
 export interface PersonFilm extends Film {
-  lead?: boolean
+  tier?: CastTier
 }
 
 // A film from a person's TMDb filmography that isn't in the collection, with its IMDb figures from OMDb
