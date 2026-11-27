@@ -2,9 +2,9 @@
  * Backfill: fetch cast, production companies and collection from TMDb for every
  * film that has never had them (no `cast` field), then recompute every actor's
  * stats from the films they are cast in and report or fix any that have drifted.
- * Also the way to apply a change to SUPPORTING_ROLE_WEIGHT to stored stats.
+ * Also the way to apply tier changes or a change to TIER_POINTS to stored stats.
  *
- * With --extend, also appends to stored casts shorter than MAX_CAST, keeping leads tagged
+ * With --extend, also appends to stored casts shorter than MAX_CAST, keeping stored tiers
  * by hand; run backfill-person-imdb-ids.mjs afterwards for the new actors' IMDb IDs.
  *
  * Safe to run repeatedly: films that already have `cast` are skipped (or only appended
@@ -70,8 +70,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const normalizeForSearch = (value) =>
   value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim()
 
-// Keep this identical to SUPPORTING_ROLE_WEIGHT in lambda/mongodb/services/actors.ts, one decimal place at most.
-const SUPPORTING_ROLE_WEIGHT = 0.4
+// Keep these identical to TIER_POINTS in lambda/mongodb/services/actors.ts, one decimal place at most.
+const TIER_POINTS = { lead: 1, major: 0.7, supporting: 0.4, minor: 0.2 }
+const UNSET_TIER_POINTS = TIER_POINTS.supporting
 
 const POINTS_BY_RATING = { 6: 1, 7: 3, 8: 6, 9: 10, 10: 15 }
 
@@ -388,7 +389,7 @@ const sameStats = (actor, expected) =>
   )
 
 async function recomputeActorStats(db) {
-  // An actor playing several roles in one film counts that film once, as a lead if any role is.
+  // An actor playing several roles in one film counts that film once, at their highest tier.
   const filmsByActor = await db
     .collection("films")
     .aggregate([
@@ -399,7 +400,17 @@ async function recomputeActorStats(db) {
           _id: { film: "$_id", actor: "$cast.actor" },
           watched: { $first: "$watched" },
           rating: { $first: "$rating" },
-          lead: { $max: { $eq: ["$cast.lead", true] } },
+          pointsWeight: {
+            $max: {
+              $switch: {
+                branches: Object.entries(TIER_POINTS).map(([tier, points]) => ({
+                  case: { $eq: ["$cast.tier", tier] },
+                  then: points,
+                })),
+                default: UNSET_TIER_POINTS,
+              },
+            },
+          },
         },
       },
       {
@@ -409,7 +420,7 @@ async function recomputeActorStats(db) {
             $push: {
               watched: "$watched",
               rating: "$rating",
-              pointsWeight: { $cond: ["$lead", 1, SUPPORTING_ROLE_WEIGHT] },
+              pointsWeight: "$pointsWeight",
             },
           },
         },
