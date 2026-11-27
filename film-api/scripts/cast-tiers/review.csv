@@ -1,0 +1,177 @@
+film_tmdb_id,film,year,billing,actor_tmdb_id,actor,character,model_tier,judge_answers,decision
+77621,Within Our Gates,1920,8,1562893,William Starks,Jasper Landry,supporting,supporting/medium supporting/medium supporting/low,supporting
+42511,Orphans of the Storm,1921,8,29589,Sheldon Lewis,Jacques Frochard,supporting,supporting/medium supporting/low supporting/medium,supporting
+42511,Orphans of the Storm,1921,9,89691,Frank Puglia,Pierre,supporting,supporting/medium supporting/low supporting/medium,supporting
+5998,"Dr. Mabuse, the Gambler",1922,8,47172,Hans Adalbert Schlettow,Georg,supporting,minor/medium supporting/medium supporting/low,supporting
+57283,Häxan,1922,12,89677,Elith Pio,Johannes / Witch Judge,supporting,minor/low supporting/low supporting/low,supporting
+18987,The Hunchback of Notre Dame,1923,11,90333,Raymond Hatton,Gringoire,supporting,supporting/medium supporting/medium supporting/low,supporting
+53430,The Pilgrim,1923,8,10531,Kitty Bradbury,"Mrs. Brown, Edna's Mother",supporting,supporting/medium supporting/low minor/medium,supporting
+32628,Three Ages,1923,2,144005,Margaret Leahy,The Girl,major,major/medium lead/medium supporting/medium,major
+71068,The Iron Horse,1924,6,1128225,Francis Powers,Sergeant Slattery,supporting,supporting/low supporting/medium supporting/medium,supporting
+71068,The Iron Horse,1924,7,9091,J. Farrell MacDonald,Corporal Casey,supporting,supporting/low supporting/medium supporting/medium,supporting
+71068,The Iron Horse,1924,8,1128226,Jim Welch,Private Mackay,supporting,minor/low supporting/low supporting/low,supporting
+31510,Ben-Hur: A Tale of the Christ,1925,5,29974,Claire McDowell,Princess of Hur,supporting,supporting/medium supporting/medium supporting/low,supporting
+44967,Strike,1925,1,213294,Maksim Shtraukh,Police Spy,supporting,minor/low supporting/low supporting/low,supporting
+85638,The Scarlet Letter,1926,6,106092,Marcelle Corday,Mistress Hibbins,supporting,supporting/medium supporting/low supporting/medium,supporting
+95956,The Temptress,1926,4,17753,Lionel Barrymore,Canterac,supporting,minor/low supporting/medium supporting/medium,supporting
+2760,The Lodger: A Story of the London Fog,1927,3,27912,Arthur Chesney,Mr. Bunting,supporting,supporting/low minor/medium supporting/low,supporting
+85876,The Student Prince in Old Heidelberg,1927,6,29602,Edgar Norton,Lutz,supporting,minor/medium supporting/low supporting/low,supporting
+85876,The Student Prince in Old Heidelberg,1927,9,5465,Otis Harlan,Old Ruder,supporting,minor/low supporting/low supporting/low,minor
+42615,A Woman of Affairs,1928,7,143820,Dorothy Sebastian,Constance,supporting,supporting/low minor/medium supporting/medium,supporting
+105981,Lucky Star,1929,5,1467884,Hedwiga Reicher,Mrs. Tucker,supporting,supporting/medium minor/low supporting/medium,supporting
+51759,The Love Parade,1929,8,29817,Lionel Belmore,Prime Minister,supporting,minor/medium supporting/low supporting/low,supporting
+13913,Animal Crackers,1930,9,99458,Margaret Irving,Mrs. Whitehead,supporting,minor/medium supporting/medium supporting/low,supporting
+334507,The Earth is Thirsty,1930,1,1450220,Y. Agramov,,supporting,supporting/low supporting/low major/low,supporting
+334507,The Earth is Thirsty,1930,3,935000,Kira Andronikashvili,,supporting,supporting/low supporting/low supporting/low,supporting
+334507,The Earth is Thirsty,1930,4,1351849,Dmitri Konsovsky,,major,major/low major/low supporting/low,major
+334507,The Earth is Thirsty,1930,5,1127561,Nikoloz Sanishvili,,major,major/low major/low supporting/low,major
+334507,The Earth is Thirsty,1930,6,1270900,Sergey Slyotov,Lyova Kogan,major,major/low major/low supporting/low,major
+42640,The Big Trail,1930,8,84230,Ian Keith,Bill Thorpe,supporting,supporting/low supporting/medium supporting/medium,supporting
+27899,Little Caesar,1931,4,128159,William Collier Jr.,Tony Passa,supporting,supporting/medium supporting/low minor/medium,supporting
+26884,Platinum Blonde,1931,9,13819,Walter Catlett,Bingy Baker,supporting,supporting/medium supporting/low supporting/medium,supporting
+109435,Street Scene,1931,15,2194052,Max Montor,Abe Kaplan,supporting,supporting/low supporting/low supporting/low,supporting
+42814,The Front Page,1931,5,13819,Walter Catlett,Murphy,supporting,minor/medium supporting/low supporting/medium,supporting
+42814,The Front Page,1931,6,3163,George E. Stone,Earl Williams,supporting,supporting/medium minor/medium major/medium,supporting
+1773,American Madness,1932,4,19022,Constance Cummings,Helen,supporting,supporting/low supporting/low supporting/low,supporting
+29740,I Am a Fugitive from a Chain Gang,1932,9,131813,David Landau,The Warden,supporting,supporting/low supporting/low supporting/medium,supporting
+50078,Jewel Robbery,1932,6,34280,Spencer Charters,Johann Christian Lenz,supporting,minor/medium supporting/low supporting/medium,minor
+38077,Red Dust,1932,6,13359,Tully Marshall,'Mac' McQuarg,supporting,supporting/medium minor/medium supporting/low,supporting
+1994,The Most Dangerous Game,1932,5,3247,Noble Johnson,Ivan,supporting,supporting/medium supporting/low minor/medium,supporting
+779,Vampyr,1932,6,11584,Henriette Gérard,The Old Woman from the Cemetery,supporting,supporting/low supporting/medium supporting/medium,minor
+3062,42nd Street,1933,8,30004,Ned Sparks,Barry,supporting,supporting/medium supporting/medium supporting/low,supporting
+3062,42nd Street,1933,9,19328,Dick Powell,Billy Lawler,major,major/medium supporting/medium major/low,major
+43601,Bombshell,1933,8,121333,Ivan Lebedeff,Marquis Hugo di Binelli di Pisa,supporting,minor/medium supporting/medium supporting/low,supporting
+39130,Dinner at Eight,1933,7,99749,Edmund Lowe,Dr. Wayne Talbot,supporting,major/low supporting/medium supporting/medium,supporting
+28432,Footlight Parade,1933,9,34756,Claire Dodd,Vivian,supporting,supporting/low supporting/low supporting/medium,supporting
+43130,Lady for a Day,1933,7,81798,Jean Parker,Louise,supporting,supporting/low supporting/medium minor/medium,minor
+12206,The Testament of Dr. Mabuse,1933,7,26600,Rudolf Schündler,Hardy,supporting,supporting/medium supporting/low supporting/low,supporting
+12206,The Testament of Dr. Mabuse,1933,9,1148559,Karl Meixner,Hofmeister,supporting,major/medium supporting/medium supporting/low,supporting
+44494,Zero for Conduct,1933,4,142911,Delphin,Principal,supporting,supporting/medium supporting/low supporting/medium,supporting
+44163,A Story of Floating Weeds,1934,6,142474,Tomio Aoki,Tomio,supporting,supporting/low supporting/medium supporting/medium,minor
+43902,Cleopatra,1934,5,84230,Ian Keith,Octavian,supporting,supporting/low supporting/medium minor/low,supporting
+28157,Crime Without Passion,1934,4,2496,Stanley Ridges,Eddie White,supporting,supporting/low supporting/medium supporting/medium,supporting
+23024,Judge Priest,1934,9,8517,Charley Grapewin,Sergeant Jimmy Bagby,supporting,supporting/low supporting/low minor/low,minor
+3529,The Thin Man,1934,6,14975,Porter Hall,Herbert MacCaulay,supporting,supporting/low supporting/medium supporting/medium,supporting
+16905,Captain Blood,1935,8,88672,Robert Barrat,Wolverstone,supporting,supporting/low minor/low supporting/low,minor
+52561,The Whole Town's Talking,1935,10,34320,Paul Harvey,'J.G.' Carpenter,supporting,supporting/medium supporting/medium minor/low,supporting
+665,Ben-Hur,1959,6,10022,Martha Scott,Miriam,supporting,supporting/medium supporting/low major/low,supporting
+665,Ben-Hur,1959,7,10023,Cathy O'Donnell,Tirzah,supporting,supporting/low minor/medium supporting/medium,minor
+665,Ben-Hur,1959,9,10027,Finlay Currie,Balthasar,supporting,supporting/low minor/medium supporting/medium,minor
+28276,Good Morning,1959,12,106165,Eijirō Tōno,Hiroshi Tomizawa,supporting,supporting/medium major/low supporting/low,supporting
+213,North by Northwest,1959,9,2645,Adam Williams,Valerian,supporting,supporting/medium supporting/medium supporting/low,supporting
+26983,Odds Against Tomorrow,1959,7,96733,Kim Hamilton,Ruth Ingram,supporting,supporting/low supporting/low minor/medium,minor
+14698,"Suddenly, Last Summer",1959,5,18737,Mercedes McCambridge,Grace Holly,supporting,supporting/medium supporting/medium supporting/low,supporting
+14698,"Suddenly, Last Summer",1959,6,24819,Gary Raymond,George Holly,supporting,supporting/medium supporting/low minor/medium,supporting
+31217,The Human Condition I: No Greater Love,1959,3,213495,Chikage Awashima,Tôfuku Kin,supporting,minor/medium supporting/medium supporting/low,supporting
+31217,The Human Condition I: No Greater Love,1959,8,20829,Seiji Miyaguchi,Kyôritsu Ô,supporting,supporting/medium supporting/low minor/medium,supporting
+5165,L'Avventura,1960,6,41781,James Addams,Corrado,supporting,supporting/low supporting/medium supporting/medium,supporting
+27419,Les Bonnes Femmes,1960,6,39523,Jean-Louis Maury,Marcel,supporting,minor/medium supporting/low supporting/low,minor
+27419,Les Bonnes Femmes,1960,7,114347,Albert Dinan,Albert,supporting,minor/medium supporting/low supporting/low,minor
+11167,Peeping Tom,1960,10,47549,Jack Watson,Chief Insp. Gregg,supporting,supporting/low supporting/medium minor/low,supporting
+8422,Rocco and His Brothers,1960,10,54906,Rocco Vidolazzi,Luca Parondi,supporting,supporting/medium supporting/low supporting/low,supporting
+1818,Shoot the Piano Player,1960,8,1655,Albert Rémy,Chico Saroyan,supporting,supporting/medium minor/medium supporting/low,supporting
+31589,The Bad Sleep Well,1960,8,25462,Kō Nishimura,Contract Officer Shirai,supporting,supporting/medium supporting/medium supporting/low,supporting
+11656,The Virgin Spring,1960,8,1192603,Ove Porath,Boy,supporting,supporting/medium supporting/low supporting/medium,supporting
+11773,Village of the Damned,1960,5,69764,Laurence Naismith,Dr. Willers,supporting,supporting/medium supporting/medium supporting/low,supporting
+36872,When a Woman Ascends the Stairs,1960,8,106159,Keiko Awaji,Yuri,supporting,supporting/low major/low minor/medium,supporting
+82311,Wild River,1960,5,3338,Jay C. Flippen,Hamilton Garth,supporting,supporting/low minor/low supporting/low,minor
+29478,A Raisin in the Sun,1961,8,103941,Steven Perry,Travis Younger,supporting,minor/medium supporting/low supporting/low,minor
+40641,Lola,1961,7,932594,Annie Duperoux,Cécile Desnoyers,supporting,supporting/medium minor/medium supporting/low,supporting
+18647,One-Eyed Jacks,1961,7,16069,Sam Gilman,Harvey Johnson,supporting,supporting/medium supporting/low supporting/medium,supporting
+28699,Underworld U.S.A.,1961,5,27035,Paul Dubov,Gela,supporting,minor/medium supporting/low supporting/low,supporting
+4497,Viridiana,1961,10,32153,José Manuel Martín,El Cojo,supporting,supporting/low supporting/medium supporting/low,supporting
+1725,West Side Story,1961,9,18872,Tucker Smith,Ice,supporting,supporting/medium supporting/medium supporting/low,supporting
+11878,Yojimbo,1961,7,7453,Takashi Shimura,"Tokuemon, sake brewer",supporting,minor/medium supporting/low supporting/medium,supporting
+17185,Advise & Consent,1962,11,127641,Paul Ford,Senator Stanley Danta,supporting,supporting/medium supporting/low supporting/low,supporting
+17185,Advise & Consent,1962,13,15667,Inga Swenson,Ellen Anderson,supporting,supporting/medium supporting/low supporting/medium,supporting
+646,Dr. No,1962,6,9875,Zena Marshall,Miss Taro,supporting,supporting/low supporting/medium minor/medium,minor
+31442,Ivan's Childhood,1962,7,2291670,Valentina Malyavina,Masha,supporting,minor/medium supporting/low supporting/low,supporting
+982,The Manchurian Candidate,1962,7,14733,Leslie Parrish,Jocelyn Jordan,supporting,supporting/medium supporting/low supporting/low,supporting
+595,To Kill a Mockingbird,1962,10,8496,Paul Fix,Judge Taylor,supporting,minor/medium supporting/low supporting/medium,supporting
+9078,The Sword in the Stone,1963,6,159552,Rickie Sorensen,Wart (voice),major,major/low major/low lead/medium,lead
+9078,The Sword in the Stone,1963,9,1287645,Richard Reitherman,Wart (voice),major,major/low major/low major/low,lead
+9078,The Sword in the Stone,1963,10,1287646,Robert Reitherman,Wart (voice),major,major/low major/low major/low,lead
+253,Live and Let Die,1973,7,10226,David Hedison,Felix Leiter,supporting,minor/medium supporting/medium supporting/low,supporting
+253,Live and Let Die,1973,8,10227,Gloria Hendry,Rosie Carver,supporting,minor/medium supporting/low supporting/low,supporting
+253,Live and Let Die,1973,15,1350577,Roy Stewart,Quarrel,supporting,supporting/low minor/medium supporting/low,supporting
+707,A View to a Kill,1985,11,10664,Willoughby Gray,Dr. Carl Mortner,supporting,supporting/low minor/medium supporting/medium,supporting
+9614,Happy Gilmore,1996,11,59196,Joe Flaherty,Jeering Fan,supporting,supporting/medium minor/medium supporting/low,supporting
+954,Mission: Impossible,1996,8,13333,Vanessa Redgrave,Max,supporting,supporting/low supporting/low minor/medium,supporting
+9427,The Full Monty,1997,9,33679,Emily Woof,Mandy,supporting,minor/medium supporting/low supporting/medium,supporting
+9487,A Bug's Life,1998,13,8316,Michael McShane,Tuck / Roll (voice),supporting,minor/medium supporting/low supporting/low,supporting
+509,Notting Hill,1999,7,19923,Hugh Bonneville,Bernie,supporting,supporting/low supporting/medium supporting/medium,supporting
+509,Notting Hill,1999,8,7025,Richard McCabe,Tony,supporting,supporting/low supporting/medium supporting/medium,minor
+8346,My Big Fat Greek Wedding,2002,5,8263,Andrea Martin,Aunt Voula,supporting,supporting/medium minor/medium supporting/low,supporting
+11423,Memories of Murder,2003,4,1080904,Song Jae-ho,Sergeant Shin Dong-chul,supporting,supporting/low minor/medium supporting/medium,supporting
+747,Shaun of the Dead,2004,8,2440,Bill Nighy,Phillip,supporting,supporting/medium minor/medium supporting/low,supporting
+5255,The Polar Express,2004,7,27972,Josh Hutcherson,Hero Boy (motion capture),supporting,supporting/low supporting/low major/low,supporting
+5255,The Polar Express,2004,9,6860,Jimmy Bennett,Lonely Boy (voice),major,major/low major/low supporting/medium,major
+5255,The Polar Express,2004,10,206100,Tinashe,Hero Girl (motion capture),supporting,supporting/low supporting/low supporting/low,supporting
+652,Troy,2004,7,9824,Diane Kruger,Helen,supporting,supporting/low supporting/medium minor/low,supporting
+652,Troy,2004,8,11390,Peter O'Toole,Priam,supporting,supporting/medium supporting/medium supporting/low,supporting
+13767,The Santa Clause 3: The Escape Clause,2006,6,27564,Eric Lloyd,Charlie,supporting,supporting/medium supporting/medium supporting/low,supporting
+234200,Pride,2014,3,1014931,Freddie Fox,Jeff,supporting,supporting/low supporting/low minor/low,supporting
+234200,Pride,2014,4,2440,Bill Nighy,Cliff,supporting,supporting/low supporting/medium supporting/medium,supporting
+234200,Pride,2014,9,225610,Joseph Gilgun,Mike,supporting,supporting/low supporting/low supporting/low,supporting
+234200,Pride,2014,11,1204956,Faye Marsay,Steph,supporting,supporting/low supporting/low supporting/low,supporting
+381284,Hidden Figures,2016,7,932967,Mahershala Ali,Jim Johnson,supporting,supporting/low major/low supporting/medium,supporting
+269149,Zootopia,2016,9,18999,J.K. Simmons,Mayor Lionheart (voice),supporting,supporting/medium minor/medium supporting/low,supporting
+505600,Booksmart,2019,4,58224,Jason Sudeikis,Principal Brown,supporting,minor/medium supporting/low supporting/medium,supporting
+505600,Booksmart,2019,7,2262876,Victoria Ruesga,Ryan,supporting,minor/medium supporting/low supporting/low,supporting
+505600,Booksmart,2019,8,2174509,Mason Gooding,Nick,supporting,minor/medium supporting/low supporting/low,supporting
+508965,Klaus,2019,7,124749,Sergio Pablos,Pumpkin / Olaf (voice),supporting,supporting/medium supporting/medium supporting/low,supporting
+549053,Last Christmas,2019,6,36659,Boris Isaković,Ivan Andrich,supporting,supporting/low supporting/medium minor/low,minor
+520172,Happiest Season,2020,9,119592,Aubrey Plaza,Riley Johnson,supporting,supporting/medium supporting/low supporting/low,supporting
+964980,Air,2023,8,66,Chris Tucker,Howard White,supporting,supporting/low supporting/low supporting/medium,supporting
+1047020,The Last Stop in Yuma County,2023,12,987625,Jon Proudstar,Pete,supporting,supporting/low supporting/low minor/medium,supporting
+970348,The Old Oak,2023,3,4081571,Claire Rodgerson,Laura,supporting,supporting/medium supporting/low supporting/low,supporting
+549509,The Brutalist,2024,8,4941,Alessandro Nivola,Attila,supporting,supporting/medium supporting/low supporting/medium,supporting
+785542,The Outrun,2024,7,13363,Saskia Reeves,Annie,supporting,supporting/low supporting/medium supporting/low,minor
+1092943,Brides,2025,5,1911402,Aziz Çapkurt,Barış,supporting,minor/low supporting/low supporting/low,minor
+858024,Hamnet,2025,7,4945576,Olivia Lynes,Judith,supporting,supporting/low supporting/low supporting/medium,supporting
+1263256,Happy Gilmore 2,2025,7,1215556,John Daly,John Daly,supporting,minor/low supporting/low supporting/low,minor
+1263256,Happy Gilmore 2,2025,13,1271681,Sunny Sandler,Vienna,supporting,supporting/low supporting/low minor/low,supporting
+1317149,I Swear,2025,7,2326725,Francesco Piacentini-Smith,Murray,supporting,supporting/low supporting/low minor/low,supporting
+1317288,Marty Supreme,2025,9,1454942,Géza Röhrig,Béla Kletzki,supporting,supporting/low supporting/low supporting/low,supporting
+1317288,Marty Supreme,2025,10,5848473,Koto Kawaguchi,Koto Endo,supporting,supporting/low supporting/low supporting/low,supporting
+639988,No Other Choice,2025,8,5646019,Kim Woo-seung,Si-won,supporting,supporting/medium supporting/medium supporting/low,supporting
+1242419,Roofman,2025,3,77335,Ben Mendelsohn,Pastor Ron,supporting,supporting/low supporting/low supporting/low,supporting
+1242419,Roofman,2025,8,4046500,Lily Collias,Lindsay,supporting,supporting/low minor/low supporting/low,supporting
+1242419,Roofman,2025,10,22970,Peter Dinklage,Mitch,supporting,supporting/low minor/low supporting/low,supporting
+798645,The Running Man,2025,7,1331023,Emilia Jones,Amelia Williams,supporting,supporting/low supporting/medium supporting/medium,supporting
+1035259,The Naked Gun,2025,3,1294982,Paul Walter Hauser,Ed Hocken Jr.,supporting,supporting/low supporting/low supporting/low,supporting
+1267905,The Roses,2025,10,19,Allison Janney,Eleanor,supporting,supporting/low supporting/low supporting/low,supporting
+1241983,Train Dreams,2025,3,60722,Nathaniel Arcand,Ignatius Jack,supporting,supporting/low supporting/medium supporting/medium,supporting
+812583,Wake Up Dead Man: A Knives Out Mystery,2025,4,16851,Josh Brolin,Mons. Jefferson Wicks,major,major/low major/medium supporting/low,major
+812583,Wake Up Dead Man: A Knives Out Mystery,2025,7,11703,Kerry Washington,"Vera Draven, Esq.",supporting,supporting/medium supporting/medium supporting/low,supporting
+812583,Wake Up Dead Man: A Knives Out Mystery,2025,8,125660,Andrew Scott,Lee Ross,supporting,supporting/medium supporting/medium supporting/low,supporting
+812583,Wake Up Dead Man: A Knives Out Mystery,2025,9,1683343,Cailee Spaeny,Simone Vivane,supporting,supporting/low supporting/low minor/low,supporting
+936075,Michael,2026,5,1990676,KeiLyn Durrel Jones,Bill Bray,supporting,supporting/low supporting/low minor/low,supporting
+697,October (Ten Days that Shook the World),1928,1,9605,Vladimir Popov,Aleksandr Kerensky,major,major/low major/low major/low,major
+697,October (Ten Days that Shook the World),1928,10,5929074,Nikolay Popov,Kerenskiy,major,major/low major/medium major/low,major
+875828,Peaky Blinders: The Immortal Man,2026,10,2588506,Jay Lycurgo,Elijah,supporting,supporting/low supporting/low supporting/low,supporting
+1325734,The Drama,2026,4,1639848,Mamoudou Athie,Mike,supporting,minor/low supporting/medium supporting/medium,supporting
+1368337,The Odyssey,2026,5,1227717,Himesh Patel,Eurylochus,supporting,supporting/medium supporting/low supporting/medium,supporting
+1368337,The Odyssey,2026,6,6885,Charlize Theron,Calypso,supporting,supporting/low supporting/medium supporting/medium,supporting
+1083381,Backrooms,2026,5,45407,Mark Duplass,Phil,supporting,supporting/medium supporting/medium supporting/low,supporting
+1423191,Resident Evil,2026,14,183729,Andrea Miltner,Pedestrian,supporting,supporting/medium supporting/low supporting/medium,minor
+931285,Mortal Kombat II,2026,7,1859934,Tati Gabrielle,Jade,supporting,supporting/medium supporting/low supporting/low,supporting
+931285,Mortal Kombat II,2026,9,13275,Tadanobu Asano,Lord Raiden,supporting,supporting/medium supporting/low supporting/medium,supporting
+1301421,The Sheep Detectives,2026,8,35705,Regina Hall,Cloud (voice),supporting,minor/medium supporting/medium supporting/low,supporting
+1301421,The Sheep Detectives,2026,15,1360152,Tosin Cole,Caleb Merrow,supporting,supporting/medium supporting/medium supporting/low,supporting
+1314481,The Devil Wears Prada 2,2026,10,107770,B.J. Novak,Jay,supporting,supporting/low supporting/medium supporting/medium,supporting
+42669,Five Star Final,1931,3,33278,H.B. Warner,Michael Townsend,supporting,minor/medium supporting/low supporting/medium,supporting
+42669,Five Star Final,1931,10,128401,Oscar Apfel,Bernard Hinchecliffe,supporting,minor/medium supporting/low supporting/medium,supporting
+42836,Comradeship,1931,6,590403,Oskar Höcker,Mine Foreman,supporting,minor/medium supporting/medium supporting/low,supporting
+43146,Fanny,1932,9,11546,Pierre Fresnay,Marius Olivier,supporting,supporting/low supporting/medium major/medium,supporting
+454639,Masters of the Universe,2026,8,2418119,Sam C. Wilson,Trap Jaw,supporting,supporting/medium supporting/low supporting/low,supporting
+454639,Masters of the Universe,2026,12,41091,Kristen Wiig,Roboto (voice),supporting,supporting/medium supporting/low supporting/low,supporting
+454639,Masters of the Universe,2026,13,1526034,Tom Wilton,Cringer (voice),supporting,supporting/low supporting/low minor/medium,minor
+10198,The Princess and the Frog,2009,7,163711,Peter Bartlett,Lawrence (voice),supporting,supporting/medium supporting/medium supporting/low,supporting
+1022796,Wish,2023,7,1519596,Jennifer Kumiyama,Dahlia (voice),supporting,supporting/medium supporting/medium supporting/low,supporting
+43691,The Count of Monte Cristo,1934,11,30264,Luis Alberni,Jacopo,supporting,supporting/low supporting/low supporting/low,minor
+1248832,Digger,2026,6,88124,Jesse Plemons,Kenny,supporting,supporting/medium supporting/low supporting/medium,supporting
+6435,Practical Magic,1998,12,38670,Camilla Belle,Eleven-Year-Old Sally,supporting,minor/medium major/medium supporting/medium,minor
+87123,Heat Lightning,1934,6,74875,Frank McHugh,Frank,supporting,supporting/low supporting/low minor/medium,supporting
+87123,Heat Lightning,1934,7,30214,Ruth Donnelly,Mrs. Ashton-Ashley,supporting,supporting/low supporting/medium supporting/low,supporting
+43693,The Barretts of Wimpole Street,1934,6,47178,Ralph Forbes,Captain Surtees Cook,supporting,supporting/low supporting/low supporting/low,supporting
