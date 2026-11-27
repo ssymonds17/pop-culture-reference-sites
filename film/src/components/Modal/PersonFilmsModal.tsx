@@ -6,6 +6,7 @@ import axios from "axios"
 import { useAuth } from "@clerk/nextjs"
 import { API_ENDPOINTS } from "@/lib/api"
 import { createAuthenticatedClient } from "@/lib/auth-api"
+import { CAST_TIER_LABELS } from "@/lib/castTiers"
 import { PERSON_KINDS, PersonKind } from "@/lib/personKinds"
 import { getTmdbPosterUrl } from "@/lib/utils"
 import ImdbRatingBox from "../Rating/ImdbRatingBox"
@@ -291,10 +292,12 @@ export default function PersonFilmsModal({
                 </td>
                 {showRole && (
                   <td className="px-4 py-3 text-center text-sm">
-                    {film.lead ? (
-                      <span className="text-blue-400">Main</span>
+                    {film.tier ? (
+                      <span className={film.tier === "lead" ? "text-blue-400" : "text-gray-400"}>
+                        {CAST_TIER_LABELS[film.tier]}
+                      </span>
                     ) : (
-                      <span className="text-gray-400">Support</span>
+                      <span className="text-gray-500">-</span>
                     )}
                   </td>
                 )}

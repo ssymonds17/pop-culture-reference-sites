@@ -177,54 +177,34 @@ describe("films service", () => {
       mockFilm.findByIdAndUpdate = jest.fn().mockReturnValue({ exec }) as any
     }
 
-    it("should mark the given actors as leads and the rest of the cast as support", async () => {
+    it("should set each given actor's tier and leave the rest of the cast alone", async () => {
       mockUpdate()
 
-      await updateFilm("film1", { leadActorIds: ["actor1"] })
+      await updateFilm("film1", { castTiers: { actor1: "lead", actor2: "minor" } })
 
       expect(mockFilm.findByIdAndUpdate).toHaveBeenCalledWith(
         "film1",
-        { $set: { "cast.$[lead].lead": true, "cast.$[support].lead": false } },
+        { $set: { "cast.$[member0].tier": "lead", "cast.$[member1].tier": "minor" } },
         {
           new: true,
-          arrayFilters: [
-            { "lead.actor": { $in: ["actor1"] } },
-            { "support.actor": { $nin: ["actor1"] } },
-          ],
+          arrayFilters: [{ "member0.actor": "actor1" }, { "member1.actor": "actor2" }],
         },
       )
     })
 
-    it("should mark the whole cast as support when the leads are cleared", async () => {
+    it("should combine a rating change with the tier update", async () => {
       mockUpdate()
 
-      await updateFilm("film1", { leadActorIds: [] })
-
-      const [, , options] = (mockFilm.findByIdAndUpdate as jest.Mock).mock.calls[0]
-      expect(options.arrayFilters).toEqual([
-        { "lead.actor": { $in: [] } },
-        { "support.actor": { $nin: [] } },
-      ])
-    })
-
-    it("should combine a rating change with the lead update", async () => {
-      mockUpdate()
-
-      await updateFilm("film1", { rating: 8, leadActorIds: ["actor1"] })
+      await updateFilm("film1", { rating: 8, castTiers: { actor1: "major" } })
 
       const [, update, options] = (mockFilm.findByIdAndUpdate as jest.Mock).mock.calls[0]
       expect(update).toEqual({
-        $set: {
-          rating: 8,
-          watched: true,
-          "cast.$[lead].lead": true,
-          "cast.$[support].lead": false,
-        },
+        $set: { rating: 8, watched: true, "cast.$[member0].tier": "major" },
       })
-      expect(options.arrayFilters).toHaveLength(2)
+      expect(options.arrayFilters).toEqual([{ "member0.actor": "actor1" }])
     })
 
-    it("should leave the cast alone when no leads are given", async () => {
+    it("should leave the cast alone when no tiers are given", async () => {
       mockUpdate()
 
       await updateFilm("film1", { rating: 8 })

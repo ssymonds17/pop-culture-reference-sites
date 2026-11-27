@@ -1,13 +1,22 @@
 import mongoose from "mongoose"
 import { createApiResponse, logger } from "./utils"
+import { CAST_TIERS, CastTier } from "./mongodb/models/film"
 import { requireAuth } from "./auth"
 import { connectToDatabase, getFilmById, updateFilm, updateDirectorStats, updateYearStats, addFilmToTopAtTierBottom, removeFilmFromTop, isEligibleRating, updateCastActorStats } from "./mongodb"
+
+const isCastTierMap = (value: unknown): value is Record<string, CastTier> =>
+  typeof value === "object" &&
+  value !== null &&
+  !Array.isArray(value) &&
+  Object.entries(value).every(
+    ([actorId, tier]) => mongoose.isValidObjectId(actorId) && CAST_TIERS.includes(tier as CastTier),
+  )
 
 const handlerImpl = async (event: any, _userId: string) => {
   const filmId = event.pathParameters?.id
 
   try {
-    const { rating, owned, review, leadActorIds } = JSON.parse(event.body)
+    const { rating, owned, review, castTiers } = JSON.parse(event.body)
 
     if (!filmId) {
       throw new Error("Film ID is missing")
@@ -17,12 +26,8 @@ const handlerImpl = async (event: any, _userId: string) => {
       throw new Error("Rating must be a whole number between 1 and 10")
     }
 
-    if (
-      leadActorIds !== undefined &&
-      (!Array.isArray(leadActorIds) ||
-        !leadActorIds.every((id: unknown) => typeof id === "string" && mongoose.isValidObjectId(id)))
-    ) {
-      throw new Error("leadActorIds must be an array of actor IDs")
+    if (castTiers !== undefined && !isCastTierMap(castTiers)) {
+      throw new Error(`castTiers must map actor IDs to one of ${CAST_TIERS.join(", ")}`)
     }
 
     await connectToDatabase()
@@ -33,15 +38,14 @@ const handlerImpl = async (event: any, _userId: string) => {
       throw new Error("Film not found")
     }
 
-    if (leadActorIds !== undefined) {
+    if (castTiers !== undefined) {
       const castActorIds = new Set((currentFilm.cast ?? []).map((member) => member.actor.toString()))
-      // The cast array must exist for the lead update, even when clearing every lead.
-      if (castActorIds.size === 0 || !leadActorIds.every((id: string) => castActorIds.has(id))) {
-        throw new Error("leadActorIds must all be actors in the film's cast")
+      if (castActorIds.size === 0 || !Object.keys(castTiers).every((id) => castActorIds.has(id))) {
+        throw new Error("castTiers must all be actors in the film's cast")
       }
     }
 
-    const updatedFilm = await updateFilm(filmId, { rating, owned, review, leadActorIds })
+    const updatedFilm = await updateFilm(filmId, { rating, owned, review, castTiers })
 
     if (!updatedFilm) {
       throw new Error("Failed to update film")
@@ -77,7 +81,7 @@ const handlerImpl = async (event: any, _userId: string) => {
     }
 
     // Last, so a failing actor lookup cannot skip the year and top-film updates.
-    if (rating !== undefined || leadActorIds !== undefined) {
+    if (rating !== undefined || castTiers !== undefined) {
       await updateCastActorStats(currentFilm.cast)
     }
 

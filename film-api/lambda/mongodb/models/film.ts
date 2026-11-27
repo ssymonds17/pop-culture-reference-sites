@@ -1,11 +1,15 @@
 import mongoose from "mongoose"
 import { normalizeForSearch } from "../../utils/search"
 
+export const CAST_TIERS = ["lead", "major", "supporting", "minor"] as const
+export type CastTier = (typeof CAST_TIERS)[number]
+
 export interface CastMember {
   actor: mongoose.Types.ObjectId // Actor reference
   character?: string // Role played (from TMDb)
   order: number // TMDb billing position
-  lead?: boolean // Tagged by hand; unset means a supporting role
+  lead?: boolean // Superseded by tier; removed once every film has tiers
+  tier?: CastTier // Unset counts as supporting
 }
 
 export interface ProductionCompany {
@@ -59,6 +63,7 @@ const castMemberSchema = new mongoose.Schema(
     character: { type: String },
     order: { type: Number, required: true },
     lead: { type: Boolean },
+    tier: { type: String, enum: CAST_TIERS },
   },
   { _id: false },
 )

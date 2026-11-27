@@ -1,6 +1,6 @@
 import Actor from "../models/actor"
 import type mongoose from "mongoose"
-import Film, { CastMember } from "../models/film"
+import Film, { CastMember, CastTier } from "../models/film"
 import { calculatePersonStats, personStatsFilter, personStatsSort } from "../models/personStats"
 import { escapeRegex, normalizeForSearch } from "../../utils"
 
@@ -45,9 +45,28 @@ export const findActorsMissingImdbId = async (tmdbPersonIds: string[]) => {
   return tmdbPersonIds.filter((tmdbPersonId) => !checkedIds.has(tmdbPersonId))
 }
 
-// An actor with several roles in a film is its lead when any of those roles is.
-const isLeadIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
-  (cast ?? []).some((member) => member.lead && member.actor.toString() === actorId.toString())
+// The share of a film's points each tier earns. Keep each to one decimal place: totalPoints is
+// rounded to one, and the backfill sums in a different order.
+export const TIER_POINTS: Record<CastTier, number> = { lead: 1, major: 0.7, supporting: 0.4, minor: 0.2 }
+const UNSET_TIER: CastTier = "supporting"
+
+const rolesOf = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  (cast ?? []).filter((member) => member.actor.toString() === actorId.toString())
+
+// An actor with several roles in a film takes the highest tier among them.
+const highestTier = (tiers: CastTier[]) =>
+  tiers.reduce<CastTier | undefined>(
+    (best, tier) => (!best || TIER_POINTS[tier] > TIER_POINTS[best] ? tier : best),
+    undefined,
+  )
+
+// Undefined when none of the actor's roles has a tier.
+const storedTierIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  highestTier(rolesOf(cast, actorId).flatMap((member) => (member.tier ? [member.tier] : [])))
+
+// An untiered role still earns points, as supporting.
+const scoringTierIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  highestTier(rolesOf(cast, actorId).map((member) => member.tier ?? UNSET_TIER)) ?? UNSET_TIER
 
 export const getActors = async (sortBy?: string) => {
   return Actor.find({ totalFilms: { $gt: 0 }, ...personStatsFilter(sortBy) })
@@ -74,7 +93,7 @@ export const getActorByTmdbPersonId = async (tmdbPersonId: string) => {
     ...actor.toObject(),
     films: films.map((film) => {
       const { cast, ...rest } = film.toObject()
-      return { ...rest, lead: isLeadIn(cast, actor._id) }
+      return { ...rest, tier: storedTierIn(cast, actor._id) }
     }),
   }
 }
@@ -93,10 +112,6 @@ export const findActorsByName = async (name: string) => {
   ).exec()
 }
 
-// A supporting role earns this share of a film's points; a lead earns all of them.
-// Keep it to one decimal place: totalPoints is rounded to one, and the backfill sums in a different order.
-export const SUPPORTING_ROLE_WEIGHT = 0.4
-
 export const updateActorStats = async (actorId: string) => {
   const actor = await Actor.findById(actorId).exec()
 
@@ -106,12 +121,12 @@ export const updateActorStats = async (actorId: string) => {
 
   const films = await Film.find(
     { "cast.actor": actor._id },
-    "watched rating cast.actor cast.lead",
+    "watched rating cast.actor cast.tier",
   ).exec()
   const weightedFilms = films.map((film) => ({
     watched: film.watched,
     rating: film.rating,
-    pointsWeight: isLeadIn(film.cast, actor._id) ? 1 : SUPPORTING_ROLE_WEIGHT,
+    pointsWeight: TIER_POINTS[scoringTierIn(film.cast, actor._id)],
   }))
   Object.assign(actor, calculatePersonStats(weightedFilms))
 

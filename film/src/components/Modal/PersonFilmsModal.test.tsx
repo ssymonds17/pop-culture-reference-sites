@@ -510,11 +510,11 @@ describe("PersonFilmsModal", () => {
 
   describe("role column", () => {
     const roleFilms = [
-      { _id: "film1", title: "Alien", year: 1979, lead: true },
-      { _id: "film2", title: "Galaxy Quest", year: 1999, lead: false },
+      { _id: "film1", title: "Alien", year: 1979, tier: "lead" },
+      { _id: "film2", title: "Galaxy Quest", year: 1999, tier: "minor" },
     ]
 
-    it("should show whether an actor is main cast or support in each film", async () => {
+    it("should show the actor's tier in each film", async () => {
       mockAxiosGet.mockResolvedValueOnce({
         data: { data: { ...person, films: roleFilms } },
       })
@@ -525,10 +525,10 @@ describe("PersonFilmsModal", () => {
       expect(
         screen.getByRole("columnheader", { name: "Role" }),
       ).toBeInTheDocument()
-      expect(within(alienRow).getByText("Main")).toBeInTheDocument()
+      expect(within(alienRow).getByText("Lead")).toBeInTheDocument()
       expect(
         within(screen.getByText("Galaxy Quest").closest("tr")!).getByText(
-          "Support",
+          "Minor",
         ),
       ).toBeInTheDocument()
     })

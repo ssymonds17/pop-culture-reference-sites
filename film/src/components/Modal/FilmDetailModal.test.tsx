@@ -223,7 +223,7 @@ describe('FilmDetailModal', () => {
     consoleError.mockRestore()
   })
 
-  describe('main cast', () => {
+  describe('cast tiers', () => {
     const mockPatch = jest.fn()
 
     beforeEach(() => {
@@ -231,119 +231,135 @@ describe('FilmDetailModal', () => {
       mockAxiosCreate.mockReturnValue({ patch: mockPatch })
     })
 
-    const savedLeadIds = () => [...mockPatch.mock.calls[0][1].leadActorIds].sort()
+    const tierSelect = (name: string) => screen.getByRole('combobox', { name: `Tier: ${name}` })
+    const findTierSelect = (name: string) => screen.findByRole('combobox', { name: `Tier: ${name}` })
 
-    const castWithLead = (): CastMember[] => {
+    const tieredCast = (): CastMember[] => {
       const [first, second] = castOf(2)
-      return [{ ...first, lead: true }, second]
+      return [{ ...first, tier: 'lead' }, { ...second, tier: 'minor' }]
     }
 
-    it('should collect several main cast changes and save them in one request', async () => {
+    it('should collect several tier changes and save only the changed ones in one request', async () => {
       const user = userEvent.setup()
       const onUpdate = jest.fn()
-      mockDetails({ cast: [...castWithLead(), ...castOf(3).slice(2)] })
+      mockDetails({ cast: [...tieredCast(), ...castOf(3).slice(2)] })
       renderModal({ onUpdate })
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Main: Actor 3 as Character 3' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.selectOptions(tierSelect('Actor 3 as Character 3'), 'supporting')
 
       expect(mockPatch).not.toHaveBeenCalled()
-      expect(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
+      expect(tierSelect('Actor 2 as Character 2')).toHaveValue('major')
 
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
       expect(mockPatch).toHaveBeenCalledTimes(1)
-      expect(mockPatch.mock.calls[0][0]).toBe(API_ENDPOINTS.film('film1'))
-      expect(savedLeadIds()).toEqual(['actor1', 'actor2', 'actor3'])
+      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), {
+        castTiers: { actor2: 'major', actor3: 'supporting' },
+      })
       expect(onUpdate).not.toHaveBeenCalled()
-      expect(screen.queryByRole('button', { name: 'Save main cast' })).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Main: Actor 3 as Character 3' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.queryByRole('button', { name: 'Save cast tiers' })).not.toBeInTheDocument()
+      expect(tierSelect('Actor 3 as Character 3')).toHaveValue('supporting')
     })
 
-    it('should save after removing the last main cast member', async () => {
+    it('should only offer to save when a tier differs from the saved one', async () => {
       const user = userEvent.setup()
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 1 as Character 1' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      expect(await findTierSelect('Actor 2 as Character 2')).toHaveValue('minor')
+      expect(screen.queryByRole('button', { name: 'Save cast tiers' })).not.toBeInTheDocument()
 
-      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), { leadActorIds: [] })
-      expect(screen.getByRole('button', { name: 'Main: Actor 1 as Character 1' })).toHaveAttribute('aria-pressed', 'false')
+      await user.selectOptions(tierSelect('Actor 2 as Character 2'), 'major')
+      expect(screen.getByRole('button', { name: 'Save cast tiers' })).toBeInTheDocument()
+
+      await user.selectOptions(tierSelect('Actor 2 as Character 2'), 'minor')
+      expect(screen.queryByRole('button', { name: 'Save cast tiers' })).not.toBeInTheDocument()
     })
 
-    it('should only offer to save when the main cast differs from the saved one', async () => {
-      const user = userEvent.setup()
-      mockDetails({ cast: castWithLead() })
+    it('should show an untiered cast member as having no tier until one is picked', async () => {
+      mockDetails({ cast: castOf(1) })
       renderModal()
 
-      expect(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: 'Save main cast' })).not.toBeInTheDocument()
+      expect(await findTierSelect('Actor 1 as Character 1')).toHaveValue('')
+      expect(screen.getByRole('option', { name: 'No tier' })).toBeDisabled()
+    })
 
-      await user.click(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      expect(screen.getByRole('button', { name: 'Save main cast' })).toBeInTheDocument()
+    it.each([
+      [castOf(3), '3 cast have no tier'],
+      [[...tieredCast(), ...castOf(3).slice(2)], '1 cast member has no tier'],
+    ])('should say how many cast have no tier', async (cast, note) => {
+      mockDetails({ cast })
+      renderModal()
 
-      await user.click(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      expect(screen.queryByRole('button', { name: 'Save main cast' })).not.toBeInTheDocument()
+      expect(await screen.findByText(note)).toBeInTheDocument()
+    })
+
+    it('should not show the note when every cast member has a tier', async () => {
+      mockDetails({ cast: tieredCast() })
+      renderModal()
+
+      await findTierSelect('Actor 1 as Character 1')
+      expect(screen.queryByText(/no tier$/)).not.toBeInTheDocument()
     })
 
     it('should discard unsaved changes on cancel', async () => {
       const user = userEvent.setup()
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Cancel main cast changes' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Cancel cast tier changes' }))
 
       expect(mockPatch).not.toHaveBeenCalled()
-      expect(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'false')
+      expect(tierSelect('Actor 2 as Character 2')).toHaveValue('minor')
     })
 
     it('should discard unsaved changes when the modal closes', async () => {
       const user = userEvent.setup()
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       const { rerender } = renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
       rerender(<FilmDetailModal film={film} isOpen={false} onClose={jest.fn()} onUpdate={jest.fn()} />)
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       rerender(<FilmDetailModal film={film} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />)
 
-      expect(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'false')
-      expect(screen.queryByRole('button', { name: 'Save main cast' })).not.toBeInTheDocument()
+      expect(await findTierSelect('Actor 2 as Character 2')).toHaveValue('minor')
+      expect(screen.queryByRole('button', { name: 'Save cast tiers' })).not.toBeInTheDocument()
     })
 
     it('should keep the unsaved changes and show an error when saving fails', async () => {
       const user = userEvent.setup()
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
       mockPatch.mockRejectedValueOnce(new Error('Network error'))
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
-      expect(await screen.findByText('Failed to save main cast. Please try again.')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
-      expect(screen.getByRole('button', { name: 'Save main cast' })).toBeInTheDocument()
+      expect(await screen.findByText('Failed to save cast tiers. Please try again.')).toBeInTheDocument()
+      expect(tierSelect('Actor 2 as Character 2')).toHaveValue('major')
+      expect(screen.getByRole('button', { name: 'Save cast tiers' })).toBeInTheDocument()
       consoleError.mockRestore()
     })
 
-    it('should keep main cast members hidden beyond the cast preview when saving', async () => {
+    it('should leave cast hidden beyond the preview out of the request', async () => {
       const user = userEvent.setup()
       const cast = castOf(8)
-      cast[7] = { ...cast[7], lead: true }
+      cast[7] = { ...cast[7], tier: 'lead' }
       mockDetails({ cast })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
       expect(screen.queryByText('Actor 8')).not.toBeInTheDocument()
-      expect(savedLeadIds()).toEqual(['actor2', 'actor8'])
+      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), { castTiers: { actor2: 'major' } })
     })
 
-    it('should tag every role of an actor who plays several, sending them once', async () => {
+    it('should give every role of an actor who plays several the tier, sending them once', async () => {
       const user = userEvent.setup()
       mockDetails({
         cast: [
@@ -354,48 +370,48 @@ describe('FilmDetailModal', () => {
       })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 1 as Role A' }))
+      await user.selectOptions(await findTierSelect('Actor 1 as Role A'), 'major')
 
-      expect(screen.getByRole('button', { name: 'Main: Actor 1 as Role B' })).toHaveAttribute('aria-pressed', 'true')
+      expect(tierSelect('Actor 1 as Role B')).toHaveValue('major')
 
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
-      expect(savedLeadIds()).toEqual(['actor1'])
+      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), { castTiers: { actor1: 'major' } })
     })
 
-    it('should never send a main cast member whose actor no longer exists', async () => {
+    it('should never send a cast member whose actor no longer exists', async () => {
       const user = userEvent.setup()
       mockDetails({
         cast: [
-          { actor: null, character: 'Gone', order: 0, lead: true },
+          { actor: null, character: 'Gone', order: 0, tier: 'lead' },
           { actor: actor(2), character: 'Character 2', order: 1 },
         ],
       })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'minor')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
-      expect(savedLeadIds()).toEqual(['actor2'])
+      expect(mockPatch).toHaveBeenCalledWith(API_ENDPOINTS.film('film1'), { castTiers: { actor2: 'minor' } })
     })
 
-    it('should disable the main cast controls while saving', async () => {
+    it('should disable the tier controls while saving', async () => {
       const user = userEvent.setup()
       const pending = deferred()
       mockPatch.mockReturnValueOnce(pending.promise)
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
       expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled()
-      expect(screen.getByRole('button', { name: 'Cancel main cast changes' })).toBeDisabled()
-      expect(screen.getByRole('button', { name: 'Main: Actor 1 as Character 1' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Cancel cast tier changes' })).toBeDisabled()
+      expect(tierSelect('Actor 1 as Character 1')).toBeDisabled()
 
       await act(async () => pending.resolve({}))
 
-      expect(screen.getByRole('button', { name: 'Main: Actor 1 as Character 1' })).toBeEnabled()
+      expect(tierSelect('Actor 1 as Character 1')).toBeEnabled()
     })
 
     it('should not show an error for a save that fails after the modal closes', async () => {
@@ -403,18 +419,18 @@ describe('FilmDetailModal', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
       let rejectPatch!: (error: Error) => void
       mockPatch.mockReturnValueOnce(new Promise((_, reject) => { rejectPatch = reject }))
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       const { rerender } = renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
       rerender(<FilmDetailModal film={film} isOpen={false} onClose={jest.fn()} onUpdate={jest.fn()} />)
       await act(async () => rejectPatch(new Error('Network error')))
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       rerender(<FilmDetailModal film={film} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />)
 
-      expect(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' })).toBeEnabled()
-      expect(screen.queryByText('Failed to save main cast. Please try again.')).not.toBeInTheDocument()
+      expect(await findTierSelect('Actor 2 as Character 2')).toBeEnabled()
+      expect(screen.queryByText('Failed to save cast tiers. Please try again.')).not.toBeInTheDocument()
       consoleError.mockRestore()
     })
 
@@ -422,31 +438,31 @@ describe('FilmDetailModal', () => {
       const user = userEvent.setup()
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
       mockPatch.mockRejectedValueOnce(new Error('Network error'))
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
-      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to save main cast. Please try again.')
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
+      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to save cast tiers. Please try again.')
 
-      await user.click(screen.getByRole('button', { name: 'Cancel main cast changes' }))
+      await user.click(screen.getByRole('button', { name: 'Cancel cast tier changes' }))
 
-      expect(screen.queryByText('Failed to save main cast. Please try again.')).not.toBeInTheDocument()
+      expect(screen.queryByText('Failed to save cast tiers. Please try again.')).not.toBeInTheDocument()
       consoleError.mockRestore()
     })
 
-    it('should keep unsaved main cast changes when the rating or owned status updates', async () => {
+    it('should keep unsaved tier changes when the rating or owned status updates', async () => {
       const user = userEvent.setup()
-      mockDetails({ cast: castWithLead() })
+      mockDetails({ cast: tieredCast() })
       const { rerender } = renderModal()
 
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
       rerender(
         <FilmDetailModal film={{ ...film, rating: 9, owned: false }} isOpen onClose={jest.fn()} onUpdate={jest.fn()} />
       )
 
-      expect(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'true')
-      expect(screen.getByRole('button', { name: 'Save main cast' })).toBeInTheDocument()
+      expect(tierSelect('Actor 2 as Character 2')).toHaveValue('major')
+      expect(screen.getByRole('button', { name: 'Save cast tiers' })).toBeInTheDocument()
     })
   })
 
@@ -494,7 +510,10 @@ describe('FilmDetailModal', () => {
         <FilmDetailModal film={current} isOpen={isOpen} onClose={jest.fn()} onUpdate={jest.fn()} />
       )
 
-    it("should not show the previous film's failed lead save", async () => {
+    const tierSelect = (name: string) => screen.getByRole('combobox', { name: `Tier: ${name}` })
+    const findTierSelect = (name: string) => screen.findByRole('combobox', { name: `Tier: ${name}` })
+
+    it("should not show the previous film's failed tier save", async () => {
       const user = userEvent.setup()
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {})
       const mockPatch = jest.fn()
@@ -503,20 +522,20 @@ describe('FilmDetailModal', () => {
       mockPatch.mockReturnValueOnce(new Promise((_, reject) => { rejectPatch = reject }))
       mockDetails({ cast: castOf(2) })
       const { rerender } = renderModal()
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
       mockDetails({ _id: 'film2', cast: castOf(2) })
       renderFilm(rerender, otherFilm)
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 1 as Character 1' }))
+      await user.selectOptions(await findTierSelect('Actor 1 as Character 1'), 'lead')
       await act(async () => rejectPatch(new Error('Network error')))
 
-      expect(screen.getByRole('button', { name: 'Save main cast' })).toBeInTheDocument()
-      expect(screen.queryByText('Failed to save main cast. Please try again.')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Save cast tiers' })).toBeInTheDocument()
+      expect(screen.queryByText('Failed to save cast tiers. Please try again.')).not.toBeInTheDocument()
       consoleError.mockRestore()
     })
 
-    it("should not apply the previous film's lead save to the new film", async () => {
+    it("should not apply the previous film's tier save to the new film", async () => {
       const user = userEvent.setup()
       const mockPatch = jest.fn()
       mockAxiosCreate.mockReturnValue({ patch: mockPatch })
@@ -524,33 +543,30 @@ describe('FilmDetailModal', () => {
       mockPatch.mockReturnValueOnce(pending.promise)
       mockDetails({ cast: castOf(2) })
       const { rerender } = renderModal()
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
-      await user.click(screen.getByRole('button', { name: 'Save main cast' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
+      await user.click(screen.getByRole('button', { name: 'Save cast tiers' }))
 
       mockDetails({ _id: 'film2', cast: castOf(2) })
       renderFilm(rerender, otherFilm)
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 1 as Character 1' }))
+      await user.selectOptions(await findTierSelect('Actor 1 as Character 1'), 'lead')
       await act(async () => pending.resolve({}))
 
-      expect(screen.getByRole('button', { name: 'Save main cast' })).toBeInTheDocument()
-      await user.click(screen.getByRole('button', { name: 'Cancel main cast changes' }))
-      expect(screen.getByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.getByRole('button', { name: 'Save cast tiers' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Cancel cast tier changes' }))
+      expect(tierSelect('Actor 2 as Character 2')).toHaveValue('')
     })
 
-    it('should discard unsaved main cast changes', async () => {
+    it('should discard unsaved tier changes', async () => {
       const user = userEvent.setup()
       mockDetails({ cast: castOf(2) })
       const { rerender } = renderModal()
-      await user.click(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' }))
+      await user.selectOptions(await findTierSelect('Actor 2 as Character 2'), 'major')
 
       mockDetails({ _id: 'film2', cast: castOf(2) })
       renderFilm(rerender, otherFilm)
 
-      expect(await screen.findByRole('button', { name: 'Main: Actor 2 as Character 2' })).toHaveAttribute(
-        'aria-pressed',
-        'false'
-      )
-      expect(screen.queryByRole('button', { name: 'Save main cast' })).not.toBeInTheDocument()
+      expect(await findTierSelect('Actor 2 as Character 2')).toHaveValue('')
+      expect(screen.queryByRole('button', { name: 'Save cast tiers' })).not.toBeInTheDocument()
     })
 
     it("should show loading rather than the previous film's cast", async () => {

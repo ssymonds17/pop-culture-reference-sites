@@ -25,3 +25,6 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Cast tier agent runs
+scripts/cast-tiers/runs/

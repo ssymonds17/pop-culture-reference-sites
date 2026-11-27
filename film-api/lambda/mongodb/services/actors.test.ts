@@ -6,7 +6,7 @@ import {
   findActorsByName,
   updateActorStats,
   updateCastActorStats,
-  SUPPORTING_ROLE_WEIGHT,
+  TIER_POINTS,
 } from "./actors"
 import Actor from "../models/actor"
 import Film from "../models/film"
@@ -190,44 +190,60 @@ describe("actors service", () => {
       expect(result).toEqual({
         _id: "actor1",
         displayName: "Actor One",
-        films: [{ _id: "film1", lead: false }],
+        films: [{ _id: "film1" }],
       })
     })
 
-    it("should mark each film as a lead or supporting role for the actor", async () => {
+    it("should give each film the actor's tier in it", async () => {
       mockActorFilms([
-        { _id: "lead", cast: [{ actor: "actor1", lead: true }] },
-        { _id: "support", cast: [{ actor: "actor1" }, { actor: "actor2", lead: true }] },
-        { _id: "untagged", cast: [{ actor: "actor1", lead: false }] },
+        { _id: "lead", cast: [{ actor: "actor1", tier: "lead" }] },
+        { _id: "minor", cast: [{ actor: "actor1", tier: "minor" }, { actor: "actor2", tier: "lead" }] },
+        { _id: "untiered", cast: [{ actor: "actor1" }] },
       ])
 
       const result = await getActorByTmdbPersonId("123")
 
-      expect(result?.films.map((film: any) => [film._id, film.lead])).toEqual([
-        ["lead", true],
-        ["support", false],
-        ["untagged", false],
+      expect(result?.films.map((film: any) => [film._id, film.tier])).toEqual([
+        ["lead", "lead"],
+        ["minor", "minor"],
+        ["untiered", undefined],
       ])
     })
 
-    it("should count the actor as the lead when any of their roles in a film is", async () => {
+    it("should give the actor their highest tier when they play several roles in a film", async () => {
       mockActorFilms([
         {
           _id: "film1",
           cast: [
-            { actor: "actor1", lead: false },
-            { actor: "actor1", lead: true },
+            { actor: "actor1", tier: "minor" },
+            { actor: "actor1", tier: "major" },
           ],
         },
       ])
 
       const result = await getActorByTmdbPersonId("123")
 
-      expect(result?.films[0]).toMatchObject({ lead: true })
+      expect(result?.films[0]).toMatchObject({ tier: "major" })
+    })
+
+    it("should ignore an untiered role when the actor has a tiered one in the same film", async () => {
+      mockActorFilms([
+        {
+          _id: "film1",
+          cast: [
+            { actor: "actor1" },
+            { actor: "actor1", tier: "minor" },
+          ],
+        },
+      ])
+
+      const result = await getActorByTmdbPersonId("123")
+
+      expect(result?.films[0]).toMatchObject({ tier: "minor" })
     })
 
     it("should leave the cast out of the films it returns", async () => {
-      mockActorFilms([{ _id: "film1", cast: [{ actor: "actor1", lead: true }] }])
+      mockActorFilms([{ _id: "film1", cast: [{ actor: "actor1", tier: "lead" }] }])
 
       const result = await getActorByTmdbPersonId("123")
 
@@ -297,7 +313,7 @@ describe("actors service", () => {
 
     it("should save stats calculated from the films the actor is cast in", async () => {
       const actor = mockActorWithFilms([
-        { watched: true, rating: 9, cast: [{ actor: "actor1", lead: true }] },
+        { watched: true, rating: 9, cast: [{ actor: "actor1", tier: "lead" }] },
         { watched: false, cast: [{ actor: "actor1" }] },
       ])
 
@@ -305,7 +321,7 @@ describe("actors service", () => {
 
       expect(mockFilm.find).toHaveBeenCalledWith(
         { "cast.actor": "actor1" },
-        "watched rating cast.actor cast.lead",
+        "watched rating cast.actor cast.tier",
       )
       expect(actor.save).toHaveBeenCalledTimes(1)
       expect(actor).toMatchObject({
@@ -317,31 +333,43 @@ describe("actors service", () => {
       })
     })
 
-    it("should give a supporting role a share of the points", async () => {
+    it.each([
+      ["major", 7],
+      ["supporting", 4],
+      ["minor", 2],
+    ])("should give a %s role its share of the points", async (tier, points) => {
       const actor = mockActorWithFilms([
         {
           watched: true,
           rating: 9,
           cast: [
-            { actor: "actor2", lead: true },
-            { actor: "actor1" },
+            { actor: "actor2", tier: "lead" },
+            { actor: "actor1", tier },
           ],
         },
       ])
 
       await updateActorStats("actor1")
 
-      expect(actor.totalPoints).toBe(10 * SUPPORTING_ROLE_WEIGHT)
+      expect(actor.totalPoints).toBe(points)
     })
 
-    it("should give full points when any of the actor's roles in a film is a lead", async () => {
+    it("should count a role with no tier as supporting", async () => {
+      const actor = mockActorWithFilms([{ watched: true, rating: 9, cast: [{ actor: "actor1" }] }])
+
+      await updateActorStats("actor1")
+
+      expect(actor.totalPoints).toBe(10 * TIER_POINTS.supporting)
+    })
+
+    it("should use the actor's highest tier when they play several roles in a film", async () => {
       const actor = mockActorWithFilms([
         {
           watched: true,
           rating: 9,
           cast: [
-            { actor: "actor1", lead: false },
-            { actor: "actor1", lead: true },
+            { actor: "actor1", tier: "minor" },
+            { actor: "actor1", tier: "lead" },
           ],
         },
       ])

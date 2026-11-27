@@ -1,4 +1,5 @@
 import Film, {
+  CastTier,
   EXCLUDE_DETAIL_FIELDS,
   EXCLUDE_DETAIL_FIELDS_PROJECTION,
   FilmData,
@@ -95,7 +96,7 @@ export interface FilmUpdates {
   rating?: number | null
   owned?: boolean
   review?: string | null
-  leadActorIds?: string[]
+  castTiers?: Record<string, CastTier> // Keyed by actor ID; cast left out keep their tier
 }
 
 export const findCollectedTmdbIds = async (tmdbIds: string[]) => {
@@ -109,7 +110,7 @@ export const findCollectedTmdbIds = async (tmdbIds: string[]) => {
 
 export const updateFilm = async (
   id: string,
-  { rating, owned, review, leadActorIds }: FilmUpdates,
+  { rating, owned, review, castTiers }: FilmUpdates,
 ) => {
   const updates: any = {}
   const unsets: any = {}
@@ -141,16 +142,12 @@ export const updateFilm = async (
     }
   }
 
-  // The full set of leads is sent each time, so every other cast member is marked as support.
+  // One filter per actor, so an actor with several roles gets the tier on each of them.
   const arrayFilters: Record<string, unknown>[] = []
-  if (leadActorIds !== undefined) {
-    updates["cast.$[lead].lead"] = true
-    updates["cast.$[support].lead"] = false
-    arrayFilters.push(
-      { "lead.actor": { $in: leadActorIds } },
-      { "support.actor": { $nin: leadActorIds } },
-    )
-  }
+  Object.entries(castTiers ?? {}).forEach(([actorId, tier], index) => {
+    updates[`cast.$[member${index}].tier`] = tier
+    arrayFilters.push({ [`member${index}.actor`]: actorId })
+  })
 
   const updateQuery: any = {}
   if (Object.keys(updates).length > 0) {
