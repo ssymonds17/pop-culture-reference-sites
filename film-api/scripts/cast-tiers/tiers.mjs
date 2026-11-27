@@ -138,3 +138,58 @@ export const scoreAgainstLabels = (rows) => {
     moreThanOneOut: rows.filter((row) => tierDistance(row.tier, row.label) > 1),
   }
 }
+
+const REVIEW_FILM_COLUMN = 0
+const REVIEW_ACTOR_COLUMN = 4
+const REVIEW_DECISION_COLUMN = 9
+
+// Returns a Map of film TMDb id to a Map of actor TMDb id to tier: hand labels for the test films,
+// otherwise the combined judges' tiers with review decisions in their place.
+export const tiersToApply = ({ labelFilms, results, reviewCsv }) => {
+  const errors = []
+  const tiers = new Map()
+  for (const film of results) {
+    tiers.set(film.filmId, new Map(film.cast.map((member) => [member.tmdbId, member.tier])))
+  }
+
+  const [, ...reviewRows] = parseCsv(reviewCsv)
+  reviewRows.forEach((columns, index) => {
+    const filmId = columns[REVIEW_FILM_COLUMN]
+    const tmdbId = Number(columns[REVIEW_ACTOR_COLUMN])
+    const decision = (columns[REVIEW_DECISION_COLUMN] ?? "").trim()
+    const filmTiers = tiers.get(filmId)
+    if (!TIERS.includes(decision)) {
+      errors.push(`review.csv row ${index + 2}: decision "${decision}" is not a tier`)
+    } else if (!filmTiers?.has(tmdbId)) {
+      errors.push(`review.csv row ${index + 2}: actor ${tmdbId} is not in the results for film ${filmId}`)
+    } else {
+      filmTiers.set(tmdbId, decision)
+    }
+  })
+
+  for (const film of labelFilms) {
+    if (tiers.has(film.filmId)) {
+      errors.push(`${film.title}: in both the test labels and the results`)
+      continue
+    }
+    tiers.set(film.filmId, new Map(film.cast.map((member) => [member.tmdbId, member.label])))
+  }
+  return { tiers, errors }
+}
+
+// Matches a stored cast, given as [{ tmdbId, tier }] in stored order, against the tiers for its film.
+// Returns the changes by cast index, or errors when the two casts differ.
+export const castTierChanges = (storedCast, filmTiers) => {
+  const errors = []
+  const storedIds = new Set(storedCast.map((member) => member.tmdbId))
+  for (const tmdbId of filmTiers.keys()) {
+    if (!storedIds.has(tmdbId)) errors.push(`actor ${tmdbId} has a tier but is not in the stored cast`)
+  }
+  const changes = []
+  storedCast.forEach((member, index) => {
+    const tier = filmTiers.get(member.tmdbId)
+    if (!tier) errors.push(`actor ${member.tmdbId} is in the stored cast but has no tier`)
+    else if (member.tier !== tier) changes.push({ index, tier })
+  })
+  return { changes: errors.length > 0 ? [] : changes, errors }
+}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   castMarkdown,
+  castTierChanges,
   filmFromDocument,
   finalTiers,
   middleTier,
@@ -9,6 +10,7 @@ import {
   parseCsv,
   parseLabels,
   scoreAgainstLabels,
+  tiersToApply,
   validateJudgement,
 } from "./tiers.mjs"
 
@@ -176,5 +178,70 @@ describe("scoreAgainstLabels", () => {
 
   it("scores an empty set as zero rather than dividing by zero", () => {
     assert.equal(scoreAgainstLabels([]).agreement, 0)
+  })
+})
+
+describe("tiersToApply", () => {
+  const REVIEW_HEADER = "film_tmdb_id,film,year,billing,actor_tmdb_id,actor,character,model_tier,judge_answers,decision\n"
+  const results = [{ filmId: "1", cast: [{ tmdbId: 10, tier: "lead" }, { tmdbId: 11, tier: "supporting" }] }]
+  const labelFilms = [{ filmId: "2", title: "Test", cast: [{ tmdbId: 20, label: "major" }] }]
+
+  it("puts review decisions in place of the judges' tiers and adds the test labels", () => {
+    const { tiers, errors } = tiersToApply({
+      labelFilms,
+      results,
+      reviewCsv: `${REVIEW_HEADER}1,Film,2000,2,11,B,Sidekick,supporting,x,minor\n`,
+    })
+    assert.deepEqual(errors, [])
+    assert.deepEqual([...tiers.get("1")], [[10, "lead"], [11, "minor"]])
+    assert.deepEqual([...tiers.get("2")], [[20, "major"]])
+  })
+
+  it("reports a decision that is not a tier or not in the results", () => {
+    const { errors } = tiersToApply({
+      labelFilms: [],
+      results,
+      reviewCsv: `${REVIEW_HEADER}1,Film,2000,2,11,B,,supporting,x,\n1,Film,2000,9,99,Z,,minor,x,minor\n`,
+    })
+    assert.deepEqual(errors, [
+      'review.csv row 2: decision "" is not a tier',
+      "review.csv row 3: actor 99 is not in the results for film 1",
+    ])
+  })
+
+  it("reports a film in both the test labels and the results", () => {
+    const { errors } = tiersToApply({
+      labelFilms: [{ ...labelFilms[0], filmId: "1" }],
+      results,
+      reviewCsv: REVIEW_HEADER,
+    })
+    assert.deepEqual(errors, ["Test: in both the test labels and the results"])
+  })
+})
+
+describe("castTierChanges", () => {
+  const filmTiers = new Map([
+    [10, "lead"],
+    [11, "minor"],
+  ])
+
+  it("returns the cast indexes whose tier differs, giving every role of an actor the tier", () => {
+    const stored = [{ tmdbId: 10, tier: "lead" }, { tmdbId: 11 }, { tmdbId: 11, tier: "major" }]
+    assert.deepEqual(castTierChanges(stored, filmTiers), {
+      changes: [
+        { index: 1, tier: "minor" },
+        { index: 2, tier: "minor" },
+      ],
+      errors: [],
+    })
+  })
+
+  it("returns no changes when the stored cast and the tiers differ", () => {
+    const { changes, errors } = castTierChanges([{ tmdbId: 10 }, { tmdbId: 12 }], filmTiers)
+    assert.deepEqual(changes, [])
+    assert.deepEqual(errors, [
+      "actor 11 has a tier but is not in the stored cast",
+      "actor 12 is in the stored cast but has no tier",
+    ])
   })
 })
