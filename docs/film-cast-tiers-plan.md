@@ -1,9 +1,9 @@
 # Film cast tiers
 
-Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a workflow, not the API, and to four tiers.
+Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a workflow, not the API, and to four tiers. Applied to the watched films on 27-11-2026.
 
 ## Context
-- **What happens today:** each film stores its top 15 credited cast in TMDb billing order (`creditedCast` in `film-api/lambda/tmdb-cast.ts`).
+- **Before this change:** each film stores its top 15 credited cast in TMDb billing order (`creditedCast` in `film-api/lambda/tmdb-cast.ts`).
   - Leads are tagged by hand with `cast[].lead`, through the Main toggle in `FilmDetailModal`.
   - An actor earns a film's full points as a lead and `SUPPORTING_ROLE_WEIGHT = 0.4` otherwise (`film-api/lambda/mongodb/services/actors.ts`).
 - **What's wrong with that:**
@@ -28,6 +28,8 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
 - **A separate web search in each judging run:** each run could read different pages, so disagreements would reflect the sources found, not the model's uncertainty. Researching once gives all three runs the same evidence.
 - **A separate cameo tier below minor (0.1 points):** the line between minor and cameo was too vague to label consistently. In the first test run, 61 of the 151 misses were between those two tiers, a difference of 0.1 points.
 - **Averaging the answers, or always taking the lowest tier:** tiers aren't numbers, so there's nothing to average. Taking the lowest lets one stray answer override two that agree.
+- **A marker for untiered cast in the film list:** list queries leave out `cast`, so it would need the cast back in every list response or a new stored flag. Once the watched films are tiered, only newly added films are untiered, and the note in the film detail modal covers them.
+- **Hiding the untiered state in the frontend only:** the frontend can't tell an untiered role from a real supporting one if the API reports both as `supporting`, so the actor endpoint omits the tier instead.
 
 ## Tiers and points
 
@@ -40,7 +42,7 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
 
 - A tier reflects how much of the story belongs to the character, never billing, fame or character type.
 - A film has as many leads as it needs: one, a pair, several, or none when an ensemble spreads the story thinly.
-- Cast with no tier count as `supporting` (0.4) until set.
+- Cast with no tier count as `supporting` (0.4) until set, but show as having no tier: the actor endpoint leaves `tier` out for them.
 - An actor with several roles in a film takes their highest tier.
 
 ## How a film is classified
@@ -98,16 +100,28 @@ Agreed on 23-11-2026. Changed on 24-11-2026 to run as Claude Code agents in a wo
 2. **Data and app:**
    - Replace `cast[].lead` with `cast[].tier`.
    - Set the tier points in `updateActorStats`.
-   - Replace `leadActorIds` on PATCH `/film/{id}` with an actor-to-tier map.
+   - Replace `leadActorIds` on PATCH `/film/{id}` with `castTiers`, a partial map of actor ID to tier. Actors left out keep their tier, and an actor with several roles gets the tier on each.
    - Replace the Main toggle with a four-option tier picker.
    - Show the tier name in the person modal.
-   - Flag films whose cast has no tiers.
+   - Flag films whose cast has no tiers, with a note in the film detail modal.
 3. **Full run:**
    - `prepare.mjs --all-watched` exports the watched films' casts from the database, read-only, skipping the test films.
    - The workflow runs in batches of about 50 films, as one workflow is capped at 1,000 agents.
    - `score.mjs --all-watched` combines the answers into `runs/watched-results.json`.
 4. **Apply:**
-   - Review the logged films.
-   - Apply the tiers from the file in a separate step.
-   - Recalculate actor stats.
-5. **Clean up:** remove `cast[].lead`, `leadActorIds` and `SUPPORTING_ROLE_WEIGHT`.
+   - Review the logged cast, recording each decision in `film-api/scripts/cast-tiers/review.csv`.
+   - `apply.mjs` writes `cast[].tier`: the hand labels for the test films, otherwise `runs/watched-results.json` with the review decisions in place of the flagged rows. It checks every film before writing, skips casts already up to date, and takes `--dry-run` and `--film=<TMDb id>`.
+   - Deploy the API first, so nothing recalculates actor stats with the old lead weights.
+   - Recalculate actor stats with `backfill-tmdb-credits.mjs`.
+5. **Clean up:** remove `cast[].lead` from the schema and the stored films. `leadActorIds` and `SUPPORTING_ROLE_WEIGHT` went with the data and app changes.
+
+## Full run and apply, 25-11-2026 to 27-11-2026
+- **Full run:** 478 films in 10 batches, run two at a time. No answer was missing or invalid, no agent read the labels file, and no judge used the web.
+- **Usage:** a two-batch run took 384 agents, about 19.5 million subagent tokens and 25 minutes.
+- **Review:** 176 cast across 131 films were flagged, under 3% of the cast. The labeller kept the judges' tier for 149 and changed 27: 24 from supporting to minor, and the three shared voices of Wart in *The Sword in the Stone* to lead.
+- **Drift:** at the line between supporting and minor, the judges lean towards supporting despite the rule to choose the lower tier.
+- **Rollout:**
+  1. The API was deployed and tested on *Hot Fuzz* through PATCH `/film/{id}`: tiers landed on the right cast, actor points matched the expected values, and a bad tier was rejected.
+  2. `apply.mjs` ran on *Hot Fuzz* alone, then on every watched film: 508 films and 6,599 cast (785 lead, 734 major, 1,241 supporting, 3,839 minor).
+  3. The stats backfill updated 3,491 of 24,536 actors, 420 up and 3,071 down. A second dry run found no drift.
+- **Afterwards:** unwatched films stay untiered. The actor endpoint shows no tier for them, and the film detail modal notes untiered cast.
