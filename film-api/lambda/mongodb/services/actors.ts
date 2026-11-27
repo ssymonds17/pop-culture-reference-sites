@@ -50,14 +50,23 @@ export const findActorsMissingImdbId = async (tmdbPersonIds: string[]) => {
 export const TIER_POINTS: Record<CastTier, number> = { lead: 1, major: 0.7, supporting: 0.4, minor: 0.2 }
 const UNSET_TIER: CastTier = "supporting"
 
+const rolesOf = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  (cast ?? []).filter((member) => member.actor.toString() === actorId.toString())
+
 // An actor with several roles in a film takes the highest tier among them.
-const tierIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId): CastTier => {
-  const tiers = (cast ?? [])
-    .filter((member) => member.actor.toString() === actorId.toString())
-    .map((member) => member.tier ?? UNSET_TIER)
-  if (tiers.length === 0) return UNSET_TIER
-  return tiers.reduce((best, tier) => (TIER_POINTS[tier] > TIER_POINTS[best] ? tier : best))
-}
+const highestTier = (tiers: CastTier[]) =>
+  tiers.reduce<CastTier | undefined>(
+    (best, tier) => (!best || TIER_POINTS[tier] > TIER_POINTS[best] ? tier : best),
+    undefined,
+  )
+
+// Undefined when none of the actor's roles has a tier.
+const storedTierIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  highestTier(rolesOf(cast, actorId).flatMap((member) => (member.tier ? [member.tier] : [])))
+
+// An untiered role still earns points, as supporting.
+const scoringTierIn = (cast: CastMember[] | undefined, actorId: mongoose.Types.ObjectId) =>
+  highestTier(rolesOf(cast, actorId).map((member) => member.tier ?? UNSET_TIER)) ?? UNSET_TIER
 
 export const getActors = async (sortBy?: string) => {
   return Actor.find({ totalFilms: { $gt: 0 }, ...personStatsFilter(sortBy) })
@@ -84,7 +93,7 @@ export const getActorByTmdbPersonId = async (tmdbPersonId: string) => {
     ...actor.toObject(),
     films: films.map((film) => {
       const { cast, ...rest } = film.toObject()
-      return { ...rest, tier: tierIn(cast, actor._id) }
+      return { ...rest, tier: storedTierIn(cast, actor._id) }
     }),
   }
 }
@@ -117,7 +126,7 @@ export const updateActorStats = async (actorId: string) => {
   const weightedFilms = films.map((film) => ({
     watched: film.watched,
     rating: film.rating,
-    pointsWeight: TIER_POINTS[tierIn(film.cast, actor._id)],
+    pointsWeight: TIER_POINTS[scoringTierIn(film.cast, actor._id)],
   }))
   Object.assign(actor, calculatePersonStats(weightedFilms))
 

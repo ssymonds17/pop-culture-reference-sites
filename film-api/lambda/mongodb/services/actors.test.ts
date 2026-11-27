@@ -190,7 +190,7 @@ describe("actors service", () => {
       expect(result).toEqual({
         _id: "actor1",
         displayName: "Actor One",
-        films: [{ _id: "film1", tier: "supporting" }],
+        films: [{ _id: "film1" }],
       })
     })
 
@@ -206,7 +206,7 @@ describe("actors service", () => {
       expect(result?.films.map((film: any) => [film._id, film.tier])).toEqual([
         ["lead", "lead"],
         ["minor", "minor"],
-        ["untiered", "supporting"],
+        ["untiered", undefined],
       ])
     })
 
@@ -224,6 +224,22 @@ describe("actors service", () => {
       const result = await getActorByTmdbPersonId("123")
 
       expect(result?.films[0]).toMatchObject({ tier: "major" })
+    })
+
+    it("should ignore an untiered role when the actor has a tiered one in the same film", async () => {
+      mockActorFilms([
+        {
+          _id: "film1",
+          cast: [
+            { actor: "actor1" },
+            { actor: "actor1", tier: "minor" },
+          ],
+        },
+      ])
+
+      const result = await getActorByTmdbPersonId("123")
+
+      expect(result?.films[0]).toMatchObject({ tier: "minor" })
     })
 
     it("should leave the cast out of the films it returns", async () => {

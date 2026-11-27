@@ -15,9 +15,10 @@ docs {
   film they are credited in (newest first, directors populated).
 
   Each film has the actor's tier in it: lead, major, supporting or minor. An
-  actor with several roles takes their highest tier, and a role with no tier
-  counts as supporting. The films leave out cast, production companies and
-  collection, like the film lists.
+  actor with several roles takes their highest tier, and tier is absent when
+  none of their roles has one (such a role is still scored as supporting). The
+  films leave out cast, production companies and collection, like the film
+  lists.
 
   The actor has imdbPersonId once it has been looked up: an IMDb "nm" ID, or
   null when TMDb has none. It is absent for people never looked up.
