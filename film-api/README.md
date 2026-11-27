@@ -92,7 +92,7 @@ Endpoints marked **Auth** need a Clerk session token in an `Authorization: Beare
 | `POST` | `/film` | Auth | Create a film from a TMDb ID (or from full film data) |
 | `GET` | `/films` | | List films, with filters (up to 500) |
 | `GET` | `/film/{id}` | | Get a single film with its cast, production companies and collection |
-| `PATCH` | `/film/{id}` | Auth | Update a film's rating, owned status, review or lead actors |
+| `PATCH` | `/film/{id}` | Auth | Update a film's rating, owned status, review or cast tiers |
 | `DELETE` | `/film/{id}` | Auth | Delete a film |
 | `GET` | `/genres` | | List all genres |
 | `GET` | `/random` | | Random owned films, with filters |
@@ -106,7 +106,7 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/directors` | | Directors ranked by a stat (up to 200; the average-rating ranking needs 2+ rated films) |
 | `GET` | `/director/{tmdbPersonId}` | | A director with their films |
 | `GET` | `/actors` | | Actors ranked by a stat (up to 200, only actors with films; the average-rating ranking needs 2+ rated films) |
-| `GET` | `/actor/{tmdbPersonId}` | | An actor with the films they are credited in, each marked `lead` true or false |
+| `GET` | `/actor/{tmdbPersonId}` | | An actor with the films they are credited in, each with the actor's highest cast tier, left out when untiered |
 
 ### Statistics
 
@@ -133,20 +133,32 @@ Film lists leave out `cast`, `productionCompanies` and `tmdbCollection` to keep 
 | `GET` | `/tmdb/{tmdbId}` | | Preview a film's TMDb details without saving it |
 | `GET` | `/tmdb/person/{tmdbPersonId}?kind=actor\|director` | Auth | A person's released films outside the collection, with IMDb ratings from OMDb, leaving out films with fewer than 1,000 IMDb votes or no IMDb data |
 
+The person films lookups share a 20-second budget (`LOOKUP_BUDGET_MS`), so a very large filmography can lose the films not reached in time. A film you own where the person is billed below the stored cast (`MAX_CAST`) is in neither list.
+
 ## Keeping Stats in Step
 
-Director, actor, year and top-film data is recalculated automatically when a film is created, is sent a rating update or is deleted. Actor stats are also recalculated when a film's lead actors change. The scripts below cover data that predates a feature, or drift.
+Director, actor, year and top-film data is recalculated automatically when a film is created, is sent a rating update or is deleted. Actor stats are also recalculated when a film's cast tiers change. The scripts below cover data that predates a feature, or drift.
 
-Actors earn full points for films where they are tagged as a lead and 40% (`SUPPORTING_ROLE_WEIGHT`) for supporting roles. Every cast member is support until tagged.
+Actors earn a share of each film's points by cast tier (`TIER_POINTS` in `lambda/mongodb/services/actors.ts`):
+
+| Tier | Share |
+| ---- | ----- |
+| `lead` | 1.0 |
+| `major` | 0.7 |
+| `supporting` | 0.4 |
+| `minor` | 0.2 |
+
+A tier reflects how much of the story belongs to the character, not billing or fame, and a film can have any number of leads. An actor with several roles in a film takes their highest tier. Untiered cast score as `supporting` but show no tier. Set tiers for newly watched films in the film detail modal; [`scripts/cast-tiers/`](scripts/cast-tiers/README.md) tiered the existing collection.
 
 ## Scripts
 
 Run from `film-api/` with `.env` in place. Each supports `--dry-run`, skips records that are already up to date, prints the database host it connects to, and is safe to run again.
 
-- **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Run it after changing `SUPPORTING_ROLE_WEIGHT` to apply the new weight to stored points. With `--extend`, it also tops up stored casts shorter than `MAX_CAST` (`lambda/tmdb-cast.ts`) after the cap is raised, appending only so lead tags are kept; run `backfill-person-imdb-ids.mjs` afterwards for the new actors. Films TMDb credits fewer people for are fetched again on each `--extend` run. Also accepts `--limit=N` for a spot check, applied to each phase. Needs `TMDB_API_KEY`.
+- **`scripts/backfill-tmdb-credits.mjs`**: Fetches cast, production companies and collection from TMDb for films that have never had them, then recalculates every actor's stats. Run it after changing `TIER_POINTS` to apply the new points to stored stats. With `--extend`, it also tops up stored casts shorter than `MAX_CAST` (`lambda/tmdb-cast.ts`) after the cap is raised, appending only so stored tiers are kept; run `backfill-person-imdb-ids.mjs` afterwards for the new actors. Films TMDb credits fewer people for are fetched again on each `--extend` run. Also accepts `--limit=N` for a spot check, applied to each phase. Needs `TMDB_API_KEY`.
 - **`scripts/backfill-film-search-titles.mjs`**: Sets each film's accent-folded `searchTitle` from its title.
 - **`scripts/trim-film-cast.mjs`**: One-off that trims every film's cast to the top 15 by billing order and deletes actors left in no film. Run `backfill-tmdb-credits.mjs` straight after it to recalculate actor stats.
 - **`scripts/backfill-person-imdb-ids.mjs`**: Fetches the IMDb person ID from TMDb for every actor and director never looked up, saving null when TMDb has none. New films look these up when they're created, so this covers people added before that and any lookup that failed. Also accepts `--limit=N` (per collection). Needs `TMDB_API_KEY`.
+- **`scripts/cast-tiers/unset-lead.mjs`**: One-off that removes the `cast[].lead` flag that cast tiers replaced.
 - **`scripts/backfill-director-photos.mjs`**: Fetches a TMDb profile photo for every director without one. Also accepts `--limit=N`. Needs `TMDB_API_KEY`.
 
 ```bash
